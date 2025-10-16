@@ -1,5 +1,4 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QInputDialog, QPushButton, QComboBox, QMessageBox
-from PyQt5.QtCore import QSize
 
 class ClassesWidget(QWidget):
     def __init__(self,parent, data):
@@ -21,12 +20,13 @@ class ClassesWidget(QWidget):
         class_name, ok = QInputDialog.getText(self, 'Dodaj Klasę', 'Klasa:')
         if ok and class_name:
             if class_name in self.data['classes'].keys():
-
-                dlg = QMessageBox.warning(self, 'Uwaga', 'Taka klasa już istnieje')
-                
-
-
+                QMessageBox.warning(self, 'Uwaga', 'Taka klasa już istnieje')
             else:
                 self.data['classes'][class_name] = []
                 self.list.addItem(class_name)
+
+    def load_data(self, data):
+        self.data = data
+        self.list.clear()
+        self.list.addItems(self.data['classes'].keys())
         
