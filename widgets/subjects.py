@@ -1,10 +1,14 @@
-from PyQt6.QtWidgets import QWidget
-from db import engine, Subject
-from sqlalchemy.orm import Session
+from PyQt5.QtWidgets import QWidget, QListWidget, QVBoxLayout
 
 class SubjectsWidget(QWidget):
-    def __init__(self):
-        super().__init__()
-        with Session(engine) as session:
-            subjects_list = session.query(Subject).all()
-        print(subjects_list)
+    def __init__(self,parent, data):
+        super().__init__(parent=parent)
+
+        layout= QVBoxLayout()
+        self.list = QListWidget(self)
+        self.list.addItems(cl['name'] for cl in data['subjects'])
+        layout.addChildWidget(self.list)
+
+        self.setLayout(layout)
+
+        

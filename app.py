@@ -1,18 +1,17 @@
 import sys
 
-from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget
-from PyQt6.QtCore import QSize, QCoreApplication
-
-from PyQt6.QtSql import QSqlDatabase
-from sqlalchemy.orm import Session
-from db import engine
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget
+from PyQt5.QtCore import QSize
 
 
+from data import blank_data
 from widgets.subjects import SubjectsWidget
+from widgets.classes import ClassesWidget
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.data = blank_data()
 
         self.setWindowTitle("Monte Planer")
         self.setMinimumSize(QSize(400, 300))
@@ -22,8 +21,8 @@ class MainWindow(QMainWindow):
         tabs.setMovable(True)
 
         tabs.addTab(QWidget(), "Plan")
-        tabs.addTab(SubjectsWidget(), "Przedmioty")
-        tabs.addTab(QWidget(), "Klasy")
+        tabs.addTab(SubjectsWidget(self, self.data), "Przedmioty")
+        tabs.addTab(ClassesWidget(self, self.data), "Klasy")
         tabs.addTab(QWidget(), "Nauczyciele")
 
         self.setCentralWidget(tabs)
