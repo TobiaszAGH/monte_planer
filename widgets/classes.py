@@ -1,5 +1,8 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QInputDialog, QPushButton, \
-    QComboBox, QMessageBox, QVBoxLayout, QTableWidget, QTableWidgetItem, QCheckBox
+    QComboBox, QMessageBox, QVBoxLayout, QTableWidget, QTableWidgetItem, QCheckBox, QAbstractItemView, QButtonGroup, \
+    QGridLayout, QLabel, QStackedLayout, QTabWidget, QSizePolicy, QToolButton, QLayout
+
+from PyQt5.QtCore import Qt
 
 class ClassesWidget(QWidget):
     def __init__(self,parent, data):
@@ -20,8 +23,15 @@ class ClassesWidget(QWidget):
 
         main_layout.addLayout(layout)
 
-        self.student_list = QVBoxLayout()
-        main_layout.addLayout(self.student_list)
+        # self.student_list = QTableWidget()
+        # self.student_list.setColumnCount(2)
+        # self.student_list.setHorizontalHeaderLabels(["Uczeń","Rozszerzenia"])
+        # self.student_list.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        student_list_area = QWidget()
+        self.student_list_area_layout = QStackedLayout()
+        student_list_area.setLayout(self.student_list_area_layout)
+        
+        main_layout.addWidget(student_list_area)
 
 
         self.setLayout(main_layout)
@@ -40,17 +50,50 @@ class ClassesWidget(QWidget):
         self.list.clear()
         self.list.addItems(self.data['classes'].keys())
         
-    def populate_student_list(self):
-        selected_class = self.list.currentText()
-        if selected_class:
-            students = self.data['classes'][selected_class]
-            print(f'selected class: {selected_class}, students: {students}')
-            # self.student_list.setRowCount(len(students))
-            # self.student_list.setColumnCount(1)
-            for item in self.student_list.children():
-                print(item.text())
-                item.deleteLater()
+        for i, students in enumerate(data['classes'].values()):
             
-            for n, student in enumerate(students):
-                print(student['name'])
-                self.student_list.addWidget(QCheckBox(student['name']))
+            student_list_widget = QWidget()
+            student_list = QGridLayout()
+            student_list.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+            # student_list.setColumnStretch(2, 8)
+
+            student_list.addWidget(QCheckBox(), 0, 0)
+            student_list.addWidget(QLabel("Uczeń"), 0, 1)
+            student_list.addWidget(QLabel("Rozszerzenia"), 0, 2)
+            for n, [student_name, subjects] in enumerate(students.items()):
+                    n = n+1
+                    checkbox = QCheckBox()
+                    checkbox.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+                    student_list.addWidget(checkbox,n, 0)
+                    name_label = QLabel(student_name)
+                    name_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+                    student_list.addWidget(name_label, n, 1)
+
+                    subject_list = QHBoxLayout()
+                    for subject in subjects:
+                        # print(f'student {student["name"]}: {subject}')
+                        btn = QPushButton(subject)
+                        btn.setObjectName(student_name)
+                        subject_list.addWidget(btn)
+                        btn.clicked.connect(self.del_btn)
+
+                    
+                    student_list.addLayout(subject_list, n, 2)
+
+            student_list_widget.setLayout(student_list)
+            self.student_list_area_layout.insertWidget(i, student_list_widget)
+        self.student_list_area_layout.setCurrentIndex(0)
+
+        
+    def populate_student_list(self):
+        selected_class = self.list.currentIndex()
+        self.student_list_area_layout.setCurrentIndex(selected_class)
+
+    def del_btn(self):
+        btn = self.sender()
+        student_name = btn.objectName()
+        class_name = self.list.currentText()
+        self.data['classes'][class_name][student_name].remove(btn.text())
+        btn.deleteLater()
+
+        
