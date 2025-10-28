@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QInputDialog, QPushButton, \
-    QComboBox, QMessageBox, QVBoxLayout, QCheckBox, QGridLayout, QLabel, QStackedLayout, QSizePolicy
+    QComboBox, QMessageBox, QVBoxLayout, QCheckBox, QGridLayout, QLabel, QStackedLayout, QSizePolicy, \
+    QLineEdit
 
 from PyQt5.QtCore import Qt
 
@@ -27,6 +28,20 @@ class ClassesWidget(QWidget):
         student_list_area.setLayout(self.student_list_area_layout)
         
         main_layout.addWidget(student_list_area)
+        
+        bottom_button_group = QHBoxLayout()
+        new_name = QLineEdit()
+        new_name.setPlaceholderText('Imię i nazwisko')
+        bottom_button_group.addWidget(new_name)
+        add_student_btn = QPushButton("Dodaj Ucznia")
+        add_student_btn.clicked.connect(self.new_student)
+        bottom_button_group.addWidget(add_student_btn)
+        delete_student_button = QPushButton("Usuń")
+        bottom_button_group.addWidget(delete_student_button)
+        add_subject_to_student_btn = QPushButton("Dodaj rozszerzenie")
+        bottom_button_group.addWidget(add_subject_to_student_btn)
+
+        main_layout.addLayout(bottom_button_group)
 
 
         self.setLayout(main_layout)
@@ -47,38 +62,28 @@ class ClassesWidget(QWidget):
         self.list.addItems(self.data['classes'].keys())
         
         #classes data
-        for i, students in enumerate(data['classes'].values()):
+        for students in data['classes'].values():
+            students = students['students']
             student_list = QGridLayout()
+            student_list.setObjectName('student_list')
             student_list.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
             #headers
-            student_list.addWidget(QCheckBox(), 0, 0)
+            main_checkbox = QCheckBox()
+            main_checkbox.toggled.connect(self.toggle_all_checkboxes)
+            student_list.addWidget(main_checkbox, 0, 0)
             student_list.addWidget(QLabel("Uczeń"), 0, 1)
             student_list.addWidget(QLabel("Rozszerzenia"), 0, 2)
 
-            #students
-            for n, [student_name, subjects] in enumerate(students.items()):
-                    n = n+1
-                    #checkbox
-                    checkbox = QCheckBox()
-                    checkbox.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
-                    student_list.addWidget(checkbox,n, 0)
-                    #name
-                    name_label = QLabel(student_name)
-                    name_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
-                    student_list.addWidget(name_label, n, 1)
-                    #subjects
-                    subject_list = QHBoxLayout()
-                    for subject in subjects:
-                        btn = QPushButton(subject)
-                        btn.setObjectName(student_name)
-                        subject_list.addWidget(btn)
-                        btn.clicked.connect(self.del_btn)
-                    student_list.addLayout(subject_list, n, 2)
+            #load students
+            for student in students.items():
+                self.add_student_to_list(student, student_list)
 
+           
             student_list_widget = QWidget()
             student_list_widget.setLayout(student_list)
-            self.student_list_area_layout.insertWidget(i, student_list_widget)
+            self.student_list_area_layout.insertWidget(self.student_list_area_layout.count(), student_list_widget)
+
         self.student_list_area_layout.setCurrentIndex(0)
 
         
@@ -90,5 +95,45 @@ class ClassesWidget(QWidget):
         btn = self.sender()
         student_name = btn.objectName()
         class_name = self.list.currentText()
-        self.data['classes'][class_name][student_name].remove(btn.text())
+        self.data['classes'][class_name]['students'][student_name].remove(btn.text())
         btn.deleteLater()
+
+    def add_student_to_list(self, student, student_list: QGridLayout): 
+        n = student_list.rowCount()
+        student_name, subjects = student
+        #checkbox
+        checkbox = QCheckBox()
+        checkbox.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+        student_list.addWidget(checkbox,n, 0)
+        #name
+        name_label = QLabel(student_name)
+        name_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+        student_list.addWidget(name_label, n, 1)
+        #subjects
+        subject_list = QHBoxLayout()
+        for subject in subjects:
+            btn = QPushButton(subject)
+            btn.setObjectName(student_name)
+            subject_list.addWidget(btn)
+            btn.clicked.connect(self.del_btn)
+        student_list.addLayout(subject_list, n, 2)
+
+    def new_student(self):
+        curr_widget = self.student_list_area_layout.currentWidget()
+        if not curr_widget:
+            print('dupa')
+            return
+        student_list:QWidget = curr_widget.findChild(QGridLayout)
+        print(student_list)
+        new_name:QLineEdit = self.findChild(QLineEdit)
+        new_name = new_name.text()
+
+        self.add_student_to_list((new_name, []), student_list)
+        self.data['classes'][self.list.currentText()]['students'][new_name] = []
+
+    def toggle_all_checkboxes(self):
+        curr_widget:QWidget = self.student_list_area_layout.currentWidget()
+        checkboxes: list[QCheckBox] = curr_widget.findChildren(QCheckBox)
+        new_state = checkboxes[0].isChecked()
+        for chechbox in checkboxes:
+            chechbox.setChecked(new_state)
