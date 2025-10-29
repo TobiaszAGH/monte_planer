@@ -37,6 +37,7 @@ class ClassesWidget(QWidget):
         add_student_btn.clicked.connect(self.new_student)
         bottom_button_group.addWidget(add_student_btn)
         delete_student_button = QPushButton("Usuń")
+        delete_student_button.clicked.connect(self.remove_students)
         bottom_button_group.addWidget(delete_student_button)
         add_subject_to_student_btn = QPushButton("Dodaj rozszerzenie")
         bottom_button_group.addWidget(add_subject_to_student_btn)
@@ -79,7 +80,6 @@ class ClassesWidget(QWidget):
             for student in students.items():
                 self.add_student_to_list(student, student_list)
 
-           
             student_list_widget = QWidget()
             student_list_widget.setLayout(student_list)
             self.student_list_area_layout.insertWidget(self.student_list_area_layout.count(), student_list_widget)
@@ -120,11 +120,7 @@ class ClassesWidget(QWidget):
 
     def new_student(self):
         curr_widget = self.student_list_area_layout.currentWidget()
-        if not curr_widget:
-            print('dupa')
-            return
         student_list:QWidget = curr_widget.findChild(QGridLayout)
-        print(student_list)
         new_name:QLineEdit = self.findChild(QLineEdit)
         new_name = new_name.text()
 
@@ -137,3 +133,29 @@ class ClassesWidget(QWidget):
         new_state = checkboxes[0].isChecked()
         for chechbox in checkboxes:
             chechbox.setChecked(new_state)
+
+    def remove_students(self):
+        curr_widget = self.student_list_area_layout.currentWidget()
+        student_list:QGridLayout = curr_widget.findChild(QGridLayout)
+        checkboxes:list[QCheckBox] = curr_widget.findChildren(QCheckBox)
+        to_remove = []
+        for i, checkbox in enumerate(checkboxes[1:]):
+            if checkbox.isChecked():
+                label:QLabel = student_list.itemAtPosition(i+1, 1).widget()
+                student_name = label.text()
+                self.data['classes'][self.list.currentText()]['students'].pop(student_name)
+                to_remove.append(i+1)
+                print(f'removing: {student_name} at index {i+1}')
+
+        for i in to_remove[::-1]:
+            for n in range(3):
+                item = student_list.itemAtPosition(i,n)
+                if item.widget():
+                    item.widget().deleteLater()
+                layout = item.layout()
+                if layout:
+                    for j in range(layout.count()):
+                       layout.itemAt(j).widget().deleteLater()
+                    
+                
+
