@@ -61,6 +61,10 @@ class ClassesWidget(QWidget):
         self.data = data
         self.list.clear()
         self.list.addItems(self.data['classes'].keys())
+
+        #clear widget
+        for i in range(self.student_list_area_layout.count()):
+            self.student_list_area_layout.itemAt(i).widget().deleteLater()
         
         #classes data
         for students in data['classes'].values():
@@ -82,7 +86,7 @@ class ClassesWidget(QWidget):
 
             student_list_widget = QWidget()
             student_list_widget.setLayout(student_list)
-            self.student_list_area_layout.insertWidget(self.student_list_area_layout.count(), student_list_widget)
+            self.student_list_area_layout.addWidget(student_list_widget)
 
         self.student_list_area_layout.setCurrentIndex(0)
 
@@ -119,13 +123,13 @@ class ClassesWidget(QWidget):
         student_list.addLayout(subject_list, n, 2)
 
     def new_student(self):
-        curr_widget = self.student_list_area_layout.currentWidget()
-        student_list:QWidget = curr_widget.findChild(QGridLayout)
         new_name:QLineEdit = self.findChild(QLineEdit)
         new_name = new_name.text()
-
-        self.add_student_to_list((new_name, []), student_list)
-        self.data['classes'][self.list.currentText()]['students'][new_name] = []
+        if new_name:        
+            curr_widget = self.student_list_area_layout.currentWidget()
+            student_list:QWidget = curr_widget.findChild(QGridLayout)
+            self.add_student_to_list((new_name, []), student_list)
+            self.data['classes'][self.list.currentText()]['students'][new_name] = []
 
     def toggle_all_checkboxes(self):
         curr_widget:QWidget = self.student_list_area_layout.currentWidget()
@@ -145,7 +149,6 @@ class ClassesWidget(QWidget):
                 student_name = label.text()
                 self.data['classes'][self.list.currentText()]['students'].pop(student_name)
                 to_remove.append(i+1)
-                print(f'removing: {student_name} at index {i+1}')
 
         for i in to_remove[::-1]:
             for n in range(3):
