@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QListWidget, QVBoxLayout, QComboBox, QHBoxLayout,\
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QHBoxLayout,\
       QFrame, QLabel, QDialogButtonBox, QMessageBox, QInputDialog, QGridLayout, QCheckBox, QSizePolicy
 from PyQt5.QtCore import Qt
 
@@ -44,6 +44,13 @@ class SubjectsWidget(QWidget):
         layout.addWidget(new_subject_btn_box)
         self.setLayout(layout)
 
+    def clear_students(self):
+        for row in range(1, self.student_list.rowCount()):
+            for col in  range(self.student_list.columnCount()):
+                widget = self.student_list.itemAtPosition(row, col)
+                if widget:
+                    widget.widget().deleteLater()
+
     def load_class(self):
         class_name = self.class_list.currentText()
         if not class_name:
@@ -55,14 +62,10 @@ class SubjectsWidget(QWidget):
         subject_names = class_dict['subjects'].keys()
         if not subject_names:
             self.teacher_list.setCurrentText('')
-        self.list.addItems(subject_names)
         
         # students
-        for row in range(1, self.student_list.rowCount()):
-            for col in  range(self.student_list.columnCount()):
-                widget = self.student_list.itemAtPosition(row, col)
-                if widget:
-                    widget.widget().deleteLater()
+        self.clear_students()
+        
         for n, student in enumerate(class_dict['students'].keys()):
             #name
             name_label = QLabel(student)
@@ -75,20 +78,20 @@ class SubjectsWidget(QWidget):
             checkbox.toggled.connect(self.checkbox_clicked)
             self.student_list.addWidget(checkbox,n+1, 1)
 
+        self.list.addItems(subject_names)
 
     def load_subject(self):
         subject_name = self.list.currentText()
+        if not subject_name:
+            return False
         class_name = self.class_list.currentText()
-        # if not (class_name and subject_name):
-            # return False
-        print(class_name, subject_name)
         subject = self.data['classes'][class_name]['subjects'][subject_name]
         # teacher
         teacher_name = subject['teacher']
         self.teacher_list.setCurrentText(teacher_name)
         # students
         for student, subjects in self.data['classes'][class_name]['students'].items():
-            checkbox: QCheckBox = self.frame.findChild(QCheckBox, student)
+            checkbox: QCheckBox = self.frame.findChildren(QCheckBox, student)[-1]
             if checkbox:
                 checkbox.blockSignals(True)
                 checkbox.setChecked(subject_name in subjects)
@@ -128,12 +131,12 @@ class SubjectsWidget(QWidget):
 
     def load_data(self, data):
         self.data = data
-        self.class_list.clear()
-        self.class_list.addItems(self.data['classes'].keys())
         self.teacher_list.clear()
         self.teacher_list.addItem('')
         self.teacher_list.addItems(self.data['teachers'].keys())
-        # self.load_subject()
+        self.class_list.clear()
+        self.class_list.addItems(self.data['classes'].keys())
+
 
         
     
