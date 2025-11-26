@@ -53,7 +53,7 @@ class ClassesWidget(QWidget):
             if class_name in self.data['classes'].keys():
                 QMessageBox.warning(self, 'Uwaga', 'Taka klasa już istnieje')
             else:
-                self.data['classes'][class_name] = []
+                self.data['classes'][class_name] = {'subjects': {}, 'students': {}}
                 self.list.addItem(class_name)
 
     def load_data(self, data):

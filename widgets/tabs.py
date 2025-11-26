@@ -20,8 +20,13 @@ class Tabs(QTabWidget):
         self.addTab(self.subjects, 'Przedmioty')
         self.addTab(self.classes, 'Klasy')
         self.addTab(self.teachers, "Nauczyciele")
+        self.currentChanged.connect(self.refresh)
+
+    def refresh(self):
+        self.currentWidget().load_data(self.data)
 
     def load_data(self, data):
         self.data = data
         self.classes.load_data(self.data)
         self.teachers.load_data(self.data)
+        self.subjects.load_data(self.data)
