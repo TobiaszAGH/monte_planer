@@ -145,21 +145,28 @@ class ClassesWidget(QWidget):
         student_list:QGridLayout = curr_widget.findChild(QGridLayout)
         checkboxes:list[QCheckBox] = curr_widget.findChildren(QCheckBox)
         to_remove = []
-        for i, checkbox in enumerate(checkboxes[1:]):
+        for checkbox in checkboxes[1:]:
             if checkbox.isChecked():
-                label:QLabel = student_list.itemAtPosition(i+1, 1).widget()
+                index = student_list.indexOf(checkbox)
+                label:QLabel = student_list.itemAt(index+1).widget()
                 student_name = label.text()
                 self.data['classes'][self.list.currentText()]['students'].pop(student_name)
-                to_remove.append(i+1)
+                to_remove.append(student_list.indexOf(label))
+        
+        amount = len(to_remove)
+        if amount == 0:
+            return False
+        message = f"Czy na pewno chcesz usunąć {amount} {'ucznia' if amount==1 else 'uczniów'}?"
+        ok = QMessageBox.question(self, 'Uwaga', message)
 
         for i in to_remove[::-1]:
-            for n in range(3):
-                item = student_list.itemAtPosition(i,n)
+            for n in range(i-1, i+2):
+                item = student_list.itemAt(n)
                 if item.widget():
                     item.widget().deleteLater()
                 layout = item.layout()
                 if layout:
-                    for j in range(layout.count()):
+                    for j in range(layout.count()-1):
                        layout.itemAt(j).widget().deleteLater()
                     
                 
