@@ -94,7 +94,7 @@ class AvFrame(QWidget):
                     s_col <= col and col <= e_col:
                     self.availability.itemAtPosition(row, col).widget().available = self.availability_mode
                 self.availability.itemAtPosition(row, col).widget().show_true_color()
-        self.parent().save_av()
+        self.parent().parent().save_av()
 
 class TeachersWidget(QWidget):
     def __init__(self,parent, data):
@@ -183,6 +183,3 @@ class TeachersWidget(QWidget):
         self.list.addItems(self.data['teachers'].keys())
         if self.list.currentText():
             self.frame.show()
-
-        #TODO hiding/showing frame
-        #TODO adding/removing teachers

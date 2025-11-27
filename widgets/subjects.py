@@ -1,38 +1,76 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QHBoxLayout,\
-      QFrame, QLabel, QDialogButtonBox, QMessageBox, QInputDialog, QGridLayout, QCheckBox, QSizePolicy
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QHBoxLayout, QDialog, QDialogButtonBox, \
+      QPushButton, QLabel, QDialogButtonBox, QMessageBox, QInputDialog, QGridLayout, QCheckBox, QSizePolicy
 from PyQt5.QtCore import Qt
+
+class AddLessonDialog(QDialog):
+    def __init__(self, parent):
+        super().__init__(parent=parent)
+        self.setWindowTitle('Podaj długość')
+        layout = QVBoxLayout(self)
+        self.combobox = QComboBox()
+        layout.addWidget(self.combobox)
+        self.combobox.addItems(['30', '45', '60', '90'])
+        self.combobox.setEditable(True)
+        buttonBox = QDialogButtonBox()
+        layout.addWidget(buttonBox)
+        buttonBox.setStandardButtons(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
 
 class SubjectsWidget(QWidget):
     def __init__(self,parent, data):
         super().__init__(parent=parent)
         self.data = data
-        top_row = QHBoxLayout()
         layout= QVBoxLayout()
+        self.setLayout(layout)
 
+        top_row = QHBoxLayout()
+        layout.addLayout(top_row)
+
+        # classes
         self.class_list = QComboBox()
         self.class_list.addItems(self.data['classes'].keys())
         self.class_list.currentTextChanged.connect(self.load_class)
         top_row.addWidget(self.class_list)
 
+        # subject
         self.list = QComboBox(self)
         self.list.currentTextChanged.connect(self.load_subject)
         top_row.addWidget(self.list)
-        layout.addLayout(top_row)
 
+        # container to preserve layout
         self.container = QWidget()
         container_layout = QVBoxLayout()
         self.container.setLayout(container_layout)
+        layout.addWidget(self.container)
+
+        # frame to hide content when no info available
         self.frame = QWidget()
-        container_layout.addWidget(self.frame)
         frame_layout = QVBoxLayout()
+        self.frame.setLayout(frame_layout)
+        container_layout.addWidget(self.frame)
+
+        # subject info row
         teacher_row = QHBoxLayout()
+        frame_layout.addLayout(teacher_row)
+        teacher_row.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        
+        # teachers
         teacher_row.addWidget(QLabel('Nauczyciel:'))
         self.teacher_list = QComboBox()
+        self.teacher_list.currentTextChanged.connect(self.setTeacher)
         teacher_row.addWidget(self.teacher_list)
-        teacher_row.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        frame_layout.addLayout(teacher_row)
-        self.frame.setLayout(frame_layout)
+        
+        # lessons
+        teacher_row.addWidget(QLabel('Lekcje:'))
+        self.lessons = QHBoxLayout()
+        self.lessons.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        teacher_row.addLayout(self.lessons)
+        add_lesson_btn = QPushButton('+')
+        add_lesson_btn.clicked.connect(self.add_lesson)
+        teacher_row.addWidget(add_lesson_btn)
 
+        # list of students
         self.student_list = QGridLayout()
         main_checkbox = QCheckBox()
         main_checkbox.toggled.connect(self.toggle_all_checkboxes)
@@ -41,12 +79,11 @@ class SubjectsWidget(QWidget):
         self.student_list.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         frame_layout.addLayout(self.student_list)
 
-        layout.addWidget(self.container)
+        # bottom row
         new_subject_btn_box = QDialogButtonBox()
         new_subject_btn = new_subject_btn_box.addButton('Dodaj Przedmiot', QDialogButtonBox.ButtonRole.ActionRole)
         new_subject_btn.clicked.connect(self.new_subject)
         layout.addWidget(new_subject_btn_box)
-        self.setLayout(layout)
 
         self.frame.hide()
 
@@ -71,7 +108,6 @@ class SubjectsWidget(QWidget):
         
         # students
         self.clear_students()
-        
         for n, student in enumerate(class_dict['students'].keys()):
             #name
             name_label = QLabel(student)
@@ -98,6 +134,13 @@ class SubjectsWidget(QWidget):
         # teacher
         teacher_name = subject['teacher']
         self.teacher_list.setCurrentText(teacher_name)
+        # lessons
+        for n in range(self.lessons.count()):
+            self.lessons.itemAt(n).widget().deleteLater()
+        for lesson in subject['lengths']:
+            btn = QPushButton(str(lesson))
+            self.lessons.addWidget(btn)
+            btn.clicked.connect(self.remove_lesson)
         # students
         for student, subjects in self.data['classes'][class_name]['students'].items():
             checkbox: QCheckBox = self.frame.findChildren(QCheckBox, student)[-1]
@@ -121,11 +164,13 @@ class SubjectsWidget(QWidget):
                 self.list.addItem(subject_name)
                 self.list.setCurrentText(subject_name)
 
+
     def toggle_all_checkboxes(self):
         checkboxes: list[QCheckBox] = self.frame.findChildren(QCheckBox)
         new_state = checkboxes[0].isChecked()
         for chechbox in checkboxes:
             chechbox.setChecked(new_state)
+
 
     def checkbox_clicked(self):
         checkbox = self.sender()
@@ -134,8 +179,43 @@ class SubjectsWidget(QWidget):
         subject_name = self.list.currentText()
         if checkbox.isChecked() and subject_name not in student:
             student.append(subject_name)
-        elif  subject_name in student: 
+        elif subject_name in student: 
             student.remove(subject_name)
+
+
+    def setTeacher(self):
+        teacher_name = self.teacher_list.currentText()
+        if not teacher_name:
+            return False
+        class_name = self.class_list.currentText()
+        subject_name = self.list.currentText()
+        self.data['classes'][class_name]['subjects'][subject_name]['teacher'] = teacher_name
+
+    def add_lesson(self):
+        dialog = AddLessonDialog(self)
+        ok = dialog.exec()
+        if not ok:
+            return False
+        length = dialog.combobox.currentText()
+        try:
+            length = int(length)
+        except:
+            QMessageBox.warning(self, 'Błąd', 'Podaj liczbę!')
+            return False
+        btn = QPushButton(str(length))
+        self.lessons.addWidget(btn)
+        btn.clicked.connect(self.remove_lesson)
+        class_name = self.class_list.currentText()
+        subject_name = self.list.currentText()
+        self.data['classes'][class_name]['subjects'][subject_name]['lengths'].append(length)
+
+    def remove_lesson(self):
+        btn: QPushButton = self.sender()
+        length = int(btn.text())
+        class_name = self.class_list.currentText()
+        subject_name = self.list.currentText()
+        self.data['classes'][class_name]['subjects'][subject_name]['lengths'].remove(length)
+        btn.deleteLater()
 
 
     def load_data(self, data):

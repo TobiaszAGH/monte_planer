@@ -15,7 +15,7 @@ class MainWindow(QMainWindow):
         self.save_path = ''
 
         self.setWindowTitle("Monte Planer")
-        self.setMinimumSize(QSize(400, 300))
+        self.setMinimumSize(QSize(800, 600))
         self.tabs = Tabs(self.data)
 
         save_action = QAction('Zapisz', self)
