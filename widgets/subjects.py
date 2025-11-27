@@ -19,13 +19,17 @@ class SubjectsWidget(QWidget):
         top_row.addWidget(self.list)
         layout.addLayout(top_row)
 
-        
-        self.frame = QFrame()
+        self.container = QWidget()
+        container_layout = QVBoxLayout()
+        self.container.setLayout(container_layout)
+        self.frame = QWidget()
+        container_layout.addWidget(self.frame)
         frame_layout = QVBoxLayout()
         teacher_row = QHBoxLayout()
         teacher_row.addWidget(QLabel('Nauczyciel:'))
         self.teacher_list = QComboBox()
         teacher_row.addWidget(self.teacher_list)
+        teacher_row.setAlignment(Qt.AlignmentFlag.AlignLeft)
         frame_layout.addLayout(teacher_row)
         self.frame.setLayout(frame_layout)
 
@@ -37,12 +41,14 @@ class SubjectsWidget(QWidget):
         self.student_list.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         frame_layout.addLayout(self.student_list)
 
-        layout.addWidget(self.frame)
+        layout.addWidget(self.container)
         new_subject_btn_box = QDialogButtonBox()
         new_subject_btn = new_subject_btn_box.addButton('Dodaj Przedmiot', QDialogButtonBox.ButtonRole.ActionRole)
         new_subject_btn.clicked.connect(self.new_subject)
         layout.addWidget(new_subject_btn_box)
         self.setLayout(layout)
+
+        self.frame.hide()
 
     def clear_students(self):
         for row in range(1, self.student_list.rowCount()):
@@ -83,7 +89,10 @@ class SubjectsWidget(QWidget):
     def load_subject(self):
         subject_name = self.list.currentText()
         if not subject_name:
+            self.frame.hide()
             return False
+        else:
+            self.frame.show()
         class_name = self.class_list.currentText()
         subject = self.data['classes'][class_name]['subjects'][subject_name]
         # teacher

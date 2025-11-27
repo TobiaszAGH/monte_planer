@@ -115,11 +115,13 @@ class ClassesWidget(QWidget):
         student_list.addWidget(name_label, n, 1)
         #subjects
         subject_list = QHBoxLayout()
+        # subject_list.setAlignment(Qt.AlignmentFlag.A)
         for subject in subjects:
             btn = QPushButton(subject)
             btn.setObjectName(student_name)
             subject_list.addWidget(btn)
             btn.clicked.connect(self.del_btn)
+        subject_list.addStretch()
         student_list.addLayout(subject_list, n, 2)
 
     def new_student(self):

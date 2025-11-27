@@ -23,7 +23,10 @@ class Tabs(QTabWidget):
         self.currentChanged.connect(self.refresh)
 
     def refresh(self):
-        self.currentWidget().load_data(self.data)
+        try:
+            self.currentWidget().load_data(self.data)
+        except:
+            pass
 
     def load_data(self, data):
         self.data = data

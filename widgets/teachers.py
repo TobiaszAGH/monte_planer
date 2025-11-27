@@ -114,9 +114,14 @@ class TeachersWidget(QWidget):
 
         layout.addLayout(top_row)
 
-        self.frame = AvFrame()
+        container = QWidget()
+        container_layout = QVBoxLayout()
+        container.setLayout(container_layout)
 
-        layout.addWidget(self.frame)
+        self.frame = AvFrame()
+        container_layout.addWidget(self.frame)
+
+        layout.addWidget(container)
         if not self.list.currentText():
             self.frame.hide()
 
