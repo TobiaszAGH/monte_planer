@@ -158,6 +158,8 @@ class ClassesWidget(QWidget):
             return False
         message = f"Czy na pewno chcesz usunąć {amount} {'ucznia' if amount==1 else 'uczniów'}?"
         ok = QMessageBox.question(self, 'Uwaga', message)
+        if not ok:
+            return False
 
         for i in to_remove[::-1]:
             for n in range(i-1, i+2):
