@@ -44,7 +44,7 @@ class ClassesWidget(QWidget):
             if class_name in self.data['classes'].keys():
                 QMessageBox.warning(self, 'Uwaga', 'Taka klasa już istnieje')
             else:
-                self.data['classes'][class_name] = {'subjects': {}, 'students': {'a': {}}}
+                self.data['classes'][class_name] = {'subjects': {'a':{}, 'extra': {}}, 'students': {'a': {}}}
                 self.list.addItem(class_name)
 
     def new_subclass(self):
@@ -55,6 +55,7 @@ class ClassesWidget(QWidget):
         subclasses = class_dict['students'].keys()
         subclass_name = ascii_lowercase[len(subclasses)]
         class_dict['students'][subclass_name] = {}
+        class_dict['subjects'][subclass_name] = {}
         self.load_class()
 
     def remove_subclass(self, subclass):
@@ -115,7 +116,7 @@ class ClassesWidget(QWidget):
 
             #load students
             for student in students.items():
-                self.add_student_to_list(student, student_list)
+                self.add_student_to_list(subclass, student, student_list)
 
             frame_layout.addWidget(scrollarea)
 
@@ -138,15 +139,16 @@ class ClassesWidget(QWidget):
             bottom_button_group.addWidget(remove_subclass_btn)
 
 
-    def del_btn(self):
-        btn = self.sender()
-        student_name = btn.objectName()
-        subclass = btn.parent().parent().parent().parent().findChild(QLabel).text()
-        class_name = self.list.currentText()
-        self.data['classes'][class_name]['students'][subclass][student_name].remove(btn.text())
-        btn.deleteLater()
+    def del_btn(self, subclass, student_name, is_extra):
+        def func():
+            btn = self.sender()
+            class_name = self.list.currentText()
+            type = 'extra' if is_extra else 'basic'
+            self.data['classes'][class_name]['students'][subclass][student_name][type].remove(btn.text())
+            btn.deleteLater()
+        return func
 
-    def add_student_to_list(self, student, student_list: QGridLayout): 
+    def add_student_to_list(self, subclass, student, student_list: QGridLayout): 
         n = student_list.rowCount()
         student_name, subjects = student
         #checkbox
@@ -157,15 +159,22 @@ class ClassesWidget(QWidget):
         name_label = QLabel(student_name)
         name_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         student_list.addWidget(name_label, n, 1)
-        #subjects
-        subject_list = QHBoxLayout()
-        for subject in subjects:
+        #basic subjects
+        basic_subject_list = QHBoxLayout()
+        for subject in subjects['basic']:
             btn = QPushButton(subject)
-            btn.setObjectName(student_name)
-            subject_list.addWidget(btn)
-            btn.clicked.connect(self.del_btn)
-        subject_list.addStretch()
-        student_list.addLayout(subject_list, n, 2)
+            basic_subject_list.addWidget(btn)
+            btn.clicked.connect(self.del_btn(student_name, subclass, False))
+        basic_subject_list.addStretch()
+        student_list.addLayout(basic_subject_list, n, 2)
+
+        extra_subject_list = QHBoxLayout()
+        for subject in subjects['extra']:
+            btn = QPushButton(subject)
+            extra_subject_list.addWidget(btn)
+            btn.clicked.connect(self.del_btn(student_name, subclass, True))
+        extra_subject_list.addStretch()
+        student_list.addLayout(extra_subject_list, n, 3)
 
     def new_student(self, subclass, student_list):
         def func():
@@ -175,8 +184,8 @@ class ClassesWidget(QWidget):
             new_name = new_name.text()
             students = self.data['classes'][self.list.currentText()]['students'][subclass]
             if new_name and new_name not in students.keys():        
-                self.add_student_to_list((new_name, []), student_list)
-                students[new_name] = []
+                self.add_student_to_list(subclass, (new_name, {'basic': [], 'extra': []}), student_list)
+                students[new_name] = {'basic': [], 'extra': []}
         return func
 
     def toggle_all_checkboxes(self):

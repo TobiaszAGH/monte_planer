@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QHBoxLayout, QDialog, QDialogButtonBox, \
       QPushButton, QLabel, QDialogButtonBox, QMessageBox, QInputDialog, QGridLayout, QCheckBox, QSizePolicy
 from PyQt5.QtCore import Qt
+from itertools import chain
 
 class AddLessonDialog(QDialog):
     def __init__(self, parent):
@@ -30,8 +31,14 @@ class SubjectsWidget(QWidget):
         # classes
         self.class_list = QComboBox()
         self.class_list.addItems(self.data['classes'].keys())
-        self.class_list.currentTextChanged.connect(self.load_class)
+        self.class_list.currentTextChanged.connect(self.load_type_list)
         top_row.addWidget(self.class_list)
+
+        # subject type
+        self.type_list = QComboBox()
+        # self.class_list.addItems(self.data['classes'][])
+        self.type_list.currentTextChanged.connect(self.load_class)
+        top_row.addWidget(self.type_list)
 
         # subject
         self.list = QComboBox(self)
@@ -94,6 +101,15 @@ class SubjectsWidget(QWidget):
                 if widget:
                     widget.widget().deleteLater()
 
+    def load_type_list(self):
+        class_name = self.class_list.currentText()
+        if not class_name:
+            return False
+        self.type_list.clear()
+        items = list(self.data['classes'][class_name]['subjects'].keys())
+        items.sort()
+        self.type_list.addItems(items)
+
     def load_class(self):
         class_name = self.class_list.currentText()
         if not class_name:
@@ -102,35 +118,46 @@ class SubjectsWidget(QWidget):
         # subjects
         self.list.clear()
         class_dict = self.data['classes'][class_name]
-        subject_names = class_dict['subjects'].keys()
+        subject_type = self.type_list.currentText()
+        if not subject_type:
+            return False
+        subject_names = class_dict['subjects'][subject_type].keys()
         if not subject_names:
             self.teacher_list.setCurrentText('')
         
         # students
         self.clear_students()
-        for n, student in enumerate(class_dict['students'].keys()):
-            #name
-            name_label = QLabel(student)
-            name_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
-            self.student_list.addWidget(name_label, n+1, 0)
-            #checkbox
-            checkbox = QCheckBox()
-            checkbox.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
-            checkbox.setObjectName(student)
-            checkbox.toggled.connect(self.checkbox_clicked)
-            self.student_list.addWidget(checkbox,n+1, 1)
+        if subject_type == 'extra':
+            subclasses = list(class_dict['students'].keys())
+        else:
+            subclasses = [subject_type]
+        
+        for subclass in subclasses:
+            for student in class_dict['students'][subclass].keys():
+                n = self.student_list.rowCount()
+                #name
+                name_label = QLabel(student)
+                name_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+                self.student_list.addWidget(name_label, n+1, 0)
+                #checkbox
+                checkbox = QCheckBox()
+                checkbox.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+                checkbox.setObjectName(f'{subclass};{student}')
+                checkbox.toggled.connect(self.checkbox_clicked)
+                self.student_list.addWidget(checkbox,n+1, 1)
 
         self.list.addItems(subject_names)
 
     def load_subject(self):
         subject_name = self.list.currentText()
-        if not subject_name:
+        subject_type = self.type_list.currentText()
+        if not (subject_name and subject_type):
             self.frame.hide()
             return False
         else:
             self.frame.show()
         class_name = self.class_list.currentText()
-        subject = self.data['classes'][class_name]['subjects'][subject_name]
+        subject = self.data['classes'][class_name]['subjects'][subject_type][subject_name]
         # teacher
         teacher_name = subject['teacher']
         self.teacher_list.setCurrentText(teacher_name)
@@ -142,25 +169,29 @@ class SubjectsWidget(QWidget):
             self.lessons.addWidget(btn)
             btn.clicked.connect(self.remove_lesson)
         # students
-        for student, subjects in self.data['classes'][class_name]['students'].items():
-            checkbox: QCheckBox = self.frame.findChildren(QCheckBox, student)[-1]
-            if checkbox:
-                checkbox.blockSignals(True)
-                checkbox.setChecked(subject_name in subjects)
-                checkbox.blockSignals(False)
+        subject_type = 'extra' if subject_type == 'extra' else 'basic'
+        for subclass in self.data['classes'][class_name]['students'].keys():
+            for student, subjects in self.data['classes'][class_name]['students'][subclass].items():
+                checkbox: QCheckBox = self.frame.findChildren(QCheckBox, f'{subclass};{student}')
+                if checkbox:
+                    checkbox = checkbox[-1]
+                    checkbox.blockSignals(True)
+                    checkbox.setChecked(subject_name in subjects[subject_type])
+                    checkbox.blockSignals(False)
 
 
 
     def new_subject(self):
         class_name = self.class_list.currentText()
+        subject_type = self.type_list.currentText()
         if not class_name:
             return False
         subject_name, ok = QInputDialog.getText(self, 'Dodaj Przedmiot', 'Przedmiot:')
         if ok and subject_name:
-            if subject_name in self.data['classes'][class_name]['subjects'].keys():
+            if subject_name in self.data['classes'][class_name]['subjects'][subject_type].keys():
                 QMessageBox.warning(self, 'Uwaga', 'Taki przedmiot już istnieje')
             else:
-                self.data['classes'][class_name]['subjects'][subject_name] = {'teacher': '', 'lengths': []}
+                self.data['classes'][class_name]['subjects'][subject_type][subject_name] = {'teacher': '', 'lengths': []}
                 self.list.addItem(subject_name)
                 self.list.setCurrentText(subject_name)
 
@@ -175,12 +206,14 @@ class SubjectsWidget(QWidget):
     def checkbox_clicked(self):
         checkbox = self.sender()
         class_name = self.class_list.currentText()
-        student = self.data['classes'][class_name]['students'][checkbox.objectName()]
+        subclass, student_name = checkbox.objectName().split(';')
+        student = self.data['classes'][class_name]['students'][subclass][student_name]
         subject_name = self.list.currentText()
+        subject_type = 'extra' if self.type_list.currentText() == 'extra' else 'basic'
         if checkbox.isChecked() and subject_name not in student:
-            student.append(subject_name)
+            student[subject_type].append(subject_name)
         elif subject_name in student: 
-            student.remove(subject_name)
+            student[subject_type].remove(subject_name)
 
 
     def setTeacher(self):
@@ -189,7 +222,8 @@ class SubjectsWidget(QWidget):
             return False
         class_name = self.class_list.currentText()
         subject_name = self.list.currentText()
-        self.data['classes'][class_name]['subjects'][subject_name]['teacher'] = teacher_name
+        subject_type = self.type_list.currentText()
+        self.data['classes'][class_name]['subjects'][subject_type][subject_name]['teacher'] = teacher_name
 
     def add_lesson(self):
         dialog = AddLessonDialog(self)
@@ -207,14 +241,16 @@ class SubjectsWidget(QWidget):
         btn.clicked.connect(self.remove_lesson)
         class_name = self.class_list.currentText()
         subject_name = self.list.currentText()
-        self.data['classes'][class_name]['subjects'][subject_name]['lengths'].append(length)
+        subject_type = self.type_list.currentText()
+        self.data['classes'][class_name]['subjects'][subject_type][subject_name]['lengths'].append(length)
 
     def remove_lesson(self):
         btn: QPushButton = self.sender()
         length = int(btn.text())
         class_name = self.class_list.currentText()
         subject_name = self.list.currentText()
-        self.data['classes'][class_name]['subjects'][subject_name]['lengths'].remove(length)
+        subject_type = self.type_list.currentText()
+        self.data['classes'][class_name]['subjects'][subject_type][subject_name]['lengths'].remove(length)
         btn.deleteLater()
 
 
