@@ -15,7 +15,7 @@ class MainWindow(QMainWindow):
         self.save_path = ''
 
         self.setWindowTitle("Monte Planer")
-        self.setMinimumSize(QSize(800, 600))
+        self.setMinimumSize(QSize(800, 800))
         self.tabs = Tabs(self.data)
 
         save_action = QAction('Zapisz', self)
@@ -71,5 +71,5 @@ class MainWindow(QMainWindow):
 app = QApplication(sys.argv)
 # print(open_connection())
 window = MainWindow()
-window.show()
+window.showMaximized()
 app.exec()
