@@ -1,10 +1,44 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QInputDialog, QPushButton, \
     QComboBox, QMessageBox, QVBoxLayout, QCheckBox, QGridLayout, QLabel, QStackedLayout, QSizePolicy, \
-    QLineEdit, QScrollArea, QSpacerItem
+    QLineEdit, QScrollArea, QSpacerItem, QDialog, QDialogButtonBox
 
 from PyQt5.QtCore import Qt
 
 from string import ascii_lowercase
+
+class AddSubjectDialog(QDialog):
+    def __init__(self, parent, class_name, subclass, data):
+        super().__init__(parent)
+        self.data = data
+        self.class_name = class_name
+
+        self.setWindowTitle('Wybierz przedmiot')
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        self.type_list = QComboBox()
+        layout.addWidget(self.type_list)
+        self.type_list.addItems(['Przedmiot podstawowy', 'Przedmiot rozszerzony'])
+        self.type_list.setItemData(0, subclass)
+        self.type_list.setItemData(1, 'extra')
+        self.type_list.currentTextChanged.connect(self.update_subject_list)
+
+        self.subject_list = QComboBox()
+        layout.addWidget(self.subject_list)
+        self.update_subject_list()
+
+        buttonBox = QDialogButtonBox()
+        layout.addWidget(buttonBox)
+
+        buttonBox.setStandardButtons(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+    def update_subject_list(self):
+        subject_names = self.data['classes'][self.class_name]['subjects'][self.type_list.currentData()].keys()
+        self.subject_list.clear()
+        self.subject_list.addItems(subject_names)
+        
 
 class ClassesWidget(QWidget):
     def __init__(self,parent, data):
@@ -112,7 +146,8 @@ class ClassesWidget(QWidget):
             student_name_label = QLabel('Uczeń')
             student_name_label.setMinimumWidth(100)
             student_list.addWidget(student_name_label, 0, 1)
-            student_list.addWidget(QLabel("Rozszerzenia"), 0, 2)
+            student_list.addWidget(QLabel("Przedmioty podstawowe"), 0, 2)
+            student_list.addWidget(QLabel("Przedmioty rozszerzone"), 0, 3)
 
             #load students
             for student in students.items():
@@ -126,13 +161,14 @@ class ClassesWidget(QWidget):
             new_name.setPlaceholderText('Imię i nazwisko')
             new_name.setObjectName(f'new_name_{subclass}')
             bottom_button_group.addWidget(new_name)
-            add_student_btn = QPushButton("Dodaj Ucznia")
+            add_student_btn = QPushButton("Dodaj ucznia")
             add_student_btn.clicked.connect(self.new_student(subclass, student_list))
             bottom_button_group.addWidget(add_student_btn)
-            delete_student_button = QPushButton("Usuń")
+            delete_student_button = QPushButton("Usuń ucznia")
             delete_student_button.clicked.connect(self.remove_students(subclass, student_list_widget))
             bottom_button_group.addWidget(delete_student_button)
-            add_subject_to_student_btn = QPushButton("Dodaj rozszerzenie")
+            add_subject_to_student_btn = QPushButton("Dodaj przedmiot")
+            add_subject_to_student_btn.clicked.connect(self.add_subject_to_student(subclass, student_list_widget))
             bottom_button_group.addWidget(add_subject_to_student_btn)
             remove_subclass_btn = QPushButton('Usuń podklasę')
             remove_subclass_btn.clicked.connect(self.remove_subclass(subclass))
@@ -146,6 +182,31 @@ class ClassesWidget(QWidget):
             type = 'extra' if is_extra else 'basic'
             self.data['classes'][class_name]['students'][subclass][student_name][type].remove(btn.text())
             btn.deleteLater()
+        return func
+    
+    def add_subject_to_student(self, subclass: str, student_list:QWidget):
+        def func():
+            checkboxes = [checkbox for checkbox in student_list.findChildren(QCheckBox)[1:] if checkbox.isChecked()]
+            if not checkboxes:
+                return False
+            class_name = self.list.currentText()
+            dialog = AddSubjectDialog(self, class_name, subclass, self.data)
+            ok = dialog.exec()
+            if not ok:
+                return False
+            type = 'extra' if dialog.type_list.currentData() == 'extra' else 'basic'
+            subject_name = dialog.subject_list.currentText()
+            for checkbox in checkboxes:
+                index = student_list.layout().indexOf(checkbox)
+                label:QLabel = student_list.layout().itemAt(index+1).widget()
+                student_name = label.text()
+                subject_list = self.data['classes'][class_name]['students'][subclass][student_name][type]
+                if subject_name not in subject_list:
+                    self.data['classes'][class_name]['students'][subclass][student_name][type].append(subject_name)
+                    btn = QPushButton(subject_name)
+                    slw_index = index + (2 if type == 'basic' else 3)
+                    student_list.layout().itemAt(slw_index).insertWidget(0,btn)
+                    btn.clicked.connect(self.del_btn(subclass, student_name, type=='extra'))
         return func
 
     def add_student_to_list(self, subclass, student, student_list: QGridLayout): 
@@ -164,7 +225,7 @@ class ClassesWidget(QWidget):
         for subject in subjects['basic']:
             btn = QPushButton(subject)
             basic_subject_list.addWidget(btn)
-            btn.clicked.connect(self.del_btn(student_name, subclass, False))
+            btn.clicked.connect(self.del_btn(subclass, student_name, False))
         basic_subject_list.addStretch()
         student_list.addLayout(basic_subject_list, n, 2)
 
@@ -172,7 +233,7 @@ class ClassesWidget(QWidget):
         for subject in subjects['extra']:
             btn = QPushButton(subject)
             extra_subject_list.addWidget(btn)
-            btn.clicked.connect(self.del_btn(student_name, subclass, True))
+            btn.clicked.connect(self.del_btn(subclass, student_name, True))
         extra_subject_list.addStretch()
         student_list.addLayout(extra_subject_list, n, 3)
 
