@@ -160,6 +160,7 @@ class ClassesWidget(QWidget):
             new_name = QLineEdit()
             new_name.setPlaceholderText('Imię i nazwisko')
             new_name.setObjectName(f'new_name_{subclass}')
+            new_name.returnPressed.connect(self.new_student(subclass, student_list))
             bottom_button_group.addWidget(new_name)
             add_student_btn = QPushButton("Dodaj ucznia")
             add_student_btn.clicked.connect(self.new_student(subclass, student_list))
@@ -242,11 +243,12 @@ class ClassesWidget(QWidget):
         # name_box = self.sender().parent()
             new_name:QLineEdit = self.findChild(QLineEdit, f'new_name_{subclass}')
             # student_list:QWidget = curr_widget.findChild(QGridLayout)
-            new_name = new_name.text()
+            student_name = new_name.text()
+            new_name.clear()
             students = self.data['classes'][self.list.currentText()]['students'][subclass]
-            if new_name and new_name not in students.keys():        
-                self.add_student_to_list(subclass, (new_name, {'basic': [], 'extra': []}), student_list)
-                students[new_name] = {'basic': [], 'extra': []}
+            if student_name and student_name not in students.keys():        
+                self.add_student_to_list(subclass, (student_name, {'basic': [], 'extra': []}), student_list)
+                students[student_name] = {'basic': [], 'extra': []}
         return func
 
     def toggle_all_checkboxes(self):
