@@ -88,8 +88,10 @@ class SubjectsWidget(QWidget):
 
         # bottom row
         new_subject_btn_box = QDialogButtonBox()
-        new_subject_btn = new_subject_btn_box.addButton('Dodaj Przedmiot', QDialogButtonBox.ButtonRole.ActionRole)
+        new_subject_btn = new_subject_btn_box.addButton('Dodaj przedmiot', QDialogButtonBox.ButtonRole.ActionRole)
         new_subject_btn.clicked.connect(self.new_subject)
+        remove_subject_btn = new_subject_btn_box.addButton('Usuń przedmiot', QDialogButtonBox.ButtonRole.ActionRole)
+        remove_subject_btn.clicked.connect(self.remove_subject)
         layout.addWidget(new_subject_btn_box)
 
         self.frame.hide()
@@ -121,7 +123,8 @@ class SubjectsWidget(QWidget):
         subject_type = self.type_list.currentText()
         if not subject_type:
             return False
-        subject_names = class_dict['subjects'][subject_type].keys()
+        subject_names = list(class_dict['subjects'][subject_type].keys())
+        subject_names.sort()
         if not subject_names:
             self.teacher_list.setCurrentText('')
         
@@ -253,14 +256,34 @@ class SubjectsWidget(QWidget):
         self.data['classes'][class_name]['subjects'][subject_type][subject_name]['lengths'].remove(length)
         btn.deleteLater()
 
+    def remove_subject(self):
+        class_name = self.class_list.currentText()
+        subject_name = self.list.currentText()
+        subject_type = self.type_list.currentText()
+        message = f'Czy na pewno chcesz usunąć: {subject_name}'
+        if QMessageBox.question(self, 'Uwaga', message) != QMessageBox.StandardButton.Yes:
+                return False
+        self.data['classes'][class_name]['subjects'][subject_type].pop(subject_name)
+        checkboxes = [chb for chb in self.findChildren(QCheckBox)[1:] if chb.isChecked()]
+        for checkbox in checkboxes:
+            subclass, student_name = checkbox.objectName().split(';')
+            type = 'extra' if subject_type == 'extra' else 'basic'
+            self.data['classes'][class_name]['students'][subclass][student_name][type].remove(subject_name)
+        self.load_data(self.data)
+
+
 
     def load_data(self, data):
         self.data = data
         self.teacher_list.clear()
         self.teacher_list.addItem('')
-        self.teacher_list.addItems(self.data['teachers'].keys())
+        teacher_names = list(self.data['teachers'].keys())
+        teacher_names.sort()
+        self.teacher_list.addItems(teacher_names)
         self.class_list.clear()
-        self.class_list.addItems(self.data['classes'].keys())
+        class_names = list(self.data['classes'].keys())
+        class_names.sort()
+        self.class_list.addItems(class_names)
 
 
         
