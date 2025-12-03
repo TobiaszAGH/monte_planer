@@ -176,11 +176,10 @@ class ClassesWidget(QWidget):
             bottom_button_group.addWidget(remove_subclass_btn)
 
 
-    def del_btn(self, subclass, student_name, is_extra):
+    def del_btn(self, subclass, student_name, type):
         def func():
             btn = self.sender()
             class_name = self.list.currentText()
-            type = 'extra' if is_extra else 'basic'
             self.data['classes'][class_name]['students'][subclass][student_name][type].remove(btn.text())
             btn.deleteLater()
         return func
@@ -195,7 +194,7 @@ class ClassesWidget(QWidget):
             ok = dialog.exec()
             if not ok:
                 return False
-            type = 'extra' if dialog.type_list.currentData() == 'extra' else 'basic'
+            type = dialog.type_list.currentData()
             subject_name = dialog.subject_list.currentText()
             for checkbox in checkboxes:
                 index = student_list.layout().indexOf(checkbox)
@@ -205,7 +204,7 @@ class ClassesWidget(QWidget):
                 if subject_name not in subject_list:
                     self.data['classes'][class_name]['students'][subclass][student_name][type].append(subject_name)
                     btn = QPushButton(subject_name)
-                    slw_index = index + (2 if type == 'basic' else 3)
+                    slw_index = index + (2 if type == subclass else 3)
                     student_list.layout().itemAt(slw_index).insertWidget(0,btn)
                     btn.clicked.connect(self.del_btn(subclass, student_name, type=='extra'))
         return func
@@ -223,10 +222,10 @@ class ClassesWidget(QWidget):
         student_list.addWidget(name_label, n, 1)
         #basic subjects
         basic_subject_list = QHBoxLayout()
-        for subject in subjects['basic']:
+        for subject in subjects[subclass]:
             btn = QPushButton(subject)
             basic_subject_list.addWidget(btn)
-            btn.clicked.connect(self.del_btn(subclass, student_name, False))
+            btn.clicked.connect(self.del_btn(subclass, student_name, subclass))
         basic_subject_list.addStretch()
         student_list.addLayout(basic_subject_list, n, 2)
 
@@ -234,7 +233,7 @@ class ClassesWidget(QWidget):
         for subject in subjects['extra']:
             btn = QPushButton(subject)
             extra_subject_list.addWidget(btn)
-            btn.clicked.connect(self.del_btn(subclass, student_name, True))
+            btn.clicked.connect(self.del_btn(subclass, student_name, 'extra'))
         extra_subject_list.addStretch()
         student_list.addLayout(extra_subject_list, n, 3)
 
@@ -247,8 +246,8 @@ class ClassesWidget(QWidget):
             new_name.clear()
             students = self.data['classes'][self.list.currentText()]['students'][subclass]
             if student_name and student_name not in students.keys():        
-                self.add_student_to_list(subclass, (student_name, {'basic': [], 'extra': []}), student_list)
-                students[student_name] = {'basic': [], 'extra': []}
+                self.add_student_to_list(subclass, (student_name, {subclass: [], 'extra': []}), student_list)
+                students[student_name] = {subclass: [], 'extra': []}
         return func
 
     def toggle_all_checkboxes(self):

@@ -172,7 +172,6 @@ class SubjectsWidget(QWidget):
             self.lessons.addWidget(btn)
             btn.clicked.connect(self.remove_lesson)
         # students
-        subject_type = 'extra' if subject_type == 'extra' else 'basic'
         for subclass in self.data['classes'][class_name]['students'].keys():
             for student, subjects in self.data['classes'][class_name]['students'][subclass].items():
                 checkbox: QCheckBox = self.frame.findChildren(QCheckBox, f'{subclass};{student}')
@@ -212,10 +211,10 @@ class SubjectsWidget(QWidget):
         subclass, student_name = checkbox.objectName().split(';')
         student = self.data['classes'][class_name]['students'][subclass][student_name]
         subject_name = self.list.currentText()
-        subject_type = 'extra' if self.type_list.currentText() == 'extra' else 'basic'
-        if checkbox.isChecked() and subject_name not in student:
+        subject_type = self.type_list.currentText()
+        if checkbox.isChecked() and subject_name not in student[subject_type]:
             student[subject_type].append(subject_name)
-        elif subject_name in student: 
+        elif subject_name in student[subject_type]: 
             student[subject_type].remove(subject_name)
 
 
@@ -267,8 +266,7 @@ class SubjectsWidget(QWidget):
         checkboxes = [chb for chb in self.findChildren(QCheckBox)[1:] if chb.isChecked()]
         for checkbox in checkboxes:
             subclass, student_name = checkbox.objectName().split(';')
-            type = 'extra' if subject_type == 'extra' else 'basic'
-            self.data['classes'][class_name]['students'][subclass][student_name][type].remove(subject_name)
+            self.data['classes'][class_name]['students'][subclass][student_name][subject_type].remove(subject_name)
         self.load_data(self.data)
 
 
