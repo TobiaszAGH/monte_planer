@@ -93,6 +93,7 @@ class ClassesWidget(QWidget):
         self.load_class()
 
     def remove_subclass(self, subclass):
+        # foo = subclass
         def func():
             class_name = self.list.currentText()
             if not class_name:
@@ -102,9 +103,21 @@ class ClassesWidget(QWidget):
                 return False
             if QMessageBox.question(self, 'Uwaga', f'Czy na pewno chcesz usunąć: {subclass.upper()}') != QMessageBox.StandardButton.Yes:
                 return False
+            
             self.data['classes'][class_name]['students'].pop(subclass)
+            self.data['classes'][class_name]['subjects'].pop(subclass)
             remaining_subclases = self.data['classes'][class_name]['students'].values()
+            for i, students in enumerate(remaining_subclases):
+                for student_name in students.keys():
+                    old_types = students[student_name].keys()
+                    for s_type in old_types:
+                        if s_type != 'extra':
+                            type_to_remove = s_type
+                    subjects = students[student_name].pop(type_to_remove)
+                    students[student_name][ascii_lowercase[i]] = subjects
+
             self.data['classes'][class_name]['students'] = dict(zip(list(ascii_lowercase), remaining_subclases))
+
             self.load_class() 
         return func
 
