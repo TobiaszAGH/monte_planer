@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QHBoxLayout, QDialo
       QPushButton, QLabel, QDialogButtonBox, QMessageBox, QInputDialog, QGridLayout, QCheckBox, QSizePolicy, \
       QGraphicsScene, QGraphicsView, QSpacerItem
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPen
+from PyQt5.QtGui import QPen, QBrush
 
 
 class MyView(QGraphicsView):
@@ -46,7 +46,7 @@ class MyView(QGraphicsView):
         line.setPen(wide_pen)
 
         hour_h = (height-top_bar_h)/8
-        five_min_h = hour_h*12
+        five_min_h = hour_h/12
         for hour in range(8,16):
             pos = top_bar_h+(hour - 7)*hour_h
             text = scene.addSimpleText(f'{hour}-{hour+1}')
@@ -81,6 +81,20 @@ class MyView(QGraphicsView):
                     text_y = top_bar_h/2 + (top_bar_h/2 - text.boundingRect().height())/2
                     text.setPos(text_x, text_y)
                     scene.addLine(pos, top_bar_h/2, pos, height)
+
+            # print(self.data['blocks'].keys())
+            for n, class_name in enumerate(self.class_names):
+                for block in self.data['blocks'][class_name]:
+                    x = left_bar_w + day_w*block['day'] + n*block_w
+                    y = five_min_h*block['start'] + top_bar_h
+                    
+                    block_h = five_min_h* block['duration']
+                    rect = scene.addRect(x, y, block_w, block_h)
+                    # rect.setPen(wide_pen)
+                    # rect.setZValue(200)
+                    brush = QBrush(Qt.lightGray)
+                    rect.setBrush(brush)
+                    # print(rect)
 
 
         
@@ -142,5 +156,6 @@ class PlanWidget(QWidget):
     def load_data(self, data):
         self.data = data
         display_names = self.load_classes()
+        self.view.data = data
         self.view.set_class_names(display_names)
         self.view.draw_frame()
