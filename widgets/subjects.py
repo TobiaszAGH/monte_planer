@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QHBoxLayout, QDialog, QDialogButtonBox, \
       QPushButton, QLabel, QDialogButtonBox, QMessageBox, QInputDialog, QGridLayout, QCheckBox, QSizePolicy
 from PyQt5.QtCore import Qt
-from itertools import chain
 
 class AddLessonDialog(QDialog):
     def __init__(self, parent):
