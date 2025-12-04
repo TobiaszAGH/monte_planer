@@ -162,7 +162,7 @@ class TeachersWidget(QWidget):
         for row in range(1,17):
             for col in range(1,6):
                 cell = self.frame.availability.itemAtPosition(row, col).widget()
-                cell.available = av[col-1][row-1]
+                cell.available = str(av[col-1][row-1]) == "1"
                 cell.show_true_color()
 
     def save_av(self):
@@ -170,10 +170,11 @@ class TeachersWidget(QWidget):
         if not teacher:
             return False
         av = [
-            [
-                int(self.frame.availability.itemAtPosition(row, col).widget().available) for row in range(1,17)
-            ] for col in range(1,6)
+            ''.join([
+                "1" if self.frame.availability.itemAtPosition(row, col).widget().available else "0" for row in range(1,17)
+            ]) for col in range(1,6)
         ]
+        # av_str = ''.join(av)
         self.data['teachers'][teacher] = av
 
 
