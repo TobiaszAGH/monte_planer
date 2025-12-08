@@ -5,12 +5,12 @@ from widgets.teachers import TeachersWidget
 from widgets.plan import PlanWidget
 
 class Tabs(QTabWidget):
-    def __init__(self, data):
+    def __init__(self, parent, data):
         super().__init__()
         self.setTabPosition(QTabWidget.TabPosition.North)
         self.setMovable(True)
 
-
+        self.db = parent.db
         self.data = data
         self.subjects = SubjectsWidget(self, self.data)
         self.classes = ClassesWidget(self, self.data)

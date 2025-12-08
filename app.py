@@ -2,21 +2,24 @@ import sys
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QAction
 from PyQt5.QtCore import QSize
+from struct import pack
 
 import json
 
-from data import blank_data
+from data import blank_data, Data, Teacher
 from widgets.tabs import Tabs
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.data = blank_data()
+        self.db = Data()
+
         self.save_path = ''
 
         self.setWindowTitle("Monte Planer")
         self.setMinimumSize(QSize(800, 800))
-        self.tabs = Tabs(self.data)
+        self.tabs = Tabs(self, self.data)
 
         save_action = QAction('Zapisz', self)
         save_action.triggered.connect(self.save_data)
@@ -51,7 +54,7 @@ class MainWindow(QMainWindow):
 
     def save_as_data(self):
         data_json = json.dumps(self.data)
-        self.save_path, _ = QFileDialog.getSaveFileName(self, "Zapisz dane", 'data.vts', "Dane programu (*.vts)")
+        self.save_path, _ = QFileDialog.getSaveFileName(self, "Zapisz dane", 'data.mtp', "Dane programu (*.mtp)")
         if not self.save_path:
             return
         with open(self.save_path, 'w') as save_file:
@@ -59,7 +62,7 @@ class MainWindow(QMainWindow):
 
 
     def load_data(self):
-        open_path, _ = QFileDialog.getOpenFileName(self, 'Wczytaj dane')
+        open_path, _ = QFileDialog.getOpenFileName(self, 'Wczytaj dane', '', '*.mtp', '*.mtp')
         if not open_path:
             return
         self.save_path = open_path

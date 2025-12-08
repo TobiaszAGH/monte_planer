@@ -2,6 +2,9 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QListWidget, QComboBox, QTable
       QLabel, QInputDialog, QMessageBox, QPushButton, QHBoxLayout, QDialogButtonBox
       
 from PyQt5 import QtCore
+from data import Data, Teacher
+from sqlalchemy.exc import IntegrityError
+from struct import pack
 
 cell_style = 'border: 1px solid black;'
 
@@ -100,11 +103,15 @@ class TeachersWidget(QWidget):
     def __init__(self,parent, data):
         super().__init__(parent=parent)
         self.data = data
+        self.db:Data = parent.db
 
         layout= QVBoxLayout()
         top_row = QHBoxLayout()
         self.list = QComboBox(self)
-        self.list.currentTextChanged.connect(self.load_teacher_av)
+        self.list.currentIndexChanged.connect(self.load_teacher_av)
+        self.list.setEditable(True)
+        self.list.setInsertPolicy(QComboBox.InsertAtCurrent)
+        self.list.lineEdit().returnPressed.connect(self.update_teacher_name)
         self.list.addItems(data['teachers'].keys())
         top_row.addWidget(self.list)
 
@@ -125,7 +132,6 @@ class TeachersWidget(QWidget):
         if not self.list.currentText():
             self.frame.hide()
 
-        # del_teacher_btn = QAbstractButton('Usuń Nauczyciela')
         self.button_row = QDialogButtonBox()
         del_teacher_btn = self.button_row.addButton('Usuń nauczyciela', QDialogButtonBox.ButtonRole.ActionRole)
         del_teacher_btn.clicked.connect(self.del_teacher)
@@ -135,52 +141,64 @@ class TeachersWidget(QWidget):
     def new_teacher(self):
         teacher_name, ok = QInputDialog.getText(self, 'Dodaj Nauczyciela', 'Nauczyciel:')
         if ok and teacher_name:
-            if teacher_name in self.data['teachers'].keys():
-                QMessageBox.warning(self, 'Uwaga', 'Taki nauczyciel już istnieje')
-            else:
-                self.data['teachers'][teacher_name] = [[0] * 16] * 5
-                self.list.addItem(teacher_name)
+            try:
+                teacher = self.db.create_teacher(teacher_name)
+                self.list.addItem(teacher_name, teacher)
                 self.list.setCurrentText(teacher_name)
+            except IntegrityError:
+                QMessageBox.warning(self, 'Uwaga', 'Taki nauczyciel już istnieje')
+
+    def update_teacher_name(self):
+        teacher_name = self.list.currentText()
+        teacher = self.list.currentData()
+        if not teacher:
+            return False
+        try:
+            self.db.update_teacher_name(teacher, teacher_name)
+        except IntegrityError:
+            QMessageBox.warning(self, 'Uwaga', 'Taki nauczyciel już istnieje')
+        # self.load_data(self.data)
+
+
 
     def del_teacher(self):
-        name = self.list.currentText()
+        teacher = self.list.currentData()
+        if QMessageBox.question(self, 'Uwaga', f'Czy na pewno chcesz usunąć: {teacher.name}') != QMessageBox.StandardButton.Yes:
+                return False
         self.list.removeItem(self.list.currentIndex())
-        self.data["teachers"].pop(name)
-        for cl in self.data['classes'].values():
-            for subject in cl['subjects'].values():
-                if subject['teacher'] == name:
-                    subject['teacher'] = ''
-        self.load_teacher_av()
+        self.db.remove_teacher(teacher)
+        
 
     def load_teacher_av(self):
-        teacher = self.list.currentText()
+        teacher: Teacher = self.list.currentData()
         if not teacher:
             self.frame.hide()
             return False
         self.frame.show()
-        av = self.data['teachers'][teacher]
+        av = self.db.get_teacher_av(teacher)
         for row in range(1,17):
             for col in range(1,6):
                 cell = self.frame.availability.itemAtPosition(row, col).widget()
-                cell.available = str(av[col-1][row-1]) == "1"
+                cell.available = av[col-1]>>row-1 & 1
                 cell.show_true_color()
 
     def save_av(self):
-        teacher = self.list.currentText()
+        teacher = self.list.currentData()
         if not teacher:
             return False
-        av = [
-            ''.join([
-                "1" if self.frame.availability.itemAtPosition(row, col).widget().available else "0" for row in range(1,17)
-            ]) for col in range(1,6)
-        ]
-        # av_str = ''.join(av)
-        self.data['teachers'][teacher] = av
+        av = [0] * 5
+        for row in range(16):
+            for col in range(5):
+                val = self.frame.availability.itemAtPosition(row+1, col+1).widget().available
+                av[col] |= val << row
+        self.db.update_teacher_av(teacher, av)
+
 
 
     def load_data(self, data):
         self.data = data
         self.list.clear()
-        self.list.addItems(self.data['teachers'].keys())
+        for teacher in self.db.all_teachers():
+            self.list.addItem(teacher.name, teacher)
         if self.list.currentText():
             self.frame.show()
