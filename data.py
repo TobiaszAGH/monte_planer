@@ -77,6 +77,7 @@ class Subject(Base):
 class Lesson(Base):
     __tablename__ = 'lessons'
     id = Column(Integer, primary_key=True)
+    length = Column(Integer, nullable=False)
     subject_id = Column(Integer, ForeignKey('subjects.id'))
     
 class Data():
@@ -176,9 +177,11 @@ class Data():
 
     def remove_subject_from_student(self, subject: Subject, student: Student):
         student.subjects.remove(subject)
+        self.session.commit()
 
     def add_subject_to_student(self, subject: Subject, student: Student):
         student.subjects.append(subject)
+        self.session.commit()
 
     # subjects
     def create_subject(self, name, basic, my_sub_class) -> Subject:
@@ -188,7 +191,23 @@ class Data():
         self.session.commit()
         return subject
     
-    def update_subject_teacher(self, subject, teacher):
+    def read_subjects_of_student(self, student: Student) -> List[Subject]:
+        return student.subjects
+    
+    def update_subject_teacher(self, subject: Subject, teacher: Teacher) -> None:
         subject.teacher = teacher
         self.session.commit()
+
+    def delete_subject(self, subject: Subject) -> None:
+        self.session.delete(subject)
+        self.session.commit()
     
+    def create_lessson(self, length: int, subject: Subject) -> Lesson:
+        lesson = Lesson(length=length, subject=subject)
+        self.session.add(lesson)
+        self.session.commit()
+        return lesson
+    
+    def delete_lesson(self, lesson: Lesson) -> None:
+        self.session.delete(lesson)
+        self.session.commit()

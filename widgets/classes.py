@@ -9,10 +9,11 @@ from sqlalchemy.exc import IntegrityError
 from string import ascii_lowercase
 
 class AddSubjectDialog(QDialog):
-    def __init__(self, parent, class_name, subclass, data):
+    def __init__(self, parent, subclass: Subclass):
         super().__init__(parent)
-        self.data = data
-        self.class_name = class_name
+        self.db = parent.db
+        self.subclass: Subclass = subclass
+        
 
         self.setWindowTitle('Wybierz przedmiot')
         layout = QVBoxLayout()
@@ -21,8 +22,8 @@ class AddSubjectDialog(QDialog):
         self.type_list = QComboBox()
         layout.addWidget(self.type_list)
         self.type_list.addItems(['Przedmiot podstawowy', 'Przedmiot rozszerzony'])
-        self.type_list.setItemData(0, subclass)
-        self.type_list.setItemData(1, 'extra')
+        self.type_list.setItemData(0, True)
+        self.type_list.setItemData(1, False)
         self.type_list.currentTextChanged.connect(self.update_subject_list)
 
         self.subject_list = QComboBox()
@@ -37,10 +38,14 @@ class AddSubjectDialog(QDialog):
         buttonBox.rejected.connect(self.reject)
 
     def update_subject_list(self):
-        subject_names = self.data['classes'][self.class_name]['subjects'][self.type_list.currentData()].keys()
+        basic = self.type_list.currentData()
+        if basic:
+            subjects = self.subclass.subjects
+        else:
+            subjects = self.subclass.my_class.subjects
         self.subject_list.clear()
-        self.subject_list.addItems(subject_names)
-        
+        for subject in subjects:
+            self.subject_list.addItem(subject.name, subject) 
 
 class ClassesWidget(QWidget):
     def __init__(self,parent, data):
@@ -190,32 +195,23 @@ class ClassesWidget(QWidget):
     def del_btn(self, student, subject):
         def func():
             self.db.remove_subject_from_student(subject, student)
-            self.sender().deleteLater()
+            self.load_class()
         return func
     
     def add_subject_to_student(self, subclass: str, student_list:QWidget):
         def func():
-            checkboxes = [checkbox for checkbox in student_list.findChildren(QCheckBox)[1:] if checkbox.isChecked()]
+            checkboxes = [checkbox for checkbox in student_list.findChildren(QCheckBox) if checkbox.isChecked()]
             if not checkboxes:
                 return False
-            class_name = self.list.currentText()
-            dialog = AddSubjectDialog(self, class_name, subclass, self.data)
+            dialog = AddSubjectDialog(self, subclass)
             ok = dialog.exec()
             if not ok:
                 return False
-            type = dialog.type_list.currentData()
-            subject_name = dialog.subject_list.currentText()
+            subject = dialog.subject_list.currentData()
             for checkbox in checkboxes:
-                index = student_list.layout().indexOf(checkbox)
-                label:QLabel = student_list.layout().itemAt(index+1).widget()
-                student_name = label.text()
-                subject_list = self.data['classes'][class_name]['students'][subclass][student_name][type]
-                if subject_name not in subject_list:
-                    self.data['classes'][class_name]['students'][subclass][student_name][type].append(subject_name)
-                    btn = QPushButton(subject_name)
-                    slw_index = index + (2 if type == subclass else 3)
-                    student_list.layout().itemAt(slw_index).insertWidget(0,btn)
-                    btn.clicked.connect(self.del_btn(subclass, student_name, type=='extra'))
+                if hasattr(checkbox, 'student'):
+                    self.db.add_subject_to_student(subject, checkbox.student)
+            self.load_class()
         return func
 
     def add_student_to_list(self, student, student_list: QGridLayout): 
@@ -231,20 +227,20 @@ class ClassesWidget(QWidget):
         student_list.addWidget(name_label, n, 1)
         #basic subjects
         basic_subject_list = QHBoxLayout()
+        student_list.addLayout(basic_subject_list, n, 2)
         extra_subject_list = QHBoxLayout()
+        student_list.addLayout(extra_subject_list, n, 3)
         subject: Subject
         for subject in student.subjects:
             btn = QPushButton(subject.name)
             basic_subject_list.addWidget(btn)
             btn.clicked.connect(self.del_btn(student, subject))
-            if subject.basic:
+            if subject.basic == True:
                 basic_subject_list.addWidget(btn)
             else:
                 extra_subject_list.addWidget(btn)
         basic_subject_list.addStretch()
         extra_subject_list.addStretch()
-        student_list.addLayout(basic_subject_list, n, 2)
-        student_list.addLayout(extra_subject_list, n, 3)
 
     def new_student(self, subclass, student_list):
         def func():
