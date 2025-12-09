@@ -3,6 +3,8 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QInputDialog, QPushButton, \
     QLineEdit, QScrollArea, QSpacerItem, QDialog, QDialogButtonBox
 
 from PyQt5.QtCore import Qt
+from data import Data, Class, Subclass, Student, Subject
+from sqlalchemy.exc import IntegrityError
 
 from string import ascii_lowercase
 
@@ -44,6 +46,7 @@ class ClassesWidget(QWidget):
     def __init__(self,parent, data):
         super().__init__(parent=parent)
         self.data = data
+        self.db: Data = parent.db
 
         main_layout = QVBoxLayout()
 
@@ -61,6 +64,12 @@ class ClassesWidget(QWidget):
         new_subclass_btn.clicked.connect(self.new_subclass)
         layout.addWidget(new_subclass_btn)
 
+        layout.addStretch()
+        
+        delete_class_btn = QPushButton('Usuń klasę')
+        delete_class_btn.clicked.connect(self.delete_class)
+        layout.addWidget(delete_class_btn)
+
         main_layout.addLayout(layout)
 
         container = QWidget()
@@ -75,56 +84,44 @@ class ClassesWidget(QWidget):
     def new_class(self):
         class_name, ok = QInputDialog.getText(self, 'Dodaj Klasę', 'Klasa:')
         if ok and class_name:
-            if class_name in self.data['classes'].keys():
+            try:
+                my_class = self.db.create_class(class_name)
+                self.list.addItem(my_class.name, my_class)
+            except IntegrityError:
                 QMessageBox.warning(self, 'Uwaga', 'Taka klasa już istnieje')
-            else:
-                self.data['classes'][class_name] = {'subjects': {'a':{}, 'extra': {}}, 'students': {'a': {}}}
-                self.list.addItem(class_name)
+
 
     def new_subclass(self):
-        class_name = self.list.currentText()
-        if not class_name:
+        curr_class = self.list.currentData()
+        if not curr_class:
             return False
-        class_dict = self.data['classes'][class_name]
-        subclasses = class_dict['students'].keys()
-        subclass_name = ascii_lowercase[len(subclasses)]
-        class_dict['students'][subclass_name] = {}
-        class_dict['subjects'][subclass_name] = {}
+        subclass = self.db.create_subclass(curr_class)
         self.load_class()
+        return subclass
 
     def remove_subclass(self, subclass):
         # foo = subclass
         def func():
-            class_name = self.list.currentText()
-            if not class_name:
+            my_class: Class = self.list.currentData()
+            if not my_class:
                 return False
-            if len(self.data['classes'][class_name]['students'].keys()) == 1:
+            if len(my_class.subclasses) == 1:
                 QMessageBox.information(self, 'Uwaga', 'Nie możesz usunąć jedynej podklasy')
                 return False
-            if QMessageBox.question(self, 'Uwaga', f'Czy na pewno chcesz usunąć: {subclass.upper()}') != QMessageBox.StandardButton.Yes:
+            if QMessageBox.question(self, 'Uwaga', f'Czy na pewno chcesz usunąć: {subclass.name.upper()}') != QMessageBox.StandardButton.Yes:
                 return False
             
-            self.data['classes'][class_name]['students'].pop(subclass)
-            self.data['classes'][class_name]['subjects'].pop(subclass)
-            remaining_subclases = self.data['classes'][class_name]['students'].values()
-            for i, students in enumerate(remaining_subclases):
-                for student_name in students.keys():
-                    old_types = students[student_name].keys()
-                    for s_type in old_types:
-                        if s_type != 'extra':
-                            type_to_remove = s_type
-                    subjects = students[student_name].pop(type_to_remove)
-                    students[student_name][ascii_lowercase[i]] = subjects
-
-            self.data['classes'][class_name]['students'] = dict(zip(list(ascii_lowercase), remaining_subclases))
-
+            self.db.delete_subclass(subclass)
+            
             self.load_class() 
         return func
 
     def load_data(self, data):
         self.data = data
         self.list.clear()
-        self.list.addItems(self.data['classes'].keys())
+        for cl in self.db.all_classes():    
+            self.list.addItem(cl.name, cl)
+        # self.list.addItems(self.data['classes'].keys())
     
     def load_class(self):
         #clear widget
@@ -136,22 +133,22 @@ class ClassesWidget(QWidget):
         frame.setLayout(frame_layout)
         self.container_layout.addWidget(frame)
         #classes data
-        class_name = self.list.currentText()
-        if not class_name:
+        my_class: Class = self.list.currentData()
+        if not my_class:
             return False
-        students_dict = self.data['classes'][class_name]['students'].items()
-        for subclass, students in students_dict:
+        subclass: Subclass
+        for subclass in my_class.subclasses:
             scrollarea = QScrollArea()
             student_list_widget = QWidget()
             scrollarea.setWidget(student_list_widget)
-            scrollarea.setMinimumHeight(200//len(students_dict))
+            scrollarea.setMinimumHeight(200//len(my_class.subclasses))
             student_list = QGridLayout()
             student_list_widget.setLayout(student_list) 
             student_list.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
             scrollarea.setWidgetResizable(True)
 
             #subclass name
-            frame_layout.addWidget(QLabel(subclass.upper()))
+            frame_layout.addWidget(QLabel(subclass.name.upper()))
             #headers
             main_checkbox = QCheckBox()
             main_checkbox.toggled.connect(self.toggle_all_checkboxes)
@@ -163,8 +160,9 @@ class ClassesWidget(QWidget):
             student_list.addWidget(QLabel("Przedmioty rozszerzone"), 0, 3)
 
             #load students
-            for student in students.items():
-                self.add_student_to_list(subclass, student, student_list)
+            student: Student
+            for student in subclass.students:
+                self.add_student_to_list(student, student_list)
 
             frame_layout.addWidget(scrollarea)
 
@@ -172,14 +170,14 @@ class ClassesWidget(QWidget):
             frame_layout.addLayout(bottom_button_group)
             new_name = QLineEdit()
             new_name.setPlaceholderText('Imię i nazwisko')
-            new_name.setObjectName(f'new_name_{subclass}')
+            new_name.setObjectName(f'new_name_{subclass.name}')
             new_name.returnPressed.connect(self.new_student(subclass, student_list))
             bottom_button_group.addWidget(new_name)
             add_student_btn = QPushButton("Dodaj ucznia")
             add_student_btn.clicked.connect(self.new_student(subclass, student_list))
             bottom_button_group.addWidget(add_student_btn)
             delete_student_button = QPushButton("Usuń ucznia")
-            delete_student_button.clicked.connect(self.remove_students(subclass, student_list_widget))
+            delete_student_button.clicked.connect(self.delete_students(student_list_widget))
             bottom_button_group.addWidget(delete_student_button)
             add_subject_to_student_btn = QPushButton("Dodaj przedmiot")
             add_subject_to_student_btn.clicked.connect(self.add_subject_to_student(subclass, student_list_widget))
@@ -189,12 +187,10 @@ class ClassesWidget(QWidget):
             bottom_button_group.addWidget(remove_subclass_btn)
 
 
-    def del_btn(self, subclass, student_name, type):
+    def del_btn(self, student, subject):
         def func():
-            btn = self.sender()
-            class_name = self.list.currentText()
-            self.data['classes'][class_name]['students'][subclass][student_name][type].remove(btn.text())
-            btn.deleteLater()
+            self.db.remove_subject_from_student(subject, student)
+            self.sender().deleteLater()
         return func
     
     def add_subject_to_student(self, subclass: str, student_list:QWidget):
@@ -222,45 +218,40 @@ class ClassesWidget(QWidget):
                     btn.clicked.connect(self.del_btn(subclass, student_name, type=='extra'))
         return func
 
-    def add_student_to_list(self, subclass, student, student_list: QGridLayout): 
+    def add_student_to_list(self, student, student_list: QGridLayout): 
         n = student_list.rowCount()
-        student_name, subjects = student
         #checkbox
         checkbox = QCheckBox()
         checkbox.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        checkbox.student = student
         student_list.addWidget(checkbox,n, 0)
         #name
-        name_label = QLabel(student_name)
+        name_label = QLabel(student.name)
         name_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         student_list.addWidget(name_label, n, 1)
         #basic subjects
         basic_subject_list = QHBoxLayout()
-        for subject in subjects[subclass]:
-            btn = QPushButton(subject)
-            basic_subject_list.addWidget(btn)
-            btn.clicked.connect(self.del_btn(subclass, student_name, subclass))
-        basic_subject_list.addStretch()
-        student_list.addLayout(basic_subject_list, n, 2)
-
         extra_subject_list = QHBoxLayout()
-        for subject in subjects['extra']:
-            btn = QPushButton(subject)
-            extra_subject_list.addWidget(btn)
-            btn.clicked.connect(self.del_btn(subclass, student_name, 'extra'))
+        subject: Subject
+        for subject in student.subjects:
+            btn = QPushButton(subject.name)
+            basic_subject_list.addWidget(btn)
+            btn.clicked.connect(self.del_btn(student, subject))
+            if subject.basic:
+                basic_subject_list.addWidget(btn)
+            else:
+                extra_subject_list.addWidget(btn)
+        basic_subject_list.addStretch()
         extra_subject_list.addStretch()
+        student_list.addLayout(basic_subject_list, n, 2)
         student_list.addLayout(extra_subject_list, n, 3)
 
     def new_student(self, subclass, student_list):
         def func():
-        # name_box = self.sender().parent()
-            new_name:QLineEdit = self.findChild(QLineEdit, f'new_name_{subclass}')
-            # student_list:QWidget = curr_widget.findChild(QGridLayout)
-            student_name = new_name.text()
+            new_name:QLineEdit = self.findChild(QLineEdit, f'new_name_{subclass.name}')
+            student = self.db.create_student(new_name.text(), subclass)
+            self.add_student_to_list(student, student_list)
             new_name.clear()
-            students = self.data['classes'][self.list.currentText()]['students'][subclass]
-            if student_name and student_name not in students.keys():        
-                self.add_student_to_list(subclass, (student_name, {subclass: [], 'extra': []}), student_list)
-                students[student_name] = {subclass: [], 'extra': []}
         return func
 
     def toggle_all_checkboxes(self):
@@ -270,35 +261,30 @@ class ClassesWidget(QWidget):
         for chechbox in checkboxes:
             chechbox.setChecked(new_state)
 
-    def remove_students(self, subclass, student_list):
+    def delete_students(self, student_list):
         def func():
-            checkboxes:list[QCheckBox] = student_list.findChildren(QCheckBox)
-            to_remove = []
-            student_list_layout = student_list.layout()
-            for checkbox in checkboxes[1:]:
-                if checkbox.isChecked():
-                    index = student_list_layout.indexOf(checkbox)
-                    label:QLabel = student_list_layout.itemAt(index+1).widget()
-                    student_name = label.text()
-                    to_remove.append((student_list_layout.indexOf(label), student_name))
+            checkboxes:list[QCheckBox] = student_list.findChildren(QCheckBox)[1:]
+            to_remove = [ch.student for ch in checkboxes if ch.isChecked()]
             amount = len(to_remove)
             if amount == 0:
                 return False
+
             message = f"Czy na pewno chcesz usunąć {amount} {'ucznia' if amount == 1 else 'uczniów'}?"
             if QMessageBox.question(self, 'Uwaga', message) != QMessageBox.StandardButton.Yes:
                 return False
 
-            for i, student_name in to_remove[::-1]:
-                self.data['classes'][self.list.currentText()]['students'][subclass].pop(student_name)
-                for n in range(i-1, i+2):
-                    item = student_list_layout.itemAt(n)
-                    if item.widget():
-                        item.widget().deleteLater()
-                    layout = item.layout()
-                    if layout:
-                        for j in range(layout.count()-1):
-                            layout.itemAt(j).widget().deleteLater()
+            for student in to_remove:
+                self.db.delete_student(student)
+
+            self.load_class()
+
         return func
+
+    def delete_class(self):
+        my_class: Class = self.list.currentData()
+        if QMessageBox.question(self, 'Uwaga', f'Czy na pewno chcesz usunąć klasę: {my_class.name}') == QMessageBox.StandardButton.Yes:
+            self.db.delete_class(my_class)
+        self.load_data(self.data)
                     
                 
 

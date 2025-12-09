@@ -166,7 +166,7 @@ class TeachersWidget(QWidget):
         if QMessageBox.question(self, 'Uwaga', f'Czy na pewno chcesz usunąć: {teacher.name}') != QMessageBox.StandardButton.Yes:
                 return False
         self.list.removeItem(self.list.currentIndex())
-        self.db.remove_teacher(teacher)
+        self.db.delete_teacher(teacher)
         
 
     def load_teacher_av(self):
@@ -175,7 +175,7 @@ class TeachersWidget(QWidget):
             self.frame.hide()
             return False
         self.frame.show()
-        av = self.db.get_teacher_av(teacher)
+        av = self.db.read_teacher_av(teacher)
         for row in range(1,17):
             for col in range(1,6):
                 cell = self.frame.availability.itemAtPosition(row, col).widget()
@@ -198,7 +198,7 @@ class TeachersWidget(QWidget):
     def load_data(self, data):
         self.data = data
         self.list.clear()
-        for teacher in self.db.all_teachers():
+        for teacher in self.db.read_all_teachers():
             self.list.addItem(teacher.name, teacher)
         if self.list.currentText():
             self.frame.show()

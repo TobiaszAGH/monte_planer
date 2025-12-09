@@ -1,9 +1,9 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, BLOB
-# from sqlite3 import IntegrityError
-from struct import pack
+from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, BLOB, Table, Boolean
+from string import ascii_lowercase
+from typing import List
 def blank_data():
     return {
         'classes': {},
@@ -15,18 +15,37 @@ def blank_data():
 
 Base = declarative_base()
 
+student_subject = Table(
+    "student_subject",
+    Base.metadata,
+    Column("student_id", Integer, ForeignKey("students.id"), primary_key=True),
+    Column("subject_id", Integer, ForeignKey("subjects.id"), primary_key=True),
+)
+
 class Student(Base):
     __tablename__ = 'students'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     class_id = Column(Integer, ForeignKey('classes.id'))
+    subclass_id = Column(Integer, ForeignKey('subclasses.id'))
+    subjects = relationship("Subject", secondary=student_subject, back_populates="students")
     # class = 
 
 class Class(Base):
     __tablename__ = 'classes'
     id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    students = relationship("Student", backref="my_class")
+    subclasses = relationship("Subclass", backref="my_class")
+    subjects = relationship("Subject", backref="my_class")
+
+class Subclass(Base):
+    __tablename__ = 'subclasses'
+    id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    students = relationship("Student", backref="class")
+    class_id = Column(Integer, ForeignKey('classes.id'))
+    students = relationship("Student", backref="subclass")
+    subjects = relationship("Subject", backref="subclass")
 
 class Teacher(Base):
     __tablename__ = 'teachers'
@@ -37,11 +56,7 @@ class Teacher(Base):
     av3 = Column(Integer)
     av4 = Column(Integer)
     av5 = Column(Integer)
-    # availability = [av1, av2, av3, av4, av5]
-
-    # def __init__(self, name):
-    #     self.name = name
-    #     self.av1, self.av2, self.av3, self.av4, self.av5 = 65536, 65536, 65536, 65536, 65536
+    subjects = relationship("Subject", backref='teacher')
 
     def __init__(self, name, av):
         self.name = name
@@ -52,6 +67,17 @@ class Subject(Base):
     __tablename__ = 'subjects'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
+    class_id = Column(Integer, ForeignKey('classes.id'))
+    subclass_id = Column(Integer, ForeignKey('subclasses.id'))
+    teacher_id = Column(Integer, ForeignKey('teachers.id'))
+    basic = Column(Boolean)
+    students = relationship("Student", secondary=student_subject, back_populates="subjects")
+    lessons = relationship("Lesson", backref="subject")
+
+class Lesson(Base):
+    __tablename__ = 'lessons'
+    id = Column(Integer, primary_key=True)
+    subject_id = Column(Integer, ForeignKey('subjects.id'))
     
 class Data():
     def __init__(self):
@@ -63,6 +89,8 @@ class Data():
     def table_names(self):
         return Base.metadata.tables.keys()
     
+
+    # teachers
     def create_teacher(self, name, availability = [0]*5):
         print(availability)
         teacher = Teacher(name=name, av=availability)
@@ -74,7 +102,7 @@ class Data():
             self.session.rollback()
             raise IntegrityError('Taki nauczyciel już istnieje', '', '')
         
-    def get_teacher_av(self, t: Teacher):
+    def read_teacher_av(self, t: Teacher):
         return [t.av1, t.av2, t.av3, t.av4, t.av5]
         
     def update_teacher_av(self, t: Teacher, av):
@@ -85,12 +113,82 @@ class Data():
         t.name = name
         self.session.commit()
 
-    def teacher_names(self):
-        return [t.name for t in self.session.query(Teacher).all()]
+    # def teacher_names(self):
+    #     return [t.name for t in self.session.query(Teacher).all()]
     
-    def all_teachers(self):
+    def read_all_teachers(self):
         return self.session.query(Teacher).order_by(Teacher.name).all()
 
-    def remove_teacher(self, t):
+    def delete_teacher(self, t):
         self.session.delete(t)
         self.session.commit()
+
+    # classes
+    def all_classes(self) -> List[Class]:
+        return self.session.query(Class).all()
+
+    def create_class(self, name: str) -> Class:
+        subclass = Subclass(name='a')
+        new_class = Class(name=name, subclasses=[subclass])
+        self.session.add(subclass)
+        self.session.add(new_class)
+        self.session.commit()
+        return new_class
+    
+    def delete_class(self, my_class: Class) -> None:
+        for subclass in my_class.subclasses:
+            self.delete_subclass(subclass)
+        for subject in my_class.subjects:
+            self.session.delete(subject)
+        self.session.delete(my_class)
+        self.session.commit()
+    
+    def create_subclass(self, my_class: Class) -> Subclass:
+        names = [s.name for s in my_class.subclasses]
+        name = ascii_lowercase[len(names)] 
+        subclass = Subclass(name=name, class_id=my_class.id)
+        self.session.add(subclass)
+        self.session.commit()
+        return subclass
+
+    
+    def delete_subclass(self, subclass: Subclass) -> None:
+        my_class: Class = subclass.my_class
+        for student in subclass.students:
+            self.session.delete(student)
+        self.session.delete(subclass)
+        self.session.commit()
+        for name, subclass in zip(ascii_lowercase, my_class.subclasses):
+            subclass.name = name
+        self.session.commit()
+
+
+    # students
+    def create_student(self, name, subclass:Subclass):
+        student = Student(name=name, subclass=subclass, class_id=subclass.class_id)
+        self.session.add(student)
+        self.session.commit()
+        return student
+    
+    def delete_student(self, student):
+        self.session.delete(student)
+        self.session.commit()
+
+    def remove_subject_from_student(self, subject: Subject, student: Student):
+        student.subjects.remove(subject)
+
+    def add_subject_to_student(self, subject: Subject, student: Student):
+        student.subjects.append(subject)
+
+    # subjects
+    def create_subject(self, name, basic, my_sub_class) -> Subject:
+        subject = Subject(name=name, basic=basic)
+        my_sub_class.subjects.append(subject)
+        self.session.add(subject)
+        self.session.commit()
+        return subject
+    
+    def update_subject_teacher(self, subject, teacher):
+        subject.teacher = teacher
+        self.session.commit()
+    
