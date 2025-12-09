@@ -47,6 +47,9 @@ class Subclass(Base):
     students = relationship("Student", backref="subclass")
     subjects = relationship("Subject", backref="subclass")
 
+    def full_name(self):
+        return self.my_class.name + self.name
+
 class Teacher(Base):
     __tablename__ = 'teachers'
     id = Column(Integer, primary_key=True)

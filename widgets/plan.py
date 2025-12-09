@@ -5,13 +5,15 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QHBoxLayout, QDialo
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPen, QBrush
 
+from data import Data, Class
+
 
 class MyView(QGraphicsView):
 
-    def __init__(self,parent, data):
+    def __init__(self,parent):
         super().__init__(parent)
         self.setScene(QGraphicsScene())
-        self.data = data
+        self.db = parent.db
         self.class_names = []
 
     def set_class_names(self, class_names):
@@ -83,18 +85,18 @@ class MyView(QGraphicsView):
                     scene.addLine(pos, top_bar_h/2, pos, height)
 
             # print(self.data['blocks'].keys())
-            for n, class_name in enumerate(self.class_names):
-                for block in self.data['blocks'][class_name]:
-                    x = left_bar_w + day_w*block['day'] + n*block_w
-                    y = five_min_h*block['start'] + top_bar_h
+            # for n, class_name in enumerate(self.class_names):
+            #     for block in self.data['blocks'][class_name]:
+            #         x = left_bar_w + day_w*block['day'] + n*block_w
+            #         y = five_min_h*block['start'] + top_bar_h
                     
-                    block_h = five_min_h* block['duration']
-                    rect = scene.addRect(x, y, block_w, block_h)
-                    # rect.setPen(wide_pen)
-                    # rect.setZValue(200)
-                    brush = QBrush(Qt.lightGray)
-                    rect.setBrush(brush)
-                    # print(rect)
+            #         block_h = five_min_h* block['duration']
+            #         rect = scene.addRect(x, y, block_w, block_h)
+            #         # rect.setPen(wide_pen)
+            #         # rect.setZValue(200)
+            #         brush = QBrush(Qt.lightGray)
+            #         rect.setBrush(brush)
+            #         # print(rect)
 
 
         
@@ -102,9 +104,9 @@ class MyView(QGraphicsView):
         
 
 class PlanWidget(QWidget):
-    def __init__(self, parent, data):
+    def __init__(self, parent):
         super().__init__(parent)
-        self.data = data
+        self.db: Data = parent.db
         layout = QVBoxLayout(self)
         self.setLayout(layout)
 
@@ -114,22 +116,21 @@ class PlanWidget(QWidget):
         self.class_filter.layout().addStretch()
         self.load_classes()
         layout.addWidget(self.class_filter)
-        self.view = MyView(self, self.data)
+        self.view = MyView(self)
         layout.addWidget(self.view)
-        self.load_data(data)
+        self.load_data()
 
     
 
     def load_classes(self):
-        class_names = self.data['classes'].keys()
+        classes = self.db.all_classes()
         display_names = []
-        for class_name in class_names:
-            subclasses = self.data['classes'][class_name]['students'].keys()
-            if len(subclasses) == 1:
-                display_names.append(class_name)
+        for my_class in classes:
+            if len(my_class.subclasses) == 1:
+                display_names.append(my_class.name)
             else:
-                full_subclass_names = [f'{class_name}{s}' for s in subclasses]
-                display_names.extend(full_subclass_names)
+                for subclass in my_class.subclasses:
+                    display_names.append(subclass.full_name())
 
         if not display_names:
             return []
@@ -153,9 +154,8 @@ class PlanWidget(QWidget):
         self.view.set_class_names(display_names[::-1])
         self.view.draw_frame()
 
-    def load_data(self, data):
-        self.data = data
+    def load_data(self):
         display_names = self.load_classes()
-        self.view.data = data
+        # self.view.data = data
         self.view.set_class_names(display_names)
         self.view.draw_frame()

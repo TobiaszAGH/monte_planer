@@ -20,9 +20,8 @@ class AddLessonDialog(QDialog):
         buttonBox.rejected.connect(self.reject)
 
 class SubjectsWidget(QWidget):
-    def __init__(self,parent, data):
+    def __init__(self,parent):
         super().__init__(parent=parent)
-        self.data = data
         self.db: Data = parent.db
         layout= QVBoxLayout()
         self.setLayout(layout)
@@ -252,8 +251,7 @@ class SubjectsWidget(QWidget):
 
 
 
-    def load_data(self, data):
-        self.data = data
+    def load_data(self):
         self.teacher_list.clear()
         self.teacher_list.addItem('')
         for t in self.db.read_all_teachers():

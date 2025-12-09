@@ -1,10 +1,9 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QListWidget, QComboBox, QTableWidget, QGridLayout,\
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QGridLayout,\
       QLabel, QInputDialog, QMessageBox, QPushButton, QHBoxLayout, QDialogButtonBox
       
 from PyQt5 import QtCore
 from data import Data, Teacher
 from sqlalchemy.exc import IntegrityError
-from struct import pack
 
 cell_style = 'border: 1px solid black;'
 
@@ -100,9 +99,8 @@ class AvFrame(QWidget):
         self.parent().parent().save_av()
 
 class TeachersWidget(QWidget):
-    def __init__(self,parent, data):
+    def __init__(self,parent):
         super().__init__(parent=parent)
-        self.data = data
         self.db:Data = parent.db
 
         layout= QVBoxLayout()
@@ -112,7 +110,6 @@ class TeachersWidget(QWidget):
         self.list.setEditable(True)
         self.list.setInsertPolicy(QComboBox.InsertAtCurrent)
         self.list.lineEdit().returnPressed.connect(self.update_teacher_name)
-        self.list.addItems(data['teachers'].keys())
         top_row.addWidget(self.list)
 
         self.new_teacher_btn = QPushButton('Dodaj Nauczyciela')
@@ -195,8 +192,7 @@ class TeachersWidget(QWidget):
 
 
 
-    def load_data(self, data):
-        self.data = data
+    def load_data(self):
         self.list.clear()
         for teacher in self.db.read_all_teachers():
             self.list.addItem(teacher.name, teacher)

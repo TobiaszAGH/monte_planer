@@ -48,16 +48,14 @@ class AddSubjectDialog(QDialog):
             self.subject_list.addItem(subject.name, subject) 
 
 class ClassesWidget(QWidget):
-    def __init__(self,parent, data):
+    def __init__(self,parent):
         super().__init__(parent=parent)
-        self.data = data
         self.db: Data = parent.db
 
         main_layout = QVBoxLayout()
 
         layout= QHBoxLayout()
         self.list = QComboBox(self)
-        self.list.addItems(data['classes'].keys())
         self.list.currentTextChanged.connect(self.load_class)
         layout.addWidget(self.list)
 
@@ -121,8 +119,7 @@ class ClassesWidget(QWidget):
             self.load_class() 
         return func
 
-    def load_data(self, data):
-        self.data = data
+    def load_data(self):
         self.list.clear()
         for cl in self.db.all_classes():    
             self.list.addItem(cl.name, cl)

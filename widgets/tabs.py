@@ -11,11 +11,10 @@ class Tabs(QTabWidget):
         self.setMovable(True)
 
         self.db = parent.db
-        self.data = data
-        self.subjects = SubjectsWidget(self, self.data)
-        self.classes = ClassesWidget(self, self.data)
-        self.teachers = TeachersWidget(self, self.data)
-        self.plan = PlanWidget(self, self.data)
+        self.subjects = SubjectsWidget(self)
+        self.classes = ClassesWidget(self)
+        self.teachers = TeachersWidget(self)
+        self.plan = PlanWidget(self)
 
 
         self.addTab(self.plan, "Plan")
@@ -26,10 +25,9 @@ class Tabs(QTabWidget):
 
     def refresh(self):
         try:
-            self.currentWidget().load_data(self.data)
+            self.currentWidget().load_data()
         except:
             pass
 
-    def load_data(self, data):
-        self.data = data
+    def load_data(self):
         self.refresh()
