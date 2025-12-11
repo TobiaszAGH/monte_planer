@@ -3,6 +3,7 @@ from PyQt5.QtGui import QPen
 from PyQt5.QtCore import QPoint, Qt
 from widgets.lesson_block import LessonBlock
 from functions import snap_position
+from data import Data, Class, Subclass
 
 
 class MyView(QGraphicsView):
@@ -10,7 +11,7 @@ class MyView(QGraphicsView):
     def __init__(self,parent):
         super().__init__(parent)
         self.setScene(QGraphicsScene())
-        self.db = parent.db
+        self.db: Data = parent.db
         self.classes = []
         self.mode = ''
         self.widths = [0]
@@ -70,15 +71,41 @@ class MyView(QGraphicsView):
                 self.block_start = self.how_many_5_min_blocks(event)
                 self.new_block_top = snap_position(event.y(), self.five_min_h, self.top_bar_h)
                 self.new_block_left = snap_position(event.x(), self.block_w, self.left_bar_w)
-                self.new_block = LessonBlock(self.new_block_left, self.new_block_top, self.block_w, self.five_min_h, self.scene())
+                self.new_block = LessonBlock(self.new_block_left, self.new_block_top, self.block_w, self.five_min_h, self.scene(), self.db)
                 self.scene().addItem(self.new_block)
             elif event.button() == Qt.MouseButton.RightButton:
                 self.drop_new_block()
 
 
     def mouseReleaseEvent(self, event):
+        if self.new_block:
+            # add new block to db
+            # find (sub)class
+            x = self.new_block.boundingRect().x() - self.left_bar_w + 1
+            i = x // self.block_w
+            i = int(i%len(self.classes))
+            my_class = self.classes[i]
+            # print(i, my_class.full_name())
+            # find if block spans entire class
+            # either is wide
+            if self.new_block.boundingRect().width() -1 > self.block_w:
+                my_class = my_class.get_class()
+            # ... or is the only subclass
+            if len(my_class.get_class().subclasses)==1:
+                my_class = my_class.get_class()
+            print(my_class.full_name())
+            # find day
+            day = int(x // self.day_w)
+            y = self.new_block.boundingRect().y() - self.top_bar_h + 1
+            start = int(y // self.five_min_h)
+            length = int(self.new_block.boundingRect().height() // self.five_min_h)
+            # print(f'start: {start}, length {length}')
+            block = self.db.create_block(day, start, length, my_class)
+            self.new_block.block = block
+            pass
         self.block_start = -1
         self.new_block = False
+
 
     def display_hour(self, mins):
         hs = int(mins//12+8)
@@ -130,7 +157,7 @@ class MyView(QGraphicsView):
             return self.new_block_left, self.block_w
 
         # get the bottom boundry
-        x1 = (self.new_block_left - self.left_bar_w)%self.day_w
+        x1 = (self.new_block_left - self.left_bar_w)%self.day_w + 2
         for boundry in self.boundries:
             if x1>=boundry:
                 bottom = boundry
@@ -196,17 +223,50 @@ class MyView(QGraphicsView):
 
             # print(self.data['blocks'].keys())
             # for n, class_name in enumerate(self.class_names):
-            #     for block in self.data['blocks'][class_name]:
-            #         x = left_bar_w + day_w*block['day'] + n*block_w
-            #         y = five_min_h*block['start'] + top_bar_h
+            class_names = [c.full_name() for c in self.classes]
+            # print(ids)
+            for block in self.db.all_blocks():
+                # class not represented
+                full_name = block.parent().full_name()
+                if full_name not in class_names:
+                    # either is a subclass
+                    if isinstance(block.parent(), Subclass):
+                        continue
                     
-            #         block_h = five_min_h* block['duration']
-            #         rect = scene.addRect(x, y, block_w, block_h)
-            #         # rect.setPen(wide_pen)
-            #         # rect.setZValue(200)
-            #         brush = QBrush(Qt.lightGray)
-            #         rect.setBrush(brush)
-            #         # print(rect)
+                    # find first subclass that is shown
+                    n = -1
+                    for subclass in block.parent().subclasses:
+                        if subclass.full_name() in class_names:
+                            n = class_names.index(subclass.full_name())
+                            break
+                    # if none are found don't draw the block
+                    if n < 0:
+                        continue
+                else:
+                    n = class_names.index(full_name)
+                    
+                
+                x = self.left_bar_w + self.day_w*block.day + n*self.block_w
+
+                y = self.five_min_h*block.start+ self.top_bar_h
+
+                # stretch the width if needed
+                if isinstance(block.parent(), Class):
+                    mask = [1 if cl.get_class().id == block.parent().id else 0 for cl in self.classes]
+                    witdth_multiplier = sum(mask)
+                else:
+                    witdth_multiplier = 1
+                width = self.block_w*witdth_multiplier
+                
+                height = self.five_min_h* block.length
+
+
+                new_block = LessonBlock(x, y, width, height, self.scene(), self.db)
+                new_block.block = block
+                self.scene().addItem(new_block)
+                # rect.setPen(wide_pen)
+                # rect.setZValue(200)
+                # print(rect)
 
 
         

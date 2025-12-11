@@ -38,6 +38,7 @@ class Class(Base):
     students = relationship("Student", backref="my_class")
     subclasses = relationship("Subclass", backref="my_class")
     subjects = relationship("Subject", backref="my_class")
+    blocks = relationship("Block", backref="my_class")
 
     def full_name(self):
         return self.name
@@ -52,6 +53,7 @@ class Subclass(Base):
     class_id = Column(Integer, ForeignKey('classes.id'))
     students = relationship("Student", backref="subclass")
     subjects = relationship("Subject", backref="subclass")
+    blocks = relationship("Block", backref="subclass")
 
     def full_name(self):
         return self.my_class.name + self.name
@@ -91,7 +93,24 @@ class Lesson(Base):
     id = Column(Integer, primary_key=True)
     length = Column(Integer, nullable=False)
     subject_id = Column(Integer, ForeignKey('subjects.id'))
-    
+    block_id =  Column(Integer, ForeignKey('blocks.id'))
+
+class Block(Base):
+    __tablename__ = 'blocks'
+    id = Column(Integer, primary_key=True)
+    length = Column(Integer, nullable=False) # in 5 min blocks
+    start = Column(Integer, nullable=False) # in 5 min blocks
+    day = Column(Integer, nullable=False) # 0=mon, 1=tue etc.
+    class_id = Column(Integer, ForeignKey('classes.id'))
+    subclass_id = Column(Integer, ForeignKey('subclasses.id'))
+    lessons = relationship("Lesson", backref="block")
+
+    def parent(self):
+        if self.my_class:
+            return self.my_class
+        if self.subclass:
+            return self.subclass
+
 class Data():
     def __init__(self):
         engine = create_engine("sqlite:///planer.db")
@@ -222,4 +241,20 @@ class Data():
     
     def delete_lesson(self, lesson: Lesson) -> None:
         self.session.delete(lesson)
+        self.session.commit()
+
+    def create_block(self, day:int, start:int, length:int, my_class) -> Block:
+        if isinstance(my_class, Class):
+            block = Block(day=day, start=start, length=length, my_class=my_class)
+        else:
+            block = Block(day=day, start=start, length=length, subclass=my_class)
+        self.session.add(block)
+        self.session.commit()
+        return block
+
+    def all_blocks(self) -> List[Block]:
+        return self.session.query(Block).all()
+    
+    def delete_block(self, block):
+        self.session.delete(block)
         self.session.commit()
