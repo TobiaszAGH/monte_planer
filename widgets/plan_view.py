@@ -3,6 +3,7 @@ from PyQt5.QtGui import QPen
 from PyQt5.QtCore import QPoint, Qt
 from widgets.lesson_block import LessonBlock
 from functions import snap_position
+from data import Class
 
 
 class MyView(QGraphicsView):
@@ -11,7 +12,7 @@ class MyView(QGraphicsView):
         super().__init__(parent)
         self.setScene(QGraphicsScene())
         self.db = parent.db
-        self.class_names = []
+        self.classes = []
         self.mode = ''
         self.block_start = -1
         self.new_block = False
@@ -24,10 +25,25 @@ class MyView(QGraphicsView):
         self.left_bar_w = 50
         self.update_size_params()
 
-    def set_class_names(self, classes, widths):
-        self.widths = widths
+    def set_classes(self, classes):
+        self.widths = [0]
         self.classes = classes
+        last_cls = classes[0].get_class()
+        for cls in classes:
+            if cls.get_class() != last_cls:
+                self.widths.append(0)
+                last_cls = cls.get_class()
+            self.widths[-1]+=1
         self.class_names = [c.full_name() for c in classes]
+        self.update_column_sizes()
+            
+
+    def update_column_sizes(self):
+        l = len(self.classes)
+        self.block_w = self.day_w/l if l>0 else self.day_w
+        self.boundries = [0]
+        for width in self.widths:
+            self.boundries.append(self.block_w*width+self.boundries[-1])
 
     def update_size_params(self):
         self.scene_width = self.geometry().width()-10
@@ -35,12 +51,8 @@ class MyView(QGraphicsView):
         self.hour_h = (self.scene_height-self.top_bar_h)/8
         self.five_min_h = self.hour_h/12
         self.day_w = (self.scene_width-self.left_bar_w)/5
-        l = len(self.class_names)
-        self.block_w = self.day_w/l if l>0 else self.day_w
+        self.update_column_sizes()
 
-        self.boundries = [0]
-        for width in self.widths:
-            self.boundries.append(self.block_w*width+self.boundries[-1])
 
     def resizeEvent(self, event):
         QGraphicsView.resizeEvent(self, event)
@@ -107,13 +119,6 @@ class MyView(QGraphicsView):
             # update block
             if self.new_block:
                 cursor_x = snap_position(event.x(), self.block_w, self.left_bar_w)
-                # if not self.calclulate_x_2(cursor_x, self.new_block_left):
-                #     x = self.new_block_left
-                #     width = self.block_w
-                # else:
-                #     width = abs(cursor_x - self.new_block_left) + self.block_w
-                #     x = min(cursor_x, self.new_block_left)
-
                 x, width = self.calculate_x_w(cursor_x)
                 
                 new_block_bottom = snap_position(event.y(), self.five_min_h, self.top_bar_h)
@@ -169,7 +174,7 @@ class MyView(QGraphicsView):
 
             scene.addLine(0, pos, self.left_bar_w, pos)
 
-        l = len(self.class_names)
+        l = len(self.classes)
         days = 'Poniedziałek Wtorek Środa Czwartek Piątek'.split()
         for day in range(5):
             pos = self.day_w*(day+1)+self.left_bar_w

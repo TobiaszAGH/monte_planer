@@ -47,41 +47,36 @@ class PlanWidget(QWidget):
     
 
     def load_classes(self):
-        self.classes = self.db.all_classes()
-        display_names = []
-        widths = []
-        for my_class in self.classes:
+        self.classes = []
+        for my_class in self.db.all_classes():
             l = len(my_class.subclasses)
-            widths.append(l)
             if l == 1:
-                display_names.append(my_class)
+                self.classes.append(my_class)
             else:
                 for subclass in my_class.subclasses:
-                    display_names.append(subclass)
+                    self.classes.append(subclass)
 
-        if not display_names:
-            return []
-        
         for widget in self.class_filter.findChildren(QCheckBox):
             widget.deleteLater()
 
-        for my_class in display_names[::-1]:
+        for my_class in self.classes[::-1]:
             checkbox = QCheckBox()
-            checkbox.setText(my_class.name)
+            checkbox.setText(my_class.full_name())
             checkbox.setChecked(True)
+            checkbox.my_class = my_class
             checkbox.clicked.connect(self.update_filter)
             self.class_filter.layout().insertWidget(0, checkbox)
-        return display_names, widths
 
     def update_filter(self):
         display_names = []
         for checkbox in self.class_filter.findChildren(QCheckBox):
             if checkbox.isChecked():
-                display_names.append(checkbox.text())
-        self.view.set_class_names(display_names[::-1])
+                display_names.append(checkbox.my_class)
+        self.view.set_classes(display_names[::-1])
         self.view.draw_frame()
 
     def load_data(self):
-        display_names, widths = self.load_classes()
-        self.view.set_class_names(display_names, widths)
-        self.view.draw_frame()
+        self.load_classes()
+        if self.classes:
+            self.view.set_classes(self.classes)
+            self.view.draw_frame()

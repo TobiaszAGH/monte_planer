@@ -41,6 +41,9 @@ class Class(Base):
 
     def full_name(self):
         return self.name
+    
+    def get_class(self):
+        return self
 
 class Subclass(Base):
     __tablename__ = 'subclasses'
@@ -52,6 +55,9 @@ class Subclass(Base):
 
     def full_name(self):
         return self.my_class.name + self.name
+    
+    def get_class(self):
+        return self.my_class
 
 class Teacher(Base):
     __tablename__ = 'teachers'
