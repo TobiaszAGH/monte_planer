@@ -1,0 +1,226 @@
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QToolTip
+from PyQt5.QtGui import QPen
+from PyQt5.QtCore import QPoint, Qt
+from widgets.lesson_block import LessonBlock
+from functions import snap_position
+
+
+class MyView(QGraphicsView):
+
+    def __init__(self,parent):
+        super().__init__(parent)
+        self.setScene(QGraphicsScene())
+        self.db = parent.db
+        self.class_names = []
+        self.mode = ''
+        self.block_start = -1
+        self.new_block = False
+        self.widths = [0]
+        self.day_w = 0
+        self.setMouseTracking(True)
+
+
+        self.top_bar_h = 75
+        self.left_bar_w = 50
+        self.update_size_params()
+
+    def set_class_names(self, classes, widths):
+        self.widths = widths
+        self.classes = classes
+        self.class_names = [c.full_name() for c in classes]
+
+    def update_size_params(self):
+        self.scene_width = self.geometry().width()-10
+        self.scene_height = self.geometry().height()-10
+        self.hour_h = (self.scene_height-self.top_bar_h)/8
+        self.five_min_h = self.hour_h/12
+        self.day_w = (self.scene_width-self.left_bar_w)/5
+        l = len(self.class_names)
+        self.block_w = self.day_w/l if l>0 else self.day_w
+
+        self.boundries = [0]
+        for width in self.widths:
+            self.boundries.append(self.block_w*width+self.boundries[-1])
+
+    def resizeEvent(self, event):
+        QGraphicsView.resizeEvent(self, event)
+
+        self.update_size_params()
+        self.draw_frame()
+
+    def set_mode_new(self):
+        self.mode = 'new'
+    
+    def mousePressEvent(self, event):
+        if self.mode == 'new':
+            if event.button() == Qt.MouseButton.LeftButton:
+                l = len(self.class_names)
+                if l == 0:
+                    return False
+                self.block_start = self.how_many_5_min_blocks(event)
+                self.new_block_top = snap_position(event.y(), self.five_min_h, self.top_bar_h)
+                self.new_block_left = snap_position(event.x(), self.block_w, self.left_bar_w)
+                self.new_block = LessonBlock(self.new_block_left, self.new_block_top, self.block_w, self.five_min_h)
+                self.scene().addItem(self.new_block)
+            elif event.button() == Qt.MouseButton.RightButton:
+                self.drop_new_block()
+
+
+    def mouseReleaseEvent(self, event):
+        self.block_start = -1
+        self.new_block = False
+        # if self.mode == 'new':
+
+    def display_hour(self, mins):
+        hs = int(mins//12+8)
+        mins = int(mins%12)*5
+        return f'{hs}:{mins:02d}' 
+    
+    def how_many_5_min_blocks(self, event):
+        y = event.y() - self.top_bar_h
+        mins = y//self.five_min_h
+        return mins
+
+    def drop_new_block(self):
+        if self.new_block:
+            self.scene().removeItem(self.new_block)
+        self.new_block = False
+        self.block_start = -1
+        QToolTip.showText(QPoint(), '')
+
+    def mouseMoveEvent(self, event=0):
+        if self.mode == 'new':
+            # stop if moved out of bounds:
+            if (event.y() < self.top_bar_h or event.x() < self.left_bar_w):
+                self.drop_new_block()
+                return
+            
+            # show tooltip
+            now = self.how_many_5_min_blocks(event)
+            times = [now, self.block_start] if self.block_start >=0 else [now]
+            times.sort()
+            msg = '-'.join([self.display_hour(t) for t in times])
+            if self.block_start>=0:
+                msg += f' ({int(abs(now-self.block_start)*5)})'
+            QToolTip.showText(event.globalPos(), msg)
+
+            # update block
+            if self.new_block:
+                cursor_x = snap_position(event.x(), self.block_w, self.left_bar_w)
+                # if not self.calclulate_x_2(cursor_x, self.new_block_left):
+                #     x = self.new_block_left
+                #     width = self.block_w
+                # else:
+                #     width = abs(cursor_x - self.new_block_left) + self.block_w
+                #     x = min(cursor_x, self.new_block_left)
+
+                x, width = self.calculate_x_w(self.new_block_left, cursor_x)
+                
+                new_block_bottom = snap_position(event.y(), self.five_min_h, self.top_bar_h)
+                height = abs(new_block_bottom - self.new_block_top)
+                y = min(new_block_bottom, self.new_block_top)
+                self.new_block.setRect(x, y, width, height)
+
+    # def calculate_x_w(self, initial_x, cursor_x):
+    #     boundries =self.can_stretch_block(initial_x, cursor_x)
+
+
+    def calculate_x_w(self, x1, x2):
+        # if in the same subclass block
+        if x1==x2:
+            return self.new_block_left, self.block_w
+        # make sure they are in the same day:
+        day_1 = snap_position(x1, self.day_w, self.left_bar_w)
+        day_2 = snap_position(x2, self.day_w, self.left_bar_w)
+        # if day_1 != day_2:
+        #     return self.new_block_left, self.block_w
+        
+        # make sure they are between the same boundries
+        x1 = (x1-self.left_bar_w)%self.day_w
+        x2 = (x2-self.left_bar_w)%self.day_w
+        x1_bottom = x2_bottom = 0
+        for boundry in self.boundries:
+            if x1>=boundry:
+                x1_bottom = boundry
+            if x2>=boundry:
+                x2_bottom = boundry
+        # print(f'x1: {x1_bottom, x1_top}; x2:{x2_bottom, x2_top}')
+        # if x1_bottom!=x2_bottom:
+        #     return self.new_block_left, self.block_w
+        x = x1_bottom+day_1
+        top = self.boundries[self.boundries.index(x1_bottom)+1]
+        w = top-x1_bottom
+        # print(self.boundries)
+        # print(x1, x1_bottom, x1_top)
+        return x,w
+
+
+    def draw_frame(self):
+        scene = self.scene()
+        scene.clear()
+        scene.setSceneRect(0,0, self.scene_width, self.scene_height)
+
+        wide_pen = QPen()
+        wide_pen.setWidth(2)
+        line = scene.addLine(0, self.top_bar_h, self.scene_width, self.top_bar_h)
+        line.setPen(wide_pen)
+        line = scene.addLine(0, 0, self.scene_width, 0)
+        line.setPen(wide_pen)
+        line = scene.addLine(0, 0, 0, self.scene_height)
+        line.setPen(wide_pen)
+        line = scene.addLine(0, self.scene_height, self.scene_width, self.scene_height)
+        line.setPen(wide_pen)
+        line = scene.addLine(self.left_bar_w, 0, self.left_bar_w, self.scene_height)
+        line.setPen(wide_pen)
+
+        for hour in range(8,16):
+            pos = self.top_bar_h+(hour - 7)*self.hour_h
+            text = scene.addSimpleText(f'{hour}-{hour+1}')
+
+            # center text
+            text_x = (self.left_bar_w-text.boundingRect().width())/2
+            text_y = pos-(self.hour_h+text.boundingRect().height())/2
+            text.setPos(text_x, text_y)
+
+            scene.addLine(0, pos, self.left_bar_w, pos)
+
+        l = len(self.class_names)
+        days = 'Poniedziałek Wtorek Środa Czwartek Piątek'.split()
+        for day in range(5):
+            pos = self.day_w*(day+1)+self.left_bar_w
+            line = scene.addLine(pos, 0, pos, self.scene_height)
+            line.setPen(wide_pen)
+            
+            text = scene.addSimpleText(days[day])
+            text_x = pos - (self.day_w + text.boundingRect().width())/2
+            text_y = (self.top_bar_h/2 - text.boundingRect().height())/2
+            text.setPos(text_x, text_y)
+        if l>0:
+            scene.addLine(self.left_bar_w, self.top_bar_h/2, self.scene_width, self.top_bar_h/2)
+            self.block_w = self.day_w/l
+            for i in range(5):
+                for n, class_name in enumerate(self.class_names):
+                    pos = self.block_w*(n+i*l+1)+self.left_bar_w
+                    text = scene.addSimpleText(class_name)
+                    text_x = pos - (text.boundingRect().width()+self.block_w)/2
+                    text_y = self.top_bar_h/2 + (self.top_bar_h/2 - text.boundingRect().height())/2
+                    text.setPos(text_x, text_y)
+                    scene.addLine(pos, self.top_bar_h/2, pos, self.scene_height)
+
+            # print(self.data['blocks'].keys())
+            # for n, class_name in enumerate(self.class_names):
+            #     for block in self.data['blocks'][class_name]:
+            #         x = left_bar_w + day_w*block['day'] + n*block_w
+            #         y = five_min_h*block['start'] + top_bar_h
+                    
+            #         block_h = five_min_h* block['duration']
+            #         rect = scene.addRect(x, y, block_w, block_h)
+            #         # rect.setPen(wide_pen)
+            #         # rect.setZValue(200)
+            #         brush = QBrush(Qt.lightGray)
+            #         rect.setBrush(brush)
+            #         # print(rect)
+
+
+        
+
