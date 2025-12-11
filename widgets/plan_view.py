@@ -3,7 +3,6 @@ from PyQt5.QtGui import QPen
 from PyQt5.QtCore import QPoint, Qt
 from widgets.lesson_block import LessonBlock
 from functions import snap_position
-from data import Class
 
 
 class MyView(QGraphicsView):
@@ -14,10 +13,9 @@ class MyView(QGraphicsView):
         self.db = parent.db
         self.classes = []
         self.mode = ''
+        self.widths = [0]
         self.block_start = -1
         self.new_block = False
-        self.widths = [0]
-        self.day_w = 0
         self.setMouseTracking(True)
 
 
@@ -81,7 +79,6 @@ class MyView(QGraphicsView):
     def mouseReleaseEvent(self, event):
         self.block_start = -1
         self.new_block = False
-        # if self.mode == 'new':
 
     def display_hour(self, mins):
         hs = int(mins//12+8)
@@ -131,8 +128,8 @@ class MyView(QGraphicsView):
         # if in the same subclass block dont stretch
         if self.new_block_left==cursor_x:
             return self.new_block_left, self.block_w
-        
 
+        # get the bottom boundry
         x1 = (self.new_block_left - self.left_bar_w)%self.day_w
         for boundry in self.boundries:
             if x1>=boundry:
