@@ -70,7 +70,7 @@ class MyView(QGraphicsView):
                 self.block_start = self.how_many_5_min_blocks(event)
                 self.new_block_top = snap_position(event.y(), self.five_min_h, self.top_bar_h)
                 self.new_block_left = snap_position(event.x(), self.block_w, self.left_bar_w)
-                self.new_block = LessonBlock(self.new_block_left, self.new_block_top, self.block_w, self.five_min_h)
+                self.new_block = LessonBlock(self.new_block_left, self.new_block_top, self.block_w, self.five_min_h, self.scene())
                 self.scene().addItem(self.new_block)
             elif event.button() == Qt.MouseButton.RightButton:
                 self.drop_new_block()
