@@ -93,7 +93,7 @@ class MyView(QGraphicsView):
             # ... or is the only subclass
             if len(my_class.get_class().subclasses)==1:
                 my_class = my_class.get_class()
-            print(my_class.full_name())
+            # print(my_class.full_name())
             # find day
             day = int(x // self.day_w)
             y = self.new_block.boundingRect().y() - self.top_bar_h + 1

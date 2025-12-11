@@ -187,11 +187,18 @@ class Data():
     def delete_subclass(self, subclass: Subclass) -> None:
         my_class: Class = subclass.my_class
         for student in subclass.students:
-            self.session.delete(student)
+            self.delete_student(student)
+        for block in subclass.blocks:
+            self.delete_block(block)
         self.session.delete(subclass)
         self.session.commit()
         for name, subclass in zip(ascii_lowercase, my_class.subclasses):
             subclass.name = name
+        # if only one subclass left, move its blocks to class
+        if len(my_class.subclasses)==1:
+            for block in my_class.subclasses[0].blocks:
+                block.subclass=None
+                block.my_class=my_class
         self.session.commit()
 
 
@@ -233,7 +240,7 @@ class Data():
         self.session.delete(subject)
         self.session.commit()
     
-    def create_lessson(self, length: int, subject: Subject) -> Lesson:
+    def create_lesson(self, length: int, subject: Subject) -> Lesson:
         lesson = Lesson(length=length, subject=subject)
         self.session.add(lesson)
         self.session.commit()

@@ -230,7 +230,7 @@ class SubjectsWidget(QWidget):
             QMessageBox.warning(self, 'Błąd', 'Podaj liczbę!')
             return False
         subject: Subject = self.list.currentData()
-        lesson = self.db.create_lessson(length, subject)
+        lesson = self.db.create_lesson(length, subject)
         btn = QPushButton(str(length))
         btn.lesson = lesson
         self.lessons.addWidget(btn)
