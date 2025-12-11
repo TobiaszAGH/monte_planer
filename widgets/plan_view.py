@@ -114,44 +114,29 @@ class MyView(QGraphicsView):
                 #     width = abs(cursor_x - self.new_block_left) + self.block_w
                 #     x = min(cursor_x, self.new_block_left)
 
-                x, width = self.calculate_x_w(self.new_block_left, cursor_x)
+                x, width = self.calculate_x_w(cursor_x)
                 
                 new_block_bottom = snap_position(event.y(), self.five_min_h, self.top_bar_h)
                 height = abs(new_block_bottom - self.new_block_top)
                 y = min(new_block_bottom, self.new_block_top)
                 self.new_block.setRect(x, y, width, height)
 
-    # def calculate_x_w(self, initial_x, cursor_x):
-    #     boundries =self.can_stretch_block(initial_x, cursor_x)
 
-
-    def calculate_x_w(self, x1, x2):
-        # if in the same subclass block
-        if x1==x2:
+    def calculate_x_w(self, cursor_x):
+        # if in the same subclass block dont stretch
+        if self.new_block_left==cursor_x:
             return self.new_block_left, self.block_w
-        # make sure they are in the same day:
-        day_1 = snap_position(x1, self.day_w, self.left_bar_w)
-        day_2 = snap_position(x2, self.day_w, self.left_bar_w)
-        # if day_1 != day_2:
-        #     return self.new_block_left, self.block_w
         
-        # make sure they are between the same boundries
-        x1 = (x1-self.left_bar_w)%self.day_w
-        x2 = (x2-self.left_bar_w)%self.day_w
-        x1_bottom = x2_bottom = 0
+
+        x1 = (self.new_block_left - self.left_bar_w)%self.day_w
         for boundry in self.boundries:
             if x1>=boundry:
-                x1_bottom = boundry
-            if x2>=boundry:
-                x2_bottom = boundry
-        # print(f'x1: {x1_bottom, x1_top}; x2:{x2_bottom, x2_top}')
-        # if x1_bottom!=x2_bottom:
-        #     return self.new_block_left, self.block_w
-        x = x1_bottom+day_1
-        top = self.boundries[self.boundries.index(x1_bottom)+1]
-        w = top-x1_bottom
-        # print(self.boundries)
-        # print(x1, x1_bottom, x1_top)
+                bottom = boundry
+        
+        day_start = snap_position(self.new_block_left, self.day_w, self.left_bar_w)
+        x = bottom+day_start
+        top = self.boundries[self.boundries.index(bottom)+1]
+        w = top-bottom
         return x,w
 
 
