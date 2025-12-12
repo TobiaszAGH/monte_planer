@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import QGraphicsRectItem, QWidget
 from PyQt5.QtGui import QBrush, QColor
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPoint
 from random import randint
 from data import Data
+from functions import snap_position
 
 # class Foo(QWidget):
 
@@ -16,9 +17,32 @@ class LessonBlock(QGraphicsRectItem):
         self.setZValue(10)
 
     def mousePressEvent(self, event):
-        # super().mousePressEvent(event)
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.start_x = self.x()
         if event.button() == Qt.MouseButton.RightButton:
             self.parent.removeItem(self)
             self.db.delete_block(self.block)
+        super().mousePressEvent(event)
 
+    def set_movable(self, on:bool, five_min_h, top_bar_h):
+        self.five_min_h = five_min_h
+        self.top_bar_h = top_bar_h
+        if on:
+            self.setFlag(QGraphicsRectItem.GraphicsItemFlag.ItemIsSelectable)
+            self.setFlag(QGraphicsRectItem.GraphicsItemFlag.ItemIsMovable)
+        else:
+            self.setFlag(QGraphicsRectItem.GraphicsItemFlag.ItemIsSelectable, False)
+            self.setFlag(QGraphicsRectItem.GraphicsItemFlag.ItemIsMovable, False)
+
+    def mouseReleaseEvent(self, event):
+        super().mouseReleaseEvent(event)
+        start = self.start + self.y() / self.five_min_h
+        self.db.update_block_start(self.block, start)
+
+    def mouseMoveEvent(self, event):
+        super().mouseMoveEvent(event)
+        if self.isSelected():
+            x = self.start_x
+            y = snap_position(self.y(), self.five_min_h)
+            self.setPos(x, y)
 

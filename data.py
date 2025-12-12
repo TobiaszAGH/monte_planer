@@ -265,3 +265,7 @@ class Data():
     def delete_block(self, block):
         self.session.delete(block)
         self.session.commit()
+
+    def update_block_start(self, block: Block, start: int):
+        block.start = start
+        self.session.commit()

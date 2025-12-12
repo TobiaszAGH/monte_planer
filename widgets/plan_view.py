@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QToolTip
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QToolTip, QGraphicsItem
 from PyQt5.QtGui import QPen
 from PyQt5.QtCore import QPoint, Qt
 from widgets.lesson_block import LessonBlock
@@ -13,6 +13,7 @@ class MyView(QGraphicsView):
         self.setScene(QGraphicsScene())
         self.db: Data = parent.db
         self.classes = []
+        self.blocks = []
         self.mode = ''
         self.widths = [0]
         self.block_start = -1
@@ -61,8 +62,14 @@ class MyView(QGraphicsView):
 
     def set_mode_new(self):
         self.mode = 'new'
+    def set_mode(self, mode):
+        self.mode = mode
+        for block in self.scene().items():
+            if isinstance(block, LessonBlock):
+                block.set_movable(mode=='move', self.five_min_h, self.top_bar_h)
     
     def mousePressEvent(self, event):
+        super().mousePressEvent(event)
         if self.mode == 'new':
             if event.button() == Qt.MouseButton.LeftButton:
                 l = len(self.class_names)
@@ -78,6 +85,7 @@ class MyView(QGraphicsView):
 
 
     def mouseReleaseEvent(self, event):
+        super().mouseReleaseEvent(event)
         if self.new_block:
             # add new block to db
             # find (sub)class
@@ -102,9 +110,11 @@ class MyView(QGraphicsView):
             # print(f'start: {start}, length {length}')
             block = self.db.create_block(day, start, length, my_class)
             self.new_block.block = block
+            self.blocks.append(self.new_block)
             pass
         self.block_start = -1
         self.new_block = False
+        # self.draw_frame()
 
 
     def display_hour(self, mins):
@@ -124,7 +134,8 @@ class MyView(QGraphicsView):
         self.block_start = -1
         QToolTip.showText(QPoint(), '')
 
-    def mouseMoveEvent(self, event=0):
+    def mouseMoveEvent(self, event):
+        super().mouseMoveEvent(event)
         if self.mode == 'new':
             # stop if moved out of bounds:
             if (event.y() < self.top_bar_h or event.x() < self.left_bar_w):
@@ -263,6 +274,10 @@ class MyView(QGraphicsView):
 
                 new_block = LessonBlock(x, y, width, height, self.scene(), self.db)
                 new_block.block = block
+                new_block.start = block.start
+
+                new_block.set_movable(self.mode=='move', self.five_min_h, self.top_bar_h)
+                self.blocks.append(new_block)
                 self.scene().addItem(new_block)
                 # rect.setPen(wide_pen)
                 # rect.setZValue(200)

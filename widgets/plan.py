@@ -33,6 +33,7 @@ class PlanWidget(QWidget):
         toolbar.layout().addWidget(tool_move_block)
         tool_move_block.setAutoExclusive(True)
         tool_move_block.setCheckable(True)
+        tool_move_block.clicked.connect(self.set_mode_move)
         
 
         self.view = MyView(self)
@@ -42,8 +43,10 @@ class PlanWidget(QWidget):
         
         
     def set_mode_new(self):
-        self.view.set_mode_new()
+        self.view.set_mode('new')
 
+    def set_mode_move(self):
+        self.view.set_mode('move')
     
 
     def load_classes(self):
