@@ -88,9 +88,9 @@ class MyView(QGraphicsView):
             if isinstance(item, LessonBlock):
                 item.bring_back()
                 item.setSelected(False)
-            self.itemAt(event.pos())
+            item = self.itemAt(event.pos())
             if isinstance(item, LessonBlock):
-                item.setSelected(True)
+                item.bring_forward()
     
         super().mousePressEvent(event)
 
@@ -290,6 +290,7 @@ class MyView(QGraphicsView):
 
                 new_block.set_movable(self.mode=='move', self.five_min_h, self.top_bar_h)
                 self.blocks.append(new_block)
+                new_block.set_selectable(True)
                 self.scene().addItem(new_block)
                 # rect.setPen(wide_pen)
                 # rect.setZValue(200)

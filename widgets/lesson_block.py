@@ -30,7 +30,15 @@ class LessonBlock(QGraphicsRectItem):
 
     def bring_back(self):
         if self.isSelected():
-            z = min([item.zValue()  for item in self.collidingItems() if isinstance(item, LessonBlock)]) - 1
+            z_values = [item.zValue()  for item in self.collidingItems() if isinstance(item, LessonBlock)]
+            if z_values:
+                z = min(z_values) - 1
+                self.setZValue(z)
+
+    def bring_forward(self):
+        z_values = [item.zValue()  for item in self.collidingItems() if isinstance(item, LessonBlock)]
+        if z_values:
+            z = max(z_values) + 1
             self.setZValue(z)
 
     def set_selectable(self, on:bool):
