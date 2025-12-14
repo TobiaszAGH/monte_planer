@@ -2,6 +2,7 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QCheckBox
 
 from data import Data, Class
+from widgets.mode_btn import ModeBtn
 from widgets.plan_view import MyView
 
         
@@ -24,16 +25,14 @@ class PlanWidget(QWidget):
         toolbar = QWidget()
         layout.addWidget(toolbar)
         toolbar.setLayout(QHBoxLayout())
-        tool_add_block = QPushButton("N", toolbar)
+        tool_add_block = ModeBtn("N", self.set_mode_new, toolbar)
         toolbar.layout().addWidget(tool_add_block)
-        tool_add_block.setAutoExclusive(True)
-        tool_add_block.setCheckable(True)
-        tool_add_block.clicked.connect(self.set_mode_new)
-        tool_move_block = QPushButton("M", toolbar)
+        # tool_add_block.setAutoExclusive(True)
+        # tool_add_block.setCheckable(True)
+        # tool_add_block.clicked.connect(self.set_mode_new)
+        tool_move_block = ModeBtn("M", self.set_mode_move ,toolbar)
         toolbar.layout().addWidget(tool_move_block)
-        tool_move_block.setAutoExclusive(True)
-        tool_move_block.setCheckable(True)
-        tool_move_block.clicked.connect(self.set_mode_move)
+        # tool_move_block.clicked.connect(self.set_mode_move)
         
 
         self.view = MyView(self)
@@ -42,11 +41,17 @@ class PlanWidget(QWidget):
 
         
         
-    def set_mode_new(self):
-        self.view.set_mode('new')
+    def set_mode_new(self, checked):
+        if checked:
+            self.view.set_mode('new')
+        else:
+            self.view.set_mode('normal')
 
-    def set_mode_move(self):
-        self.view.set_mode('move')
+    def set_mode_move(self, checked):
+        if checked:
+            self.view.set_mode('move')
+        else:
+            self.view.set_mode('normal')
     
 
     def load_classes(self):

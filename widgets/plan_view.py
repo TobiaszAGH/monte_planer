@@ -14,7 +14,7 @@ class MyView(QGraphicsView):
         self.db: Data = parent.db
         self.classes = []
         self.blocks = []
-        self.mode = ''
+        self.mode = 'normal'
         self.widths = [0]
         self.block_start = -1
         self.new_block = False
@@ -66,6 +66,8 @@ class MyView(QGraphicsView):
         for block in self.scene().items():
             if isinstance(block, LessonBlock):
                 block.set_movable(mode=='move', self.five_min_h, self.top_bar_h)
+                block.set_selectable(mode!='new')
+                
     
     def mousePressEvent(self, event):
 
@@ -81,8 +83,7 @@ class MyView(QGraphicsView):
                 self.scene().addItem(self.new_block)
             elif event.button() == Qt.MouseButton.RightButton:
                 self.drop_new_block()
-            return
-        if event.button() == Qt.MouseButton.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton and self.mode!='move':
             item = self.itemAt(event.pos())
             if isinstance(item, LessonBlock):
                 item.bring_back()
@@ -120,6 +121,7 @@ class MyView(QGraphicsView):
             # print(f'start: {start}, length {length}')
             block = self.db.create_block(day, start, length, my_class)
             self.new_block.block = block
+            self.new_block.set_selectable(True)
             self.blocks.append(self.new_block)
             pass
         self.block_start = -1
