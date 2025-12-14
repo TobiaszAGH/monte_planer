@@ -23,10 +23,14 @@ class LessonBlock(QGraphicsRectItem):
             for item in self.scene().selectedItems():
                 item.setSelected(False)
             self.start_x = self.x()
-        if event.button() == Qt.MouseButton.RightButton:
-            self.parent.removeItem(self)
-            self.db.delete_block(self.block)
+        # if event.button() == Qt.MouseButton.RightButton:
+        #     self.parent.removeItem(self)
+        #     self.db.delete_block(self.block)
         super().mousePressEvent(event)
+
+    def delete(self):
+        self.parent.removeItem(self)
+        self.db.delete_block(self.block)
 
     def bring_back(self):
         if self.isSelected():

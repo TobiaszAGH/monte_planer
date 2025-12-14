@@ -91,6 +91,11 @@ class MyView(QGraphicsView):
             item = self.itemAt(event.pos())
             if isinstance(item, LessonBlock):
                 item.bring_forward()
+
+        if event.button() == Qt.MouseButton.RightButton:
+            item = self.itemAt(event.pos())
+            if isinstance(item, LessonBlock):
+                item.delete()
     
         super().mousePressEvent(event)
 
