@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QToolTip, QGraphicsIt
 from PyQt5.QtGui import QPen
 from PyQt5.QtCore import QPoint, Qt
 from widgets.lesson_block import LessonBlock
-from functions import snap_position
+from functions import snap_position, display_hour
 from data import Data, Class, Subclass
 
 
@@ -134,10 +134,6 @@ class MyView(QGraphicsView):
         # self.draw_frame()
 
 
-    def display_hour(self, mins):
-        hs = int(mins//12+8)
-        mins = int(mins%12)*5
-        return f'{hs}:{mins:02d}' 
     
     def how_many_5_min_blocks(self, event):
         y = event.y() - self.top_bar_h
@@ -163,7 +159,7 @@ class MyView(QGraphicsView):
             now = self.how_many_5_min_blocks(event)
             times = [now, self.block_start] if self.block_start >=0 else [now]
             times.sort()
-            msg = '-'.join([self.display_hour(t) for t in times])
+            msg = '-'.join([display_hour(t) for t in times])
             if self.block_start>=0:
                 msg += f' ({int(abs(now-self.block_start)*5)})'
             QToolTip.showText(event.globalPos(), msg)

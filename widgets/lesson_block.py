@@ -1,9 +1,9 @@
-from PyQt5.QtWidgets import QGraphicsRectItem, QWidget
+from PyQt5.QtWidgets import QGraphicsRectItem, QWidget, QToolTip
 from PyQt5.QtGui import QBrush, QColor
 from PyQt5.QtCore import Qt, QPoint
 from random import randint
 from data import Data
-from functions import snap_position
+from functions import snap_position, display_hour
 
 # class Foo(QWidget):
 
@@ -65,4 +65,12 @@ class LessonBlock(QGraphicsRectItem):
             x = self.start_x
             y = snap_position(self.y(), self.five_min_h)
             self.setPos(x, y)
+
+            start = (self.mapToScene(self.boundingRect()).boundingRect().y() - self.top_bar_h) // self.five_min_h + 1
+            duration = self.block.length
+            times = [start, start+duration]
+            msg = '-'.join([display_hour(t) for t in times])
+            if self.block.length>=0:
+                msg += f' ({int(self.block.length)*5})'
+            QToolTip.showText(event.screenPos(), msg)
 
