@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QGraphicsRectItem, QWidget, QToolTip
+from PyQt5.QtWidgets import QGraphicsRectItem, QWidget, QToolTip, QGraphicsScene
 from PyQt5.QtGui import QBrush, QColor
 from PyQt5.QtCore import Qt, QPoint
 from random import randint
@@ -8,7 +8,7 @@ from functions import snap_position, display_hour
 # class Foo(QWidget):
 
 class LessonBlock(QGraphicsRectItem):
-    def __init__(self, x,y,w,h, parent, db):
+    def __init__(self, x,y,w,h, parent: QGraphicsScene, db):
         self.parent= parent
         self.db: Data = db
         super().__init__(x,y,w,h)
@@ -59,14 +59,26 @@ class LessonBlock(QGraphicsRectItem):
         # start = self.start_x + self.y() / self.five_min_h
         self.db.update_block_start(self.block, start)
 
+
+    def y_in_scene(self):
+        return self.mapToScene(self.boundingRect()).boundingRect().y() 
+    
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
-        if self.isSelected():# and QGraphicsRectItem.ItemIsMovable in self.flags():
+        if self.isSelected():
+            # snap to grid
             x = self.start_x
             y = snap_position(self.y(), self.five_min_h)
             self.setPos(x, y)
 
-            start = (self.mapToScene(self.boundingRect()).boundingRect().y() - self.top_bar_h) // self.five_min_h + 1
+            # correct if out of bounds
+            while self.y_in_scene() + 1< self.top_bar_h:
+                self.moveBy(0, self.five_min_h)
+            while self.y_in_scene() + self.block.length*self.five_min_h > self.parent.height():
+                self.moveBy(0, -self.five_min_h)
+
+            # show tooltip
+            start = (self.y_in_scene() - self.top_bar_h) // self.five_min_h + 1
             duration = self.block.length
             times = [start, start+duration]
             msg = '-'.join([display_hour(t) for t in times])
