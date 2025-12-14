@@ -20,7 +20,6 @@ class MyView(QGraphicsView):
         self.new_block = False
         self.setMouseTracking(True)
 
-
         self.top_bar_h = 75
         self.left_bar_w = 50
         self.update_size_params()
@@ -69,7 +68,7 @@ class MyView(QGraphicsView):
                 block.set_movable(mode=='move', self.five_min_h, self.top_bar_h)
     
     def mousePressEvent(self, event):
-        super().mousePressEvent(event)
+
         if self.mode == 'new':
             if event.button() == Qt.MouseButton.LeftButton:
                 l = len(self.class_names)
@@ -82,6 +81,17 @@ class MyView(QGraphicsView):
                 self.scene().addItem(self.new_block)
             elif event.button() == Qt.MouseButton.RightButton:
                 self.drop_new_block()
+            return
+        if event.button() == Qt.MouseButton.LeftButton:
+            item = self.itemAt(event.pos())
+            if isinstance(item, LessonBlock):
+                item.bring_back()
+                item.setSelected(False)
+            self.itemAt(event.pos())
+            if isinstance(item, LessonBlock):
+                item.setSelected(True)
+    
+        super().mousePressEvent(event)
 
 
     def mouseReleaseEvent(self, event):

@@ -18,11 +18,19 @@ class LessonBlock(QGraphicsRectItem):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
+            for item in self.scene().selectedItems():
+                item.setSelected(False)
             self.start_x = self.x()
         if event.button() == Qt.MouseButton.RightButton:
             self.parent.removeItem(self)
             self.db.delete_block(self.block)
         super().mousePressEvent(event)
+
+    def bring_back(self):
+
+        if self.isSelected():
+            z = min([item.zValue() for item in self.collidingItems()]) - 1
+            self.setZValue(z)
 
     def set_movable(self, on:bool, five_min_h, top_bar_h):
         self.five_min_h = five_min_h
@@ -36,7 +44,7 @@ class LessonBlock(QGraphicsRectItem):
 
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
-        start = self.start + self.y() / self.five_min_h
+        start = self.start_x + self.y() / self.five_min_h
         self.db.update_block_start(self.block, start)
 
     def mouseMoveEvent(self, event):
