@@ -64,22 +64,22 @@ class PlanWidget(QWidget):
                 for subclass in my_class.subclasses:
                     self.classes.append(subclass)
 
-        for widget in self.class_filter.findChildren(QCheckBox):
+        for widget in self.class_filter.findChildren(QPushButton):
             widget.deleteLater()
 
         for my_class in self.classes[::-1]:
-            checkbox = QCheckBox()
-            checkbox.setText(my_class.full_name())
-            checkbox.setChecked(True)
-            checkbox.my_class = my_class
-            checkbox.clicked.connect(self.update_filter)
-            self.class_filter.layout().insertWidget(0, checkbox)
+            button = QPushButton(my_class.full_name())
+            button.setCheckable(True)
+            button.setChecked(True)
+            button.my_class = my_class
+            button.clicked.connect(self.update_filter)
+            self.class_filter.layout().insertWidget(0, button)
 
     def update_filter(self):
         display_names = []
-        for checkbox in self.class_filter.findChildren(QCheckBox):
-            if checkbox.isChecked():
-                display_names.append(checkbox.my_class)
+        for button in self.class_filter.findChildren(QPushButton):
+            if button.isChecked():
+                display_names.append(button.my_class)
         self.view.set_classes(display_names[::-1])
         self.view.draw_frame()
 
