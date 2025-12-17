@@ -92,12 +92,18 @@ class MyView(QGraphicsView):
             if isinstance(item, LessonBlock):
                 item.bring_forward()
 
-        if event.button() == Qt.MouseButton.RightButton:
-            item = self.itemAt(event.pos())
-            if isinstance(item, LessonBlock):
-                item.delete()
+        # if event.button() == Qt.MouseButton.RightButton:
+        #     item = self.itemAt(event.pos())
+        #     if isinstance(item, LessonBlock):
+        #         item.contextMenuEvent(event)
     
         super().mousePressEvent(event)
+
+    def contextMenuEvent(self, event):
+        item = self.itemAt(event.pos())
+        if isinstance(item, LessonBlock):
+            item.contextMenuEvent(event)
+        # return super().contextMenuEvent(event)
 
 
     def mouseReleaseEvent(self, event):

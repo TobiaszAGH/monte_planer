@@ -1,9 +1,10 @@
-from PyQt5.QtWidgets import QGraphicsRectItem, QWidget, QToolTip, QGraphicsScene
+from PyQt5.QtWidgets import QGraphicsRectItem, QWidget, QToolTip, QGraphicsScene, QMenu, QAction, QDialogButtonBox
 from PyQt5.QtGui import QBrush, QColor
 from PyQt5.QtCore import Qt, QPoint
 from random import randint
-from data import Data
+from data import Data, Class, Subclass, Block
 from functions import snap_position, display_hour
+from widgets.add_lesson_dialog import AddLessonToBlockDialog
 
 # class Foo(QWidget):
 
@@ -16,6 +17,7 @@ class LessonBlock(QGraphicsRectItem):
         self.setBrush(QBrush(color))
         self.setZValue(100000)
         self.moved = False
+        self.block: Block
 
     def mousePressEvent(self, event):
         self.moved = True
@@ -28,9 +30,29 @@ class LessonBlock(QGraphicsRectItem):
         #     self.db.delete_block(self.block)
         super().mousePressEvent(event)
 
+    def contextMenuEvent(self, event):
+        menu = QMenu()
+        remove_action = menu.addAction('Usuń')
+        add_lesson_action = menu.addAction('Dodaj lekcję')
+        remove_action.triggered.connect(self.delete)
+        add_lesson_action.triggered.connect(self.add_subject)
+        action = menu.exec(event.globalPos())
+
     def delete(self):
         self.parent.removeItem(self)
         self.db.delete_block(self.block)
+
+    def add_subject(self):
+        my_class = self.block.parent()
+        dialog = AddLessonToBlockDialog(self, my_class)
+        ok = dialog.exec()
+        if not ok:
+            return False
+        subject = dialog.subject_list.currentData()
+        lesson = dialog.lesson_list.currentData()
+        if subject and lesson:
+            self.db.add_lesson_to_block(lesson, self.block)
+
 
     def bring_back(self):
         if self.isSelected():

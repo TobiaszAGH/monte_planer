@@ -4,6 +4,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, BLOB, Table, Boolean
 from string import ascii_lowercase
 from typing import List
+from functions import display_hour
+
 def blank_data():
     return {
         'classes': {},
@@ -110,6 +112,9 @@ class Block(Base):
             return self.my_class
         if self.subclass:
             return self.subclass
+        
+    def print_time(self):
+        return(f'{display_hour(self.start)}-{display_hour(self.start+self.length)}')
 
 class Data():
     def __init__(self):
@@ -268,4 +273,9 @@ class Data():
 
     def update_block_start(self, block: Block, start: int):
         block.start = start
+        self.session.commit()
+
+    def add_lesson_to_block(self, lesson: Lesson, block: Block):
+        block.lessons.append(lesson)
+        lesson.block = block
         self.session.commit()
