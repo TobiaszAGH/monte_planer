@@ -3,7 +3,7 @@ from data import Subclass, Class, Subject, Lesson
 
 
 class RemoveLessonFromBlockDialog(QDialog):
-    def __init__(self, block):
+    def __init__(self, lessons):
         super().__init__()
 
         self.setWindowTitle('Wybierz przedmiot')
@@ -13,9 +13,8 @@ class RemoveLessonFromBlockDialog(QDialog):
         self.list = QComboBox()
         layout.addWidget(self.list)
 
-        lessons = block.lessons
         for lesson in lessons:
-            self.list.addItem(lesson.subject.name, lesson) 
+            self.list.addItem(*lesson) 
 
         buttonBox = QDialogButtonBox()
         layout.addWidget(buttonBox)

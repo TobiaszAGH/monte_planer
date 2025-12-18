@@ -98,6 +98,12 @@ class Subject(Base):
             return self.my_class
         if self.subclass:
             return self.subclass
+        
+    def full_name(self):
+        if self.my_class:
+            return self.name + ' (R)'
+        else:
+            return f'{self.name} ({self.subclass.name.upper()})'
 
 class Lesson(Base):
     __tablename__ = 'lessons'

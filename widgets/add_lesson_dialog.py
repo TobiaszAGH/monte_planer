@@ -54,9 +54,9 @@ class AddLessonToBlockDialog(QDialog):
     def update_lesson_list(self):
         subject: Subject = self.subject_list.currentData()
         lesson: Lesson
+        self.lesson_list.clear()
         if not subject:
             return False
-        self.lesson_list.clear()
         for lesson in subject.lessons:
             if lesson.block:
                 self.lesson_list.addItem(f'{str(lesson.length)} ({days[lesson.block.day]} {lesson.block.print_time()})', lesson)

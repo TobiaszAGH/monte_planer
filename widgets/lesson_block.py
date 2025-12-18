@@ -27,20 +27,26 @@ class BlockText(QGraphicsTextItem):
         font = self.font()
         size = font.pointSize()
         while self.boundingRect().width() > self.w and size >=4:
-            # print(size)
             size -=1
             font.setPointSize(size)
             self.setFont(font)
     
-    def set_lessons(self, lessons: List[Subject]):
-        text = '\n'.join([l.subject.name for l in lessons])
+    def set_lessons(self, lessons):
+        # decide if it is needed to specify subject parent
+        # list = [
+        #     l.subject.full_name() 
+        #     if other_subcl_vis or l.subject.my_class 
+        #     else l.subject.name 
+        #     for l in lessons
+        # ]
+        text = '\n'.join(lessons)
         self.setPlainText(text)
         pass
             
 
 
 class LessonBlock(QGraphicsRectItem):
-    def __init__(self, x,y,w,h, parent: QGraphicsScene, db):
+    def __init__(self, x,y,w,h, parent: QGraphicsScene, db, visible_classes):
         self.parent= parent
         self.db: Data = db
         super().__init__(x,y,w,h)
@@ -52,6 +58,7 @@ class LessonBlock(QGraphicsRectItem):
         self.block: Block
         self.text_item = BlockText(self, w)
         self.parent.addItem(self.text_item)
+        self.visible_classes = visible_classes
 
     def mousePressEvent(self, event):
         self.moved = True
@@ -96,7 +103,9 @@ class LessonBlock(QGraphicsRectItem):
             self.draw_lessons()
 
     def remove_lesson(self):
-        dialog = RemoveLessonFromBlockDialog(self.block)
+        if not self.block.lessons:
+            return False
+        dialog = RemoveLessonFromBlockDialog(self.lessons)
         ok = dialog.exec()
         if not ok:
             return False
@@ -165,9 +174,11 @@ class LessonBlock(QGraphicsRectItem):
             # move text
             self.recenter_text()
 
-    def draw_lessons(self, visible_classes):
-        lessons = [l for l in self.block.lessons if isinstance(l.subject.parent(), Class) or l.subject.parent() in visible_classes]
-        self.text_item.set_lessons(lessons)
+    def draw_lessons(self):
+        lessons = [l for l in self.block.lessons if isinstance(l.subject.parent(), Class) or l.subject.parent() in self.visible_classes]
+        lesson_names = self.lesson_names(lessons)
+        self.lessons = zip(lesson_names, lessons)
+        self.text_item.set_lessons(lesson_names)
         self.text_item.setZValue(self.zValue()+0.1)
         color = lessons[0].subject.color if len(lessons) == 1 else '#c0c0c0'
         color = QColor(color)
@@ -183,3 +194,18 @@ class LessonBlock(QGraphicsRectItem):
         self.text_item.shrink()
         self.text_item.setPos(self.rect().center().x() - self.text_item.boundingRect().width()/2,\
                             self.y_in_scene() + self.rect().height()/2 - self.text_item.boundingRect().height()/2)
+        
+    def other_subclasses_visible(self):
+        my_class = self.block.parent().get_class()
+        n = sum([1 for cl in self.visible_classes if cl.get_class() == my_class])
+        return n > 1
+    
+    def lesson_names(self, lessons):
+
+        list = [
+            l.subject.full_name() 
+            if self.other_subclasses_visible() or l.subject.my_class 
+            else l.subject.name 
+            for l in lessons
+        ]
+        return list
