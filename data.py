@@ -92,6 +92,13 @@ class Subject(Base):
     students = relationship("Student", secondary=student_subject, back_populates="subjects")
     lessons = relationship("Lesson", backref="subject")
 
+
+    def parent(self):
+        if self.my_class:
+            return self.my_class
+        if self.subclass:
+            return self.subclass
+
 class Lesson(Base):
     __tablename__ = 'lessons'
     id = Column(Integer, primary_key=True)

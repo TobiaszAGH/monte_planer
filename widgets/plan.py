@@ -1,5 +1,4 @@
-
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QCheckBox
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
 
 from data import Data, Class
 from widgets.mode_btn import ModeBtn
@@ -27,12 +26,8 @@ class PlanWidget(QWidget):
         toolbar.setLayout(QHBoxLayout())
         tool_add_block = ModeBtn("N", self.set_mode_new, toolbar)
         toolbar.layout().addWidget(tool_add_block)
-        # tool_add_block.setAutoExclusive(True)
-        # tool_add_block.setCheckable(True)
-        # tool_add_block.clicked.connect(self.set_mode_new)
         tool_move_block = ModeBtn("M", self.set_mode_move ,toolbar)
         toolbar.layout().addWidget(tool_move_block)
-        # tool_move_block.clicked.connect(self.set_mode_move)
         
 
         self.view = MyView(self)

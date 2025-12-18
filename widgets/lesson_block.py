@@ -165,8 +165,8 @@ class LessonBlock(QGraphicsRectItem):
             # move text
             self.recenter_text()
 
-    def draw_lessons(self):
-        lessons = self.block.lessons
+    def draw_lessons(self, visible_classes):
+        lessons = [l for l in self.block.lessons if isinstance(l.subject.parent(), Class) or l.subject.parent() in visible_classes]
         self.text_item.set_lessons(lessons)
         self.text_item.setZValue(self.zValue()+0.1)
         color = lessons[0].subject.color if len(lessons) == 1 else '#c0c0c0'

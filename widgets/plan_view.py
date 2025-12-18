@@ -295,7 +295,7 @@ class MyView(QGraphicsView):
                 new_block.setZValue(z+10000)
                 new_block.block = block
                 new_block.start = block.start
-                new_block.draw_lessons()
+                new_block.draw_lessons(self.classes)
 
                 new_block.set_movable(self.mode=='move', self.five_min_h, self.top_bar_h)
                 self.blocks.append(new_block)
