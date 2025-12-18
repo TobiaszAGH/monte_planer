@@ -1,6 +1,6 @@
 from __future__ import annotations
 from PyQt5.QtWidgets import QGraphicsRectItem, QWidget, QToolTip, QGraphicsScene, QMenu, QAction, QDialogButtonBox, QGraphicsTextItem
-from PyQt5.QtGui import QBrush, QColor, QTextOption
+from PyQt5.QtGui import QBrush, QColor, QTextOption, QFontMetrics
 from PyQt5.QtCore import Qt, QPoint
 from random import randint
 from data import Data, Class, Subclass, Block, Lesson, Subject
@@ -21,27 +21,25 @@ class BlockText(QGraphicsTextItem):
         self.document().setDefaultTextOption(option)
         self.setTextWidth(w)
         self.w = w
+        self.row_num = 0
 
     def shrink(self):
-        width = self.textWidth()
+        if not self.row_num:
+            return 
         font = self.font()
         size = font.pointSize()
-        while self.boundingRect().width() > self.w and size >=4:
-            size -=1
-            font.setPointSize(size)
+        while self.document().begin().layout().lineCount() > self.row_num and size >=4:
+            size -= 0.2
+            font.setPointSizeF(size)
             self.setFont(font)
+            # print(self.font().pointSize())
     
-    def set_lessons(self, lessons):
-        # decide if it is needed to specify subject parent
-        # list = [
-        #     l.subject.full_name() 
-        #     if other_subcl_vis or l.subject.my_class 
-        #     else l.subject.name 
-        #     for l in lessons
-        # ]
-        text = '\n'.join(lessons)
-        self.setPlainText(text)
-        pass
+    def set_lessons(self, lesson_names):
+        self.row_num = len(lesson_names)
+        self.setHtml('<br>'.join(lesson_names))
+        print(self.row_num, lesson_names)
+
+
             
 
 
