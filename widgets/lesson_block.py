@@ -43,7 +43,8 @@ class LessonBlock(QGraphicsRectItem):
         self.parent= parent
         self.db: Data = db
         super().__init__(x,y,w,h)
-        color = QColor(randint(0,256), randint(0,256), randint(0,256), 210)
+        color = QColor('#c0c0c0')
+        color.setAlpha(210)
         self.setBrush(QBrush(color))
         # self.setZValue(100000)
         self.moved = False
@@ -156,8 +157,13 @@ class LessonBlock(QGraphicsRectItem):
             self.recenter_text()
 
     def draw_lessons(self):
-        self.text_item.set_lessons(self.block.lessons)
+        lessons = self.block.lessons
+        self.text_item.set_lessons(lessons)
         self.text_item.setZValue(self.zValue()+0.1)
+        color = lessons[0].subject.color if len(self.block.lessons) == 1 else '#c0c0c0'
+        color = QColor(color)
+        color.setAlpha(210)
+        self.setBrush(QBrush(color))
         self.recenter_text()
        
         
