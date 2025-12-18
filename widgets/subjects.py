@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QHBoxLayout, QDialog, QDialogButtonBox, \
-      QPushButton, QLabel, QDialogButtonBox, QMessageBox, QInputDialog, QGridLayout, QCheckBox, QSizePolicy
+      QPushButton, QLabel, QDialogButtonBox, QMessageBox, QInputDialog, QGridLayout, QCheckBox, QSizePolicy,\
+      QColorDialog, QLineEdit
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
 
 from data import Data, Class, Subclass, Student, Subject
 
@@ -58,6 +60,29 @@ class SubjectsWidget(QWidget):
         self.frame.setLayout(self.frame_layout)
         container_layout.addWidget(self.frame)
 
+        # display options row
+        display_options_row = QHBoxLayout()
+        self.frame_layout.addLayout(display_options_row)
+        display_options_row.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        # color
+        display_options_row.addWidget(QLabel('Kolor:'))
+        self.color_button = QPushButton()
+        self.color_button.setFixedSize(20,20)
+        color = QColor('lightgrey')
+        self.color_button.setStyleSheet(f'background-color: {color.name()}')
+        self.color_button.clicked.connect(self.pick_color)
+        display_options_row.addWidget(self.color_button)
+
+        # short name
+        display_options_row.addWidget(QLabel('Skrót:'))
+        self.short_name = QLineEdit()
+        self.short_name.setFixedWidth(100)
+        self.short_name.textEdited.connect(self.set_short_name)
+        display_options_row.addWidget(self.short_name)
+        display_options_row.addStretch()
+
+
         # subject info row
         teacher_row = QHBoxLayout()
         self.frame_layout.addLayout(teacher_row)
@@ -68,7 +93,7 @@ class SubjectsWidget(QWidget):
         self.teacher_list = QComboBox()
         self.teacher_list.currentTextChanged.connect(self.setTeacher)
         teacher_row.addWidget(self.teacher_list)
-        
+
         # lessons
         teacher_row.addWidget(QLabel('Lekcje:'))
         self.lessons = QHBoxLayout()
@@ -78,10 +103,11 @@ class SubjectsWidget(QWidget):
         add_lesson_btn.clicked.connect(self.add_lesson)
         teacher_row.addWidget(add_lesson_btn)
 
+
+        # student list
         self.student_list = QGridLayout()
         main_checkbox = QCheckBox()
         main_checkbox.toggled.connect(self.toggle_all_checkboxes)
-        # main_checkbox.student = 'dupa'
         self.student_list.addWidget(QLabel("Uczniowie:"), 0, 0)
         self.student_list.addWidget(main_checkbox, 0, 1)
         self.student_list.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
@@ -95,7 +121,6 @@ class SubjectsWidget(QWidget):
         remove_subject_btn.clicked.connect(self.remove_subject)
         layout.addWidget(new_subject_btn_box)
 
-        # self.student_list = QGridLayout()
 
         self.load_class()
         self.frame.hide()
@@ -136,7 +161,6 @@ class SubjectsWidget(QWidget):
         students.sort(key=lambda x: x.name)
         student: Student
         for student in students:
-            # print(student.name)
             n = self.student_list.rowCount()
             #name
             name_label = QLabel(student.name)
@@ -164,6 +188,13 @@ class SubjectsWidget(QWidget):
         teacher = subject.teacher
         teacher_name = teacher.name if teacher else ''
         self.teacher_list.setCurrentText(teacher_name)
+
+        # color
+        self.color_button.setStyleSheet(f'background-color: {subject.color}')
+
+        # short name
+        self.short_name.setText(subject.short_name)
+
         # lessons
         for n in range(self.lessons.count()):
             self.lessons.itemAt(n).widget().deleteLater()
@@ -247,9 +278,19 @@ class SubjectsWidget(QWidget):
         if QMessageBox.question(self, 'Uwaga', message) != QMessageBox.StandardButton.Yes:
                 return False
         self.db.delete_subject(subject)
-        self.load_data(self.data)
+        self.load_data()
 
+    def pick_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            self.color_button.setStyleSheet(f'background-color: {color.name()}')
+            subject = self.list.currentData()
+            self.db.update_subject_color(subject, color.name())
 
+    def set_short_name(self):
+        subject = self.list.currentData()
+        short_name = self.short_name.text()
+        self.db.update_subject_short_name(subject, short_name)
 
     def load_data(self):
         self.teacher_list.clear()

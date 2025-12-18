@@ -1,10 +1,10 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, BLOB, Table, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, Table, Boolean
 from string import ascii_lowercase
 from typing import List
-from functions import display_hour
+from functions import display_hour, shorten_name
 
 def blank_data():
     return {
@@ -83,10 +83,12 @@ class Subject(Base):
     __tablename__ = 'subjects'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
+    short_name = Column(String)
     class_id = Column(Integer, ForeignKey('classes.id'))
     subclass_id = Column(Integer, ForeignKey('subclasses.id'))
     teacher_id = Column(Integer, ForeignKey('teachers.id'))
     basic = Column(Boolean)
+    color = Column(String)
     students = relationship("Student", secondary=student_subject, back_populates="subjects")
     lessons = relationship("Lesson", backref="subject")
 
@@ -228,7 +230,7 @@ class Data():
 
     # subjects
     def create_subject(self, name, basic, my_sub_class) -> Subject:
-        subject = Subject(name=name, basic=basic)
+        subject = Subject(name=name, basic=basic, color='#c0c0c0', short_name=shorten_name(name))
         my_sub_class.subjects.append(subject)
         self.session.add(subject)
         self.session.commit()
@@ -239,6 +241,14 @@ class Data():
     
     def update_subject_teacher(self, subject: Subject, teacher: Teacher) -> None:
         subject.teacher = teacher
+        self.session.commit()
+
+    def update_subject_short_name(self, subject: Subject, short_name: str) -> None:
+        subject.short_name = short_name
+        self.session.commit()
+
+    def update_subject_color(self, subject: Subject, color: str) -> None:
+        subject.color = color
         self.session.commit()
 
     def delete_subject(self, subject: Subject) -> None:
