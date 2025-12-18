@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QGraphicsRectItem, QWidget, QToolTip, QGraphicsScene, QMenu, QAction, QDialogButtonBox, QGraphicsTextItem
-from PyQt5.QtGui import QBrush, QColor
+from PyQt5.QtGui import QBrush, QColor, QTextOption
 from PyQt5.QtCore import Qt, QPoint
 from random import randint
 from data import Data, Class, Subclass, Block, Lesson
@@ -19,6 +19,11 @@ class LessonBlock(QGraphicsRectItem):
         self.moved = False
         self.block: Block
         self.text_item = QGraphicsTextItem()
+        self.text_item.contextMenuEvent = self.contextMenuEvent
+        option = QTextOption()
+        option.setAlignment(Qt.AlignCenter)
+        self.text_item.document().setDefaultTextOption(option)
+        self.text_item.setTextWidth(w)
         self.parent.addItem(self.text_item)
 
     def mousePressEvent(self, event):
@@ -58,7 +63,6 @@ class LessonBlock(QGraphicsRectItem):
                 
             self.db.add_lesson_to_block(lesson, self.block)
             if old_block:
-                print(old_block.print_time())
                 old_block_item: LessonBlock = [bl for bl in self.parent.items() if isinstance(bl, LessonBlock) and bl.block==old_block][0]
                 old_block_item.draw_lessons()
             self.draw_lessons()

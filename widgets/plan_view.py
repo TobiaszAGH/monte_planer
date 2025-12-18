@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QToolTip, QGraphicsItem
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QToolTip, QGraphicsTextItem
 from PyQt5.QtGui import QPen
 from PyQt5.QtCore import QPoint, Qt
 from widgets.lesson_block import LessonBlock
@@ -101,7 +101,7 @@ class MyView(QGraphicsView):
 
     def contextMenuEvent(self, event):
         item = self.itemAt(event.pos())
-        if isinstance(item, LessonBlock):
+        if isinstance(item, (QGraphicsTextItem, LessonBlock)):
             item.contextMenuEvent(event)
         # return super().contextMenuEvent(event)
 
