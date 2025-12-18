@@ -85,11 +85,11 @@ class MyView(QGraphicsView):
                 self.drop_new_block()
         if event.button() == Qt.MouseButton.LeftButton and self.mode!='move':
             item = self.itemAt(event.pos())
-            if isinstance(item, LessonBlock):
+            if isinstance(item, (LessonBlock, QGraphicsTextItem)):
                 item.bring_back()
                 item.setSelected(False)
             item = self.itemAt(event.pos())
-            if isinstance(item, LessonBlock):
+            if isinstance(item, (LessonBlock, QGraphicsTextItem)):
                 item.bring_forward()
 
         # if event.button() == Qt.MouseButton.RightButton:

@@ -20,6 +20,8 @@ class LessonBlock(QGraphicsRectItem):
         self.block: Block
         self.text_item = QGraphicsTextItem()
         self.text_item.contextMenuEvent = self.contextMenuEvent
+        self.text_item.bring_back = self.bring_back
+        self.text_item.bring_forward = self.bring_forward
         option = QTextOption()
         option.setAlignment(Qt.AlignCenter)
         self.text_item.document().setDefaultTextOption(option)
@@ -141,4 +143,3 @@ class LessonBlock(QGraphicsRectItem):
             return False
         self.text_item.setPos(self.rect().center().x() - self.text_item.boundingRect().width()/2,\
                             self.y_in_scene() + self.rect().height()/2 - self.text_item.boundingRect().height()/2)
-
