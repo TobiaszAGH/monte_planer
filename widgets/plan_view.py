@@ -255,7 +255,7 @@ class MyView(QGraphicsView):
             # for n, class_name in enumerate(self.class_names):
             class_names = [c.full_name() for c in self.classes]
             # print(ids)
-            for block in self.db.all_blocks():
+            for z, block in enumerate(self.db.all_blocks()):
                 # class not represented
                 full_name = block.parent().full_name()
                 if full_name not in class_names:
@@ -292,8 +292,10 @@ class MyView(QGraphicsView):
 
 
                 new_block = LessonBlock(x, y, width, height, self.scene(), self.db)
+                new_block.setZValue(z+10000)
                 new_block.block = block
                 new_block.start = block.start
+                new_block.draw_lessons()
 
                 new_block.set_movable(self.mode=='move', self.five_min_h, self.top_bar_h)
                 self.blocks.append(new_block)

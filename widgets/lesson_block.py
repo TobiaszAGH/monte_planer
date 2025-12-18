@@ -1,8 +1,8 @@
-from PyQt5.QtWidgets import QGraphicsRectItem, QWidget, QToolTip, QGraphicsScene, QMenu, QAction, QDialogButtonBox
+from PyQt5.QtWidgets import QGraphicsRectItem, QWidget, QToolTip, QGraphicsScene, QMenu, QAction, QDialogButtonBox, QGraphicsTextItem
 from PyQt5.QtGui import QBrush, QColor
 from PyQt5.QtCore import Qt, QPoint
 from random import randint
-from data import Data, Class, Subclass, Block
+from data import Data, Class, Subclass, Block, Lesson
 from functions import snap_position, display_hour
 from widgets.add_lesson_dialog import AddLessonToBlockDialog
 
@@ -13,11 +13,13 @@ class LessonBlock(QGraphicsRectItem):
         self.parent= parent
         self.db: Data = db
         super().__init__(x,y,w,h)
-        color = QColor(randint(0,256), randint(0,256), randint(0,256), 128)
+        color = QColor(randint(0,256), randint(0,256), randint(0,256), 210)
         self.setBrush(QBrush(color))
-        self.setZValue(100000)
+        # self.setZValue(100000)
         self.moved = False
         self.block: Block
+        self.text_item = QGraphicsTextItem()
+        self.parent.addItem(self.text_item)
 
     def mousePressEvent(self, event):
         self.moved = True
@@ -51,8 +53,15 @@ class LessonBlock(QGraphicsRectItem):
         subject = dialog.subject_list.currentData()
         lesson = dialog.lesson_list.currentData()
         if subject and lesson:
+            # update db
+            old_block: Block = lesson.block
+                
             self.db.add_lesson_to_block(lesson, self.block)
-
+            if old_block:
+                print(old_block.print_time())
+                old_block_item: LessonBlock = [bl for bl in self.parent.items() if isinstance(bl, LessonBlock) and bl.block==old_block][0]
+                old_block_item.draw_lessons()
+            self.draw_lessons()
 
     def bring_back(self):
         if self.isSelected():
@@ -60,12 +69,14 @@ class LessonBlock(QGraphicsRectItem):
             if z_values:
                 z = min(z_values) - 1
                 self.setZValue(z)
+                self.text_item.setZValue(z+0.1)
 
     def bring_forward(self):
         z_values = [item.zValue()  for item in self.collidingItems() if isinstance(item, LessonBlock)]
         if z_values:
             z = max(z_values) + 1
             self.setZValue(z)
+            self.text_item.setZValue(z+0.1)
 
     def set_selectable(self, on:bool):
         self.setFlag(QGraphicsRectItem.GraphicsItemFlag.ItemIsSelectable, on)
@@ -99,6 +110,8 @@ class LessonBlock(QGraphicsRectItem):
             while self.y_in_scene() + self.block.length*self.five_min_h > self.parent.height():
                 self.moveBy(0, -self.five_min_h)
 
+            self.bring_forward()
+
             # show tooltip
             start = (self.y_in_scene() - self.top_bar_h) // self.five_min_h + 1
             duration = self.block.length
@@ -107,4 +120,21 @@ class LessonBlock(QGraphicsRectItem):
             if self.block.length>=0:
                 msg += f' ({int(self.block.length)*5})'
             QToolTip.showText(event.screenPos(), msg)
+
+            # move text
+            self.recenter_text()
+
+    def draw_lessons(self):
+        text = '\n'.join([l.subject.name for l in self.block.lessons])
+        self.text_item.setPlainText(text)
+        self.text_item.setZValue(self.zValue()+0.1)
+        self.recenter_text()
+       
+        
+
+    def recenter_text(self):
+        if not self.text_item:
+            return False
+        self.text_item.setPos(self.rect().center().x() - self.text_item.boundingRect().width()/2,\
+                            self.y_in_scene() + self.rect().height()/2 - self.text_item.boundingRect().height()/2)
 
