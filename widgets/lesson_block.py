@@ -1,12 +1,42 @@
+from __future__ import annotations
 from PyQt5.QtWidgets import QGraphicsRectItem, QWidget, QToolTip, QGraphicsScene, QMenu, QAction, QDialogButtonBox, QGraphicsTextItem
 from PyQt5.QtGui import QBrush, QColor, QTextOption
 from PyQt5.QtCore import Qt, QPoint
 from random import randint
-from data import Data, Class, Subclass, Block, Lesson
+from data import Data, Class, Subclass, Block, Lesson, Subject
 from functions import snap_position, display_hour
 from widgets.add_lesson_dialog import AddLessonToBlockDialog
+from typing import List
 
-# class Foo(QWidget):
+
+class BlockText(QGraphicsTextItem):
+    def __init__(self, parent: LessonBlock, w):
+        super().__init__()
+        self.contextMenuEvent = parent.contextMenuEvent
+        self.bring_back = parent.bring_back
+        self.bring_forward = parent.bring_forward
+        option = QTextOption()
+        option.setAlignment(Qt.AlignCenter)
+        self.document().setDefaultTextOption(option)
+        self.setTextWidth(w)
+        self.w = w
+
+    def shrink(self):
+        width = self.textWidth()
+        font = self.font()
+        size = font.pointSize()
+        while self.boundingRect().width() > self.w and size >=4:
+            # print(size)
+            size -=1
+            font.setPointSize(size)
+            self.setFont(font)
+    
+    def set_lessons(self, lessons: List[Subject]):
+        text = '\n'.join([l.subject.name for l in lessons])
+        self.setPlainText(text)
+        pass
+            
+
 
 class LessonBlock(QGraphicsRectItem):
     def __init__(self, x,y,w,h, parent: QGraphicsScene, db):
@@ -18,14 +48,7 @@ class LessonBlock(QGraphicsRectItem):
         # self.setZValue(100000)
         self.moved = False
         self.block: Block
-        self.text_item = QGraphicsTextItem()
-        self.text_item.contextMenuEvent = self.contextMenuEvent
-        self.text_item.bring_back = self.bring_back
-        self.text_item.bring_forward = self.bring_forward
-        option = QTextOption()
-        option.setAlignment(Qt.AlignCenter)
-        self.text_item.document().setDefaultTextOption(option)
-        self.text_item.setTextWidth(w)
+        self.text_item = BlockText(self, w)
         self.parent.addItem(self.text_item)
 
     def mousePressEvent(self, event):
@@ -60,10 +83,12 @@ class LessonBlock(QGraphicsRectItem):
         subject = dialog.subject_list.currentData()
         lesson = dialog.lesson_list.currentData()
         if subject and lesson:
-            # update db
             old_block: Block = lesson.block
                 
+            # update db
             self.db.add_lesson_to_block(lesson, self.block)
+        
+            # update visuals
             if old_block:
                 old_block_item: LessonBlock = [bl for bl in self.parent.items() if isinstance(bl, LessonBlock) and bl.block==old_block][0]
                 old_block_item.draw_lessons()
@@ -131,8 +156,7 @@ class LessonBlock(QGraphicsRectItem):
             self.recenter_text()
 
     def draw_lessons(self):
-        text = '\n'.join([l.subject.name for l in self.block.lessons])
-        self.text_item.setPlainText(text)
+        self.text_item.set_lessons(self.block.lessons)
         self.text_item.setZValue(self.zValue()+0.1)
         self.recenter_text()
        
@@ -141,5 +165,6 @@ class LessonBlock(QGraphicsRectItem):
     def recenter_text(self):
         if not self.text_item:
             return False
+        self.text_item.shrink()
         self.text_item.setPos(self.rect().center().x() - self.text_item.boundingRect().width()/2,\
                             self.y_in_scene() + self.rect().height()/2 - self.text_item.boundingRect().height()/2)
