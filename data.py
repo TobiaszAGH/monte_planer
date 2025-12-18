@@ -289,3 +289,7 @@ class Data():
         block.lessons.append(lesson)
         lesson.block = block
         self.session.commit()
+
+    def remove_lesson_from_block(self, lesson: Lesson):
+        lesson.block = None
+        self.session.commit()

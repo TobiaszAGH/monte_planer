@@ -6,6 +6,7 @@ from random import randint
 from data import Data, Class, Subclass, Block, Lesson, Subject
 from functions import snap_position, display_hour
 from widgets.add_lesson_dialog import AddLessonToBlockDialog
+from widgets.remove_lesson_dialog import RemoveLessonFromBlockDialog
 from typing import List
 
 
@@ -58,17 +59,16 @@ class LessonBlock(QGraphicsRectItem):
             for item in self.scene().selectedItems():
                 item.setSelected(False)
             self.start_x = self.x()
-        # if event.button() == Qt.MouseButton.RightButton:
-        #     self.parent.removeItem(self)
-        #     self.db.delete_block(self.block)
         super().mousePressEvent(event)
 
     def contextMenuEvent(self, event):
         menu = QMenu()
         remove_action = menu.addAction('Usuń')
-        add_lesson_action = menu.addAction('Dodaj lekcję')
         remove_action.triggered.connect(self.delete)
+        add_lesson_action = menu.addAction('Dodaj lekcję')
         add_lesson_action.triggered.connect(self.add_subject)
+        remove_lesson_action = menu.addAction('Usuń lekcję')
+        remove_lesson_action.triggered.connect(self.remove_lesson)
         action = menu.exec(event.globalPos())
 
     def delete(self):
@@ -94,6 +94,15 @@ class LessonBlock(QGraphicsRectItem):
                 old_block_item: LessonBlock = [bl for bl in self.parent.items() if isinstance(bl, LessonBlock) and bl.block==old_block][0]
                 old_block_item.draw_lessons()
             self.draw_lessons()
+
+    def remove_lesson(self):
+        dialog = RemoveLessonFromBlockDialog(self.block)
+        ok = dialog.exec()
+        if not ok:
+            return False
+        lesson = dialog.list.currentData()
+        self.db.remove_lesson_from_block(lesson)
+        self.draw_lessons()
 
     def bring_back(self):
         if self.isSelected():
@@ -160,7 +169,7 @@ class LessonBlock(QGraphicsRectItem):
         lessons = self.block.lessons
         self.text_item.set_lessons(lessons)
         self.text_item.setZValue(self.zValue()+0.1)
-        color = lessons[0].subject.color if len(self.block.lessons) == 1 else '#c0c0c0'
+        color = lessons[0].subject.color if len(lessons) == 1 else '#c0c0c0'
         color = QColor(color)
         color.setAlpha(210)
         self.setBrush(QBrush(color))
