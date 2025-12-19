@@ -112,6 +112,8 @@ class Data():
         self.session.commit()
 
     def add_subject_to_student(self, subject: Subject, student: Student):
+        if subject in student.subjects:
+            return
         student.subjects.append(subject)
         self.session.commit()
 
