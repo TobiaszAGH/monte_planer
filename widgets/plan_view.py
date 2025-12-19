@@ -3,6 +3,7 @@ from PyQt5.QtGui import QPen, QColor
 from PyQt5.QtCore import QPoint, Qt
 from widgets.lesson_block import LessonBlock
 from widgets.custom_block import CustomBlock
+from widgets.block import BasicBlock
 from functions import snap_position, display_hour
 from data import Data, Class, Subclass
 
@@ -63,7 +64,7 @@ class MyView(QGraphicsView):
     def set_mode(self, mode):
         self.mode = mode
         for block in self.scene().items():
-            if isinstance(block, LessonBlock):
+            if isinstance(block, BasicBlock):
                 block.set_movable(mode=='move', self.five_min_h, self.top_bar_h)
                 block.set_selectable(mode not in ('new', 'new_custom'))
                 
@@ -334,7 +335,9 @@ class MyView(QGraphicsView):
                 new_block.setZValue(z+10000)
                 new_block.block = block
                 new_block.start = block.start
-                new_block.setBrush(QColor(block.color))
+                color = QColor(block.color)
+                color.setAlpha(210)
+                new_block.setBrush(color)
 
                 new_block.set_movable(self.mode=='move', self.five_min_h, self.top_bar_h)
                 self.blocks.append(new_block)
