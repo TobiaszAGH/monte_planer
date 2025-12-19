@@ -258,7 +258,17 @@ class Data():
 
     # subjects
     def create_subject(self, name, basic, my_sub_class) -> Subject:
-        subject = Subject(name=name, basic=basic, color='#c0c0c0', short_name=shorten_name(name))
+        # copy values if subject with same name exists or load deafaults
+        same_name_subject = self.session.query(Subject).filter_by(name=name).first()
+        if same_name_subject:
+            color = same_name_subject.color
+            teacher = same_name_subject.teacher
+            short_name = same_name_subject.short_name
+        else:
+            color = '#c0c0c0'
+            teacher = None
+            short_name = shorten_name(name)
+        subject = Subject(name=name, basic=basic, color=color, short_name=short_name, teacher=teacher)
         my_sub_class.subjects.append(subject)
         self.session.add(subject)
         self.session.commit()

@@ -163,7 +163,7 @@ class ClassesWidget(QWidget):
 
             #load students
             student: Student
-            for student in subclass.students:
+            for student in sorted(subclass.students, key=lambda s: s.name):
                 self.add_student_to_list(student, student_list)
 
             frame_layout.addWidget(scrollarea)
@@ -251,12 +251,11 @@ class ClassesWidget(QWidget):
             class_name = self.db.student_exists(new_name)
             if class_name:
                 QMessageBox.warning(self, 'Uwaga', f'Taki uczeń już istnieje! ({class_name})')
-                new_name_box.clear()
                 return
             student = self.db.create_student(new_name, subclass)
 
             self.add_student_to_list(student, student_list)
-            new_name.clear()
+            new_name_box.clear()
         return func
 
     def toggle_all_checkboxes(self):
