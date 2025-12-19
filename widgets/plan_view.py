@@ -4,7 +4,7 @@ from PyQt5.QtCore import QPoint, Qt
 from widgets.lesson_block import LessonBlock
 from widgets.custom_block import CustomBlock
 from widgets.block import BasicBlock
-from functions import snap_position, display_hour
+from functions import snap_position, display_hour, contrast_ratio
 from data import Data, Class, Subclass
 
 
@@ -89,11 +89,11 @@ class MyView(QGraphicsView):
                 self.drop_new_block()
         if event.button() == Qt.MouseButton.LeftButton and self.mode!='move':
             item = self.itemAt(event.pos())
-            if isinstance(item, (LessonBlock, QGraphicsTextItem)):
+            if isinstance(item, (BasicBlock, QGraphicsTextItem)):
                 item.bring_back()
                 item.setSelected(False)
             item = self.itemAt(event.pos())
-            if isinstance(item, (LessonBlock, QGraphicsTextItem)):
+            if isinstance(item, (BasicBlock, QGraphicsTextItem)):
                 item.bring_forward()
         super().mousePressEvent(event)
 
@@ -338,6 +338,10 @@ class MyView(QGraphicsView):
                 color = QColor(block.color)
                 color.setAlpha(210)
                 new_block.setBrush(color)
+                new_block.text_item.setHtml(block.text)
+                if contrast_ratio(color, QColor('black')) < 4.5:
+                    new_block.text_item.setDefaultTextColor(QColor('#ffffff'))
+                new_block.recenter_text()
 
                 new_block.set_movable(self.mode=='move', self.five_min_h, self.top_bar_h)
                 self.blocks.append(new_block)

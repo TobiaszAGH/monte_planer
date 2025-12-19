@@ -211,6 +211,10 @@ class Data():
     def update_custom_block_color(self, block, color):
         block.color = color
         self.session.commit()
+
+    def update_custom_block_text(self, block: CustomBlock, text):
+        block.text = text
+        self.session.commit()
     
     def all_blocks(self):
         return self.all_lesson_blocks().extend(self.all_custom_blocks)
