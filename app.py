@@ -2,17 +2,16 @@ import sys
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QAction
 from PyQt5.QtCore import QSize
-from struct import pack
 
 import json
 
-from data import Data, Teacher
+from data import Data
 from widgets.tabs import Tabs
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.data = ''#blank_data()
+        self.data = ''
         self.db = Data()
 
         self.save_path = ''
@@ -72,7 +71,6 @@ class MainWindow(QMainWindow):
         return True
 
 app = QApplication(sys.argv)
-# print(open_connection())
 window = MainWindow()
 window.showMaximized()
 app.exec()

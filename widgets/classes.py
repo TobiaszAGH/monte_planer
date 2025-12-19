@@ -7,6 +7,7 @@ from PyQt5.QtCore import Qt
 from data import Data, Class, Subclass, Student, Subject
 from sqlalchemy.exc import IntegrityError
 from functions import contrast_ratio
+from widgets.subject_btn import SubjectButton
 
 class AddSubjectDialog(QDialog):
     def __init__(self, parent, subclass: Subclass):
@@ -103,7 +104,6 @@ class ClassesWidget(QWidget):
         return subclass
 
     def remove_subclass(self, subclass):
-        # foo = subclass
         def func():
             my_class: Class = self.list.currentData()
             if not my_class:
@@ -123,7 +123,6 @@ class ClassesWidget(QWidget):
         self.list.clear()
         for cl in self.db.all_classes():    
             self.list.addItem(cl.name, cl)
-        # self.list.addItems(self.data['classes'].keys())
     
     def load_class(self):
         #clear widget
@@ -188,13 +187,6 @@ class ClassesWidget(QWidget):
             remove_subclass_btn.clicked.connect(self.remove_subclass(subclass))
             bottom_button_group.addWidget(remove_subclass_btn)
 
-
-    def del_btn(self, student, subject):
-        def func():
-            self.db.remove_subject_from_student(subject, student)
-            self.load_class()
-        return func
-    
     def add_subject_to_student(self, subclass: str, student_list:QWidget):
         def func():
             checkboxes = [checkbox for checkbox in student_list.findChildren(QCheckBox) if checkbox.isChecked()]
@@ -229,12 +221,7 @@ class ClassesWidget(QWidget):
         student_list.addLayout(extra_subject_list, n, 3)
         subject: Subject
         for subject in student.subjects:
-            btn = QPushButton(subject.name)
-            bg_color = QColor(subject.color)
-            text_color  = '#000000' if contrast_ratio(bg_color, QColor('black')) > 4.5 else '#ffffff'
-            btn.setStyleSheet(f'color: {text_color}; background-color: {bg_color.name()}')
-            basic_subject_list.addWidget(btn)
-            btn.clicked.connect(self.del_btn(student, subject))
+            btn = SubjectButton(self, student, subject)
             if subject.basic == True:
                 basic_subject_list.addWidget(btn)
             else:
