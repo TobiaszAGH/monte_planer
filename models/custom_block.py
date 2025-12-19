@@ -1,23 +1,22 @@
-from db_config import Base, days
+from db_config import Base, days, subclass_customblock
 from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from functions import display_hour
 
-class Block(Base):
-    __tablename__ = 'blocks'
+class CustomBlock(Base):
+    __tablename__ = 'custom_blocks'
     id = Column(Integer, primary_key=True)
     length = Column(Integer, nullable=False) # in 5 min blocks
     start = Column(Integer, nullable=False) # in 5 min blocks
     day = Column(Integer, nullable=False) # 0=mon, 1=tue etc.
     class_id = Column(Integer, ForeignKey('classes.id'))
-    subclass_id = Column(Integer, ForeignKey('subclasses.id'))
-    lessons = relationship("Lesson", backref="block")
+    subclasses = relationship("Subclass", secondary=subclass_customblock, back_populates="custom_blocks")
 
-    def parent(self):
-        if self.my_class:
-            return self.my_class
-        if self.subclass:
-            return self.subclass
+    # def parent(self):
+    #     if self.my_class:
+    #         return self.my_class
+    #     if self.subclass:
+    #         return self.subclass
         
     def print_time(self):
         return f'{display_hour(self.start)}-{display_hour(self.start+self.length)}'

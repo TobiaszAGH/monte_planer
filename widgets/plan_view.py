@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QToolTip, QGraphicsTextItem
 from PyQt5.QtGui import QPen
 from PyQt5.QtCore import QPoint, Qt
-from widgets.lesson_block import LessonBlock, Block
+from widgets.lesson_block import LessonBlock, LessonBlock
 from functions import snap_position, display_hour
 from data import Data, Class, Subclass
 
@@ -64,7 +64,7 @@ class MyView(QGraphicsView):
     def set_mode(self, mode):
         self.mode = mode
         for block in self.scene().items():
-            if isinstance(block, Block):
+            if isinstance(block, LessonBlock):
                 block.set_movable(mode=='move', self.five_min_h, self.top_bar_h)
                 block.set_selectable(mode!='new')
                 
@@ -85,17 +85,17 @@ class MyView(QGraphicsView):
                 self.drop_new_block()
         if event.button() == Qt.MouseButton.LeftButton and self.mode!='move':
             item = self.itemAt(event.pos())
-            if isinstance(item, (Block, QGraphicsTextItem)):
+            if isinstance(item, (LessonBlock, QGraphicsTextItem)):
                 item.bring_back()
                 item.setSelected(False)
             item = self.itemAt(event.pos())
-            if isinstance(item, (Block, QGraphicsTextItem)):
+            if isinstance(item, (LessonBlock, QGraphicsTextItem)):
                 item.bring_forward()
         super().mousePressEvent(event)
 
     def contextMenuEvent(self, event):
         item = self.itemAt(event.pos())
-        if isinstance(item, (QGraphicsTextItem, Block)):
+        if isinstance(item, (QGraphicsTextItem, LessonBlock)):
             item.contextMenuEvent(event)
 
 

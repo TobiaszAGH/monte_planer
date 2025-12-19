@@ -9,7 +9,7 @@ class Class(Base):
     students = relationship("Student", backref="my_class")
     subclasses = relationship("Subclass", backref="my_class")
     subjects = relationship("Subject", backref="my_class")
-    blocks = relationship("Block", backref="my_class")
+    blocks = relationship("LessonBlockDB", backref="my_class")
 
     def full_name(self):
         return self.name

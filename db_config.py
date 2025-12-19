@@ -6,6 +6,13 @@ Base = declarative_base()
 
 days = 'Pn Wt Śr Czw Pt'.split()
 
+subclass_customblock = Table(
+    "subclass_customblock",
+    Base.metadata,
+    Column("subclass_id", Integer, ForeignKey("subclasses.id"), primary_key=True),
+    Column("customblock_id", Integer, ForeignKey("custom_blocks.id"), primary_key=True),
+)
+
 student_subject = Table(
     "student_subject",
     Base.metadata,

@@ -170,27 +170,27 @@ class Data():
         self.session.delete(lesson)
         self.session.commit()
 
-    def create_block(self, day:int, start:int, length:int, my_class) -> Block:
+    def create_block(self, day:int, start:int, length:int, my_class) -> LessonBlockDB:
         if isinstance(my_class, Class):
-            block = Block(day=day, start=start, length=length, my_class=my_class)
+            block = LessonBlockDB(day=day, start=start, length=length, my_class=my_class)
         else:
-            block = Block(day=day, start=start, length=length, subclass=my_class)
+            block = LessonBlockDB(day=day, start=start, length=length, subclass=my_class)
         self.session.add(block)
         self.session.commit()
         return block
 
-    def all_blocks(self) -> List[Block]:
-        return self.session.query(Block).all()
+    def all_blocks(self) -> List[LessonBlockDB]:
+        return self.session.query(LessonBlockDB).all()
     
     def delete_block(self, block):
         self.session.delete(block)
         self.session.commit()
 
-    def update_block_start(self, block: Block, start: int):
+    def update_block_start(self, block: LessonBlockDB, start: int):
         block.start = start
         self.session.commit()
 
-    def add_lesson_to_block(self, lesson: Lesson, block: Block):
+    def add_lesson_to_block(self, lesson: Lesson, block: LessonBlockDB):
         block.lessons.append(lesson)
         lesson.block = block
         self.session.commit()

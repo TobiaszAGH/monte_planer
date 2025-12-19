@@ -1,4 +1,4 @@
-from db_config import Base, student_subject
+from db_config import Base
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 

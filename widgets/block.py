@@ -2,12 +2,12 @@ from __future__ import annotations
 from PyQt5.QtWidgets import QGraphicsRectItem, QToolTip, QGraphicsScene
 from PyQt5.QtGui import QBrush, QColor
 from PyQt5.QtCore import Qt
-from data import Data, Class, Block
+from data import Data, Class, LessonBlockDB
 from functions import snap_position, display_hour, contrast_ratio
 from widgets.block_text import BlockText
 
 
-class Block(QGraphicsRectItem):
+class BasicBlock(QGraphicsRectItem):
     def __init__(self, x,y,w,h, parent: QGraphicsScene, db, visible_classes):
         self.parent= parent
         self.db: Data = db
@@ -16,7 +16,7 @@ class Block(QGraphicsRectItem):
         color.setAlpha(210)
         self.setBrush(QBrush(color))
         self.moved = False
-        self.block: Block
+        self.block: LessonBlockDB
         self.text_item = BlockText(self, w)
         self.parent.addItem(self.text_item)
         self.visible_classes = visible_classes
@@ -31,14 +31,14 @@ class Block(QGraphicsRectItem):
 
     def bring_back(self):
         if self.isSelected():
-            z_values = [item.zValue()  for item in self.collidingItems() if isinstance(item, Block)]
+            z_values = [item.zValue()  for item in self.collidingItems() if isinstance(item, LessonBlockDB)]
             if z_values:
                 z = min(z_values) - 1
                 self.setZValue(z)
                 self.text_item.setZValue(z+0.1)
 
     def bring_forward(self):
-        z_values = [item.zValue()  for item in self.collidingItems() if isinstance(item, Block)]
+        z_values = [item.zValue()  for item in self.collidingItems() if isinstance(item, LessonBlockDB)]
         if z_values:
             z = max(z_values) + 1
             self.setZValue(z)

@@ -1,10 +1,10 @@
 from PyQt5.QtWidgets import QMenu
-from widgets.block import Block
+from widgets.block import BasicBlock
 from widgets.add_lesson_dialog import AddLessonToBlockDialog
 from widgets.remove_lesson_dialog import RemoveLessonFromBlockDialog
 
 
-class LessonBlock(Block):
+class LessonBlock(BasicBlock):
     def __init__(self, x, y, w, h, parent, db, visible_classes):
         super().__init__(x, y, w, h, parent, db, visible_classes)
 
@@ -33,14 +33,14 @@ class LessonBlock(Block):
         subject = dialog.subject_list.currentData()
         lesson = dialog.lesson_list.currentData()
         if subject and lesson:
-            old_block: Block = lesson.block
+            old_block: LessonBlock = lesson.block
                 
             # update db
             self.db.add_lesson_to_block(lesson, self.block)
         
             # update visuals
             if old_block:
-                old_block_item: Block = [bl for bl in self.parent.items() if isinstance(bl, Block) and bl.block==old_block][0]
+                old_block_item: LessonBlock = [bl for bl in self.parent.items() if isinstance(bl, LessonBlock) and bl.block==old_block][0]
                 old_block_item.draw_lessons()
             self.draw_lessons()
 
