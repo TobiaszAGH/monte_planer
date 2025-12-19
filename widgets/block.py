@@ -39,17 +39,17 @@ class BasicBlock(QGraphicsRectItem):
         self.parent.removeItem(self)
         self.parent.removeItem(self.text_item)
         self.db.delete_block(self.block)
-        
+
     def bring_back(self):
         if self.isSelected():
-            z_values = [item.zValue()  for item in self.collidingItems() if isinstance(item, LessonBlockDB)]
+            z_values = [item.zValue()  for item in self.collidingItems() if isinstance(item, BasicBlock)]
             if z_values:
                 z = min(z_values) - 1
                 self.setZValue(z)
                 self.text_item.setZValue(z+0.1)
 
     def bring_forward(self):
-        z_values = [item.zValue()  for item in self.collidingItems() if isinstance(item, LessonBlockDB)]
+        z_values = [item.zValue()  for item in self.collidingItems() if isinstance(item, BasicBlock)]
         if z_values:
             z = max(z_values) + 1
             self.setZValue(z)
