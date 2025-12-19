@@ -88,6 +88,7 @@ class LessonBlock(QGraphicsRectItem):
 
     def delete(self):
         self.parent.removeItem(self)
+        self.parent.removeItem(self.text_item)
         self.db.delete_block(self.block)
 
     def add_subject(self):
