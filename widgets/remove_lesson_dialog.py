@@ -13,8 +13,9 @@ class RemoveLessonFromBlockDialog(QDialog):
         self.list = QComboBox()
         layout.addWidget(self.list)
 
+
         for lesson in lessons:
-            self.list.addItem(*lesson) 
+            self.list.addItem(lesson[0][0], lesson[1]) 
 
         buttonBox = QDialogButtonBox()
         layout.addWidget(buttonBox)
