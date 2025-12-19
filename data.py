@@ -17,7 +17,6 @@ class Data():
         
     def table_names(self):
         return Base.metadata.tables.keys()
-    
 
     # teachers
     def create_teacher(self, name, availability = [0]*5):
@@ -218,3 +217,22 @@ class Data():
     
     def all_blocks(self):
         return self.all_lesson_blocks().extend(self.all_custom_blocks)
+    
+
+    # classrooms
+    def all_classrooms(self):
+        return self.session.query(Classroom).all()
+    
+    def create_classroom(self, name: str) -> Classroom:
+        classroom = Classroom(name=name, capacity=15)
+        self.session.add(classroom)
+        self.session.commit()
+        return classroom
+
+    def update_classroom_capacity(self, classroom: Classroom, capacity: int) -> None:
+        classroom.capacity = capacity
+        self.session.commit()
+
+    def delete_classroom(self, classroom: Classroom) -> None:
+        self.session.delete(classroom)
+        self.session.commit()

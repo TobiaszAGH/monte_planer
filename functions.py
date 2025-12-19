@@ -28,3 +28,26 @@ def contrast_ratio(c1: QColor, c2: QColor):
     L1 = luminance(c1)
     L2 = luminance(c2)
     return (max(L1, L2) + 0.05) / (min(L1, L2) + 0.05)
+
+def delete_layout(layout):
+    if layout is None:
+        return
+
+    # remove all items from the layout
+    while layout.count():
+        item = layout.takeAt(0)
+
+        # if the item is a widget, delete it
+        widget = item.widget()
+        if widget is not None:
+            widget.setParent(None)
+
+        # if the item is a layout, delete it recursively
+        child_layout = item.layout()
+        if child_layout is not None:
+            delete_layout(child_layout)
+
+    # finally delete the layout itself
+    parent = layout.parent()
+    if parent is not None:
+        parent.setLayout(None)

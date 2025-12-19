@@ -281,7 +281,7 @@ class ClassesWidget(QWidget):
         my_class: Class = self.list.currentData()
         if QMessageBox.question(self, 'Uwaga', f'Czy na pewno chcesz usunąć klasę: {my_class.name}') == QMessageBox.StandardButton.Yes:
             self.db.delete_class(my_class)
-        self.load_data(self.data)
+        self.load_data()
                     
                 
 

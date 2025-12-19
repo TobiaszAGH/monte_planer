@@ -10,6 +10,7 @@ class Subject(Base):
     class_id = Column(Integer, ForeignKey('classes.id'))
     subclass_id = Column(Integer, ForeignKey('subclasses.id'))
     teacher_id = Column(Integer, ForeignKey('teachers.id'))
+    classroom_id = Column(Integer, ForeignKey('classrooms.id'))
     basic = Column(Boolean)
     color = Column(String)
     students = relationship("Student", secondary=student_subject, back_populates="subjects")
