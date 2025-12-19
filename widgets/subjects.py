@@ -199,7 +199,8 @@ class SubjectsWidget(QWidget):
         for n in range(self.lessons.count()):
             self.lessons.itemAt(n).widget().deleteLater()
         for lesson in subject.lessons:
-            btn = QPushButton(str(lesson.length))
+            suffix = f' ({lesson.block.print_full_time()})' if lesson.block else '(nieprzypisana)'
+            btn = QPushButton(str(lesson.length) + suffix)
             btn.lesson = lesson
             self.lessons.addWidget(btn)
             btn.clicked.connect(self.remove_lesson)
@@ -276,13 +277,12 @@ class SubjectsWidget(QWidget):
         subject = self.list.currentData()
         message = f'Czy na pewno chcesz usunąć: {subject.name}'
         if QMessageBox.question(self, 'Uwaga', message) != QMessageBox.StandardButton.Yes:
-                return False
+            return
         self.db.delete_subject(subject)
         self.load_data()
 
     def pick_color(self):
         subject = self.list.currentData()
-        # curr_color = btn.styleSheet
         color = QColorDialog.getColor(QColor(subject.color))
         if color.isValid():
             self.color_button.setStyleSheet(f'background-color: {color.name()}')

@@ -14,6 +14,7 @@ def blank_data():
         'blocks': {}
     }
 
+days = 'Pn Wt Śr Czw Pt'.split()
 
 Base = declarative_base()
 
@@ -136,7 +137,10 @@ class Block(Base):
             return self.subclass
         
     def print_time(self):
-        return(f'{display_hour(self.start)}-{display_hour(self.start+self.length)}')
+        return f'{display_hour(self.start)}-{display_hour(self.start+self.length)}'
+    
+    def print_full_time(self):
+        return f'{days[self.day]} {self.print_time()}'
 
 class Data():
     def __init__(self):
