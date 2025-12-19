@@ -1,12 +1,12 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QInputDialog, QPushButton, \
     QComboBox, QMessageBox, QVBoxLayout, QCheckBox, QGridLayout, QLabel, QStackedLayout, QSizePolicy, \
     QLineEdit, QScrollArea, QSpacerItem, QDialog, QDialogButtonBox
+from PyQt5.QtGui import QColor
 
 from PyQt5.QtCore import Qt
 from data import Data, Class, Subclass, Student, Subject
 from sqlalchemy.exc import IntegrityError
-
-from string import ascii_lowercase
+from functions import contrast_ratio
 
 class AddSubjectDialog(QDialog):
     def __init__(self, parent, subclass: Subclass):
@@ -230,6 +230,9 @@ class ClassesWidget(QWidget):
         subject: Subject
         for subject in student.subjects:
             btn = QPushButton(subject.name)
+            bg_color = QColor(subject.color)
+            text_color  = '#000000' if contrast_ratio(bg_color, QColor('black')) > 4.5 else '#ffffff'
+            btn.setStyleSheet(f'color: {text_color}; background-color: {bg_color.name()}')
             basic_subject_list.addWidget(btn)
             btn.clicked.connect(self.del_btn(student, subject))
             if subject.basic == True:
