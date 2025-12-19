@@ -106,7 +106,10 @@ class Subject(Base):
             return f'{self.name} {self.subclass.name.upper()}'
     
     def short_full_name(self):
-        return f'{self.short_name} {self.subclass.name.upper()}'
+        if self.my_class:
+            return self.short_name + ' R'
+        else:
+            return f'{self.short_name} {self.subclass.name.upper()}'
     
 
 class Lesson(Base):
