@@ -106,6 +106,11 @@ class MyView(QGraphicsView):
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
         if self.new_block:
+            # drop block if it has no length:
+            if self.new_block.boundingRect().height() < self.five_min_h:
+                self.new_block.delete()
+                self.new_block = ''
+                return
             # add new block to db
             # find day
             x = self.new_block.boundingRect().x() - self.left_bar_w + 1

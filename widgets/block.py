@@ -39,7 +39,8 @@ class BasicBlock(QGraphicsRectItem):
     def delete(self):
         self.parent.removeItem(self)
         self.parent.removeItem(self.text_item)
-        self.db.delete_block(self.block)
+        if hasattr(self, 'block'):
+            self.db.delete_block(self.block)
 
     def bring_back(self):
         if self.isSelected():
