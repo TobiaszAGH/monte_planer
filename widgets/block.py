@@ -18,6 +18,7 @@ class BasicBlock(QGraphicsRectItem):
         self.parent= parent
         self.db: Data = db
         super().__init__(x,y,w,h)
+        self.five_min_h = h
         color = QColor('#c0c0c0')
         color.setAlpha(210)
         self.setBrush(QBrush(color))
@@ -65,6 +66,8 @@ class BasicBlock(QGraphicsRectItem):
 
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
+        if not self.flags() & QGraphicsRectItem.ItemIsMovable:
+            return
         start = (self.mapToScene(self.boundingRect()).boundingRect().y() - self.top_bar_h) // self.five_min_h + 1 
         self.db.update_block_start(self.block, start)
 
@@ -74,7 +77,7 @@ class BasicBlock(QGraphicsRectItem):
     
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
-        if self.isSelected():
+        if self.isSelected() and self.flags() & QGraphicsRectItem.ItemIsMovable:
             # snap to grid
             x = self.start_x
             y = snap_position(self.y(), self.five_min_h)

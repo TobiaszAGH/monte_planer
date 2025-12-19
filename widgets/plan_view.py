@@ -83,7 +83,7 @@ class MyView(QGraphicsView):
                     self.new_block = LessonBlock(self.new_block_left, self.new_block_top, self.block_w, self.five_min_h, self.scene(), self.db, self.classes)
                 elif self.mode == 'new_custom':
                     self.new_block = CustomBlock(self.new_block_left, self.new_block_top, self.block_w, self.five_min_h, self.scene(), self.db, self.classes)
-
+                self.new_block.bring_forward()
                 self.scene().addItem(self.new_block)
             elif event.button() == Qt.MouseButton.RightButton:
                 self.drop_new_block()
@@ -174,6 +174,7 @@ class MyView(QGraphicsView):
 
             # update block
             if self.new_block:
+                self.new_block.bring_forward()
                 cursor_x = snap_position(event.x(), self.block_w, self.left_bar_w)
                 x, width = self.calculate_x_w(cursor_x, self.mode)
                 
