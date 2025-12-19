@@ -27,7 +27,7 @@ class AvailabilityCell(QWidget):
 
 
     def clicked(self, event):
-        parent = self.parent()
+        parent: AvFrame = self.parent()
         parent.change_availability = not parent.change_availability
         if parent.change_availability:
             parent.availability_mode = not self.available

@@ -1,5 +1,4 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QComboBox, QDialogButtonBox
-from data import Subclass, Class, Subject, Lesson
 
 
 class RemoveLessonFromBlockDialog(QDialog):

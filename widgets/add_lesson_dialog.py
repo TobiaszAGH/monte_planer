@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QComboBox, QDialogButtonBox
-from data import Subclass, Class, Subject, Lesson, days
+from data import Subclass, Subject, Lesson, days
 
 
 class AddLessonToBlockDialog(QDialog):

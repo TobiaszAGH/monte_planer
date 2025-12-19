@@ -91,19 +91,12 @@ class MyView(QGraphicsView):
             item = self.itemAt(event.pos())
             if isinstance(item, (LessonBlock, QGraphicsTextItem)):
                 item.bring_forward()
-
-        # if event.button() == Qt.MouseButton.RightButton:
-        #     item = self.itemAt(event.pos())
-        #     if isinstance(item, LessonBlock):
-        #         item.contextMenuEvent(event)
-    
         super().mousePressEvent(event)
 
     def contextMenuEvent(self, event):
         item = self.itemAt(event.pos())
         if isinstance(item, (QGraphicsTextItem, LessonBlock)):
             item.contextMenuEvent(event)
-        # return super().contextMenuEvent(event)
 
 
     def mouseReleaseEvent(self, event):
@@ -115,7 +108,6 @@ class MyView(QGraphicsView):
             i = x // self.block_w
             i = int(i%len(self.classes))
             my_class = self.classes[i]
-            # print(i, my_class.full_name())
             # find if block spans entire class
             # either is wide
             if self.new_block.boundingRect().width() -1 > self.block_w:
@@ -129,7 +121,6 @@ class MyView(QGraphicsView):
             y = self.new_block.boundingRect().y() - self.top_bar_h + 1
             start = int(y // self.five_min_h)
             length = int(self.new_block.boundingRect().height() // self.five_min_h)
-            # print(f'start: {start}, length {length}')
             block = self.db.create_block(day, start, length, my_class)
             self.new_block.block = block
             self.new_block.set_selectable(True)
@@ -137,7 +128,6 @@ class MyView(QGraphicsView):
             pass
         self.block_start = -1
         self.new_block = False
-        # self.draw_frame()
 
 
     
@@ -251,10 +241,7 @@ class MyView(QGraphicsView):
                     text.setPos(text_x, text_y)
                     scene.addLine(pos, self.top_bar_h/2, pos, self.scene_height)
 
-            # print(self.data['blocks'].keys())
-            # for n, class_name in enumerate(self.class_names):
             class_names = [c.full_name() for c in self.classes]
-            # print(ids)
             for z, block in enumerate(self.db.all_blocks()):
                 # class not represented
                 full_name = block.parent().full_name()
@@ -301,10 +288,3 @@ class MyView(QGraphicsView):
                 self.blocks.append(new_block)
                 new_block.set_selectable(True)
                 self.scene().addItem(new_block)
-                # rect.setPen(wide_pen)
-                # rect.setZValue(200)
-                # print(rect)
-
-
-        
-

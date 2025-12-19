@@ -24,7 +24,6 @@ def luminance(color: QColor):
 
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
-
 def contrast_ratio(c1: QColor, c2: QColor):
     L1 = luminance(c1)
     L2 = luminance(c2)

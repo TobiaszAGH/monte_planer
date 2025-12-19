@@ -1,6 +1,5 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
-
-from data import Data, Class
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton
+from data import Data
 from widgets.mode_btn import ModeBtn
 from widgets.plan_view import MyView
 

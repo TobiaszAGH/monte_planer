@@ -1,13 +1,11 @@
 from __future__ import annotations
-from PyQt5.QtWidgets import QGraphicsRectItem, QWidget, QToolTip, QGraphicsScene, QMenu, QAction, QDialogButtonBox, QGraphicsTextItem
-from PyQt5.QtGui import QBrush, QColor, QTextOption, QFontMetrics
-from PyQt5.QtCore import Qt, QPoint
-from random import randint
-from data import Data, Class, Subclass, Block, Lesson, Subject
+from PyQt5.QtWidgets import QGraphicsRectItem, QToolTip, QGraphicsScene, QMenu, QGraphicsTextItem
+from PyQt5.QtGui import QBrush, QColor, QTextOption
+from PyQt5.QtCore import Qt
+from data import Data, Class, Block
 from functions import snap_position, display_hour, contrast_ratio
 from widgets.add_lesson_dialog import AddLessonToBlockDialog
 from widgets.remove_lesson_dialog import RemoveLessonFromBlockDialog
-from typing import List
 
 
 class BlockText(QGraphicsTextItem):
@@ -34,7 +32,6 @@ class BlockText(QGraphicsTextItem):
             size -= 0.2
             font.setPointSizeF(size)
             self.setFont(font)
-            # print(self.font().pointSize())
 
     def shorten_names(self) -> None:
         self.setHtml('<br>'.join([l[1] for l in self.lessons]))
@@ -50,9 +47,6 @@ class BlockText(QGraphicsTextItem):
         self.setHtml('<br>'.join([l[0] for l in lessons]))
 
 
-            
-
-
 class LessonBlock(QGraphicsRectItem):
     def __init__(self, x,y,w,h, parent: QGraphicsScene, db, visible_classes):
         self.parent= parent
@@ -61,7 +55,6 @@ class LessonBlock(QGraphicsRectItem):
         color = QColor('#c0c0c0')
         color.setAlpha(210)
         self.setBrush(QBrush(color))
-        # self.setZValue(100000)
         self.moved = False
         self.block: Block
         self.text_item = BlockText(self, w)
@@ -148,7 +141,6 @@ class LessonBlock(QGraphicsRectItem):
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
         start = (self.mapToScene(self.boundingRect()).boundingRect().y() - self.top_bar_h) // self.five_min_h + 1 
-        # start = self.start_x + self.y() / self.five_min_h
         self.db.update_block_start(self.block, start)
 
 
@@ -222,10 +214,9 @@ class LessonBlock(QGraphicsRectItem):
         return n > 1
     
     def lesson_names(self, lessons):
-        list = [
+        return [
             (l.subject.full_name(), l.subject.short_full_name())
             if l.subject.my_class or (self.block.class_id and self.other_subclasses_visible())
             else (l.subject.name, l.subject.short_name)
             for l in lessons
         ]
-        return list

@@ -303,7 +303,3 @@ class SubjectsWidget(QWidget):
             self.class_list.addItem(my_class.name, my_class)
 
         self.load_subject()
-
-
-        
-    

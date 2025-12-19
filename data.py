@@ -1,146 +1,12 @@
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, Table, Boolean
+from sqlalchemy import create_engine
 from string import ascii_lowercase
 from typing import List
-from functions import display_hour, shorten_name
+from functions import shorten_name
+from db_config import Base
+from models import *
 
-def blank_data():
-    return {
-        'classes': {},
-        'subjects': {},
-        'teachers': {},
-        'blocks': {}
-    }
-
-days = 'Pn Wt Śr Czw Pt'.split()
-
-Base = declarative_base()
-
-student_subject = Table(
-    "student_subject",
-    Base.metadata,
-    Column("student_id", Integer, ForeignKey("students.id"), primary_key=True),
-    Column("subject_id", Integer, ForeignKey("subjects.id"), primary_key=True),
-)
-
-class Student(Base):
-    __tablename__ = 'students'
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    class_id = Column(Integer, ForeignKey('classes.id'))
-    subclass_id = Column(Integer, ForeignKey('subclasses.id'))
-    subjects = relationship("Subject", secondary=student_subject, back_populates="students")
-    # class = 
-
-class Class(Base):
-    __tablename__ = 'classes'
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
-    students = relationship("Student", backref="my_class")
-    subclasses = relationship("Subclass", backref="my_class")
-    subjects = relationship("Subject", backref="my_class")
-    blocks = relationship("Block", backref="my_class")
-
-    def full_name(self):
-        return self.name
-    
-    def get_class(self):
-        return self
-
-class Subclass(Base):
-    __tablename__ = 'subclasses'
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    class_id = Column(Integer, ForeignKey('classes.id'))
-    students = relationship("Student", backref="subclass")
-    subjects = relationship("Subject", backref="subclass")
-    blocks = relationship("Block", backref="subclass")
-
-    def full_name(self):
-        return self.my_class.name + self.name
-    
-    def get_class(self):
-        return self.my_class
-
-class Teacher(Base):
-    __tablename__ = 'teachers'
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
-    av1 = Column(Integer)
-    av2 = Column(Integer)
-    av3 = Column(Integer)
-    av4 = Column(Integer)
-    av5 = Column(Integer)
-    subjects = relationship("Subject", backref='teacher')
-
-    def __init__(self, name, av):
-        self.name = name
-        self.av1, self.av2, self.av3, self.av4, self.av5 = av 
-
-
-class Subject(Base):
-    __tablename__ = 'subjects'
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    short_name = Column(String)
-    class_id = Column(Integer, ForeignKey('classes.id'))
-    subclass_id = Column(Integer, ForeignKey('subclasses.id'))
-    teacher_id = Column(Integer, ForeignKey('teachers.id'))
-    basic = Column(Boolean)
-    color = Column(String)
-    students = relationship("Student", secondary=student_subject, back_populates="subjects")
-    lessons = relationship("Lesson", backref="subject")
-
-
-    def parent(self):
-        if self.my_class:
-            return self.my_class
-        if self.subclass:
-            return self.subclass
-        
-    def full_name(self):
-        if self.my_class:
-            return self.name + ' R'
-        else:
-            return f'{self.name} {self.subclass.name.upper()}'
-    
-    def short_full_name(self):
-        if self.my_class:
-            return self.short_name + ' R'
-        else:
-            return f'{self.short_name} {self.subclass.name.upper()}'
-    
-
-class Lesson(Base):
-    __tablename__ = 'lessons'
-    id = Column(Integer, primary_key=True)
-    length = Column(Integer, nullable=False)
-    subject_id = Column(Integer, ForeignKey('subjects.id'))
-    block_id =  Column(Integer, ForeignKey('blocks.id'))
-
-class Block(Base):
-    __tablename__ = 'blocks'
-    id = Column(Integer, primary_key=True)
-    length = Column(Integer, nullable=False) # in 5 min blocks
-    start = Column(Integer, nullable=False) # in 5 min blocks
-    day = Column(Integer, nullable=False) # 0=mon, 1=tue etc.
-    class_id = Column(Integer, ForeignKey('classes.id'))
-    subclass_id = Column(Integer, ForeignKey('subclasses.id'))
-    lessons = relationship("Lesson", backref="block")
-
-    def parent(self):
-        if self.my_class:
-            return self.my_class
-        if self.subclass:
-            return self.subclass
-        
-    def print_time(self):
-        return f'{display_hour(self.start)}-{display_hour(self.start+self.length)}'
-    
-    def print_full_time(self):
-        return f'{days[self.day]} {self.print_time()}'
 
 class Data():
     def __init__(self):
@@ -176,9 +42,6 @@ class Data():
         t.name = name
         self.session.commit()
 
-    # def teacher_names(self):
-    #     return [t.name for t in self.session.query(Teacher).all()]
-    
     def read_all_teachers(self):
         return self.session.query(Teacher).order_by(Teacher.name).all()
 

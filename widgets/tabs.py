@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QTabWidget, QWidget
+from PyQt5.QtWidgets import QTabWidget
 from widgets.classes import ClassesWidget
 from widgets.subjects import SubjectsWidget
 from widgets.teachers import TeachersWidget

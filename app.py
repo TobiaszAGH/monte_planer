@@ -6,13 +6,13 @@ from struct import pack
 
 import json
 
-from data import blank_data, Data, Teacher
+from data import Data, Teacher
 from widgets.tabs import Tabs
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.data = blank_data()
+        self.data = ''#blank_data()
         self.db = Data()
 
         self.save_path = ''

@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QInputDialog, QPushButton, \
-    QComboBox, QMessageBox, QVBoxLayout, QCheckBox, QGridLayout, QLabel, QStackedLayout, QSizePolicy, \
-    QLineEdit, QScrollArea, QSpacerItem, QDialog, QDialogButtonBox
+    QComboBox, QMessageBox, QVBoxLayout, QCheckBox, QGridLayout, QLabel, QSizePolicy, \
+    QLineEdit, QScrollArea, QDialog, QDialogButtonBox
 from PyQt5.QtGui import QColor
 
 from PyQt5.QtCore import Qt
