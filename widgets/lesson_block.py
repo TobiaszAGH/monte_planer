@@ -4,7 +4,7 @@ from PyQt5.QtGui import QBrush, QColor, QTextOption, QFontMetrics
 from PyQt5.QtCore import Qt, QPoint
 from random import randint
 from data import Data, Class, Subclass, Block, Lesson, Subject
-from functions import snap_position, display_hour
+from functions import snap_position, display_hour, contrast_ratio
 from widgets.add_lesson_dialog import AddLessonToBlockDialog
 from widgets.remove_lesson_dialog import RemoveLessonFromBlockDialog
 from typing import List
@@ -183,15 +183,27 @@ class LessonBlock(QGraphicsRectItem):
             self.recenter_text()
 
     def draw_lessons(self):
+        # pick which lessons to draw
         lessons = [l for l in self.block.lessons if isinstance(l.subject.parent(), Class) or l.subject.parent() in self.visible_classes]
-        lesson_names = self.lesson_names(lessons)
-        self.lessons = zip(lesson_names, lessons)
-        self.text_item.set_lessons(lesson_names)
-        self.text_item.setZValue(self.zValue()+0.1)
+
+        # pick background color
         color = lessons[0].subject.color if len(lessons) == 1 else '#c0c0c0'
         color = QColor(color)
         color.setAlpha(210)
         self.setBrush(QBrush(color))
+
+        # pick contrasting text color
+        if contrast_ratio(color, QColor('black')) < 4.5:
+            self.text_item.setDefaultTextColor(QColor('#d0d0d0'))
+
+        # get correct suffixes
+        lesson_names = self.lesson_names(lessons)
+        self.lessons = zip(lesson_names, lessons)
+
+        # write on screen
+        self.text_item.set_lessons(lesson_names)
+        self.text_item.setZValue(self.zValue()+0.1)
+
         self.recenter_text()
        
         
