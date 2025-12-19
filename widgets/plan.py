@@ -23,12 +23,13 @@ class PlanWidget(QWidget):
         toolbar = QWidget()
         layout.addWidget(toolbar)
         toolbar.setLayout(QHBoxLayout())
-        tool_add_block = ModeBtn("N", self.set_mode_new, toolbar)
+        tool_add_block = ModeBtn("Nowy blok zajęciowy", self.set_mode_new, toolbar)
         toolbar.layout().addWidget(tool_add_block)
-        tool_move_block = ModeBtn("M", self.set_mode_move ,toolbar)
+        tool_move_block = ModeBtn("Przesuwanie", self.set_mode_move ,toolbar)
         toolbar.layout().addWidget(tool_move_block)
-        tool_add_custom = ModeBtn("c", self.set_mode_new_custom ,toolbar)
-        toolbar.layout().addWidget(tool_add_custom)
+        self.tool_add_custom = ModeBtn("Nowy blok", self.set_mode_new_custom ,toolbar)
+        toolbar.layout().addWidget(self.tool_add_custom)
+        toolbar.layout().addStretch()
         
 
         self.view = MyView(self)
@@ -46,6 +47,9 @@ class PlanWidget(QWidget):
     def set_mode_new_custom(self, checked):
         if checked:
             self.view.set_mode('new_custom')
+            for button in self.class_filter.findChildren(QPushButton):
+                button.setChecked(True)
+            self.update_filter() 
         else:
             self.view.set_mode('normal')
     
@@ -74,8 +78,13 @@ class PlanWidget(QWidget):
             button.setCheckable(True)
             button.setChecked(True)
             button.my_class = my_class
-            button.clicked.connect(self.update_filter)
+            button.clicked.connect(self.filter_btn_clicked)
             self.class_filter.layout().insertWidget(0, button)
+
+    def filter_btn_clicked(self):
+        self.tool_add_custom.uncheck()
+        self.view.set_mode('normal')
+        self.update_filter()
 
     def update_filter(self):
         display_names = []

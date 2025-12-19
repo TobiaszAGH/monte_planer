@@ -10,8 +10,11 @@ class ModeBtn(QPushButton):
     def mousePressEvent(self, event):
         self.func(not self.isChecked())
         if self.isChecked():
-            self.setAutoExclusive(False)
-            self.setChecked(False)
-            self.setAutoExclusive(True)
+            self.uncheck()
         else: 
             super().mousePressEvent(event)
+
+    def uncheck(self):
+        self.setAutoExclusive(False)
+        self.setChecked(False)
+        self.setAutoExclusive(True)
