@@ -101,9 +101,13 @@ class Subject(Base):
         
     def full_name(self):
         if self.my_class:
-            return self.name + ' (R)'
+            return self.name + ' R'
         else:
-            return f'{self.name} ({self.subclass.name.upper()})'
+            return f'{self.name} {self.subclass.name.upper()}'
+    
+    def short_full_name(self):
+        return f'{self.short_name} {self.subclass.name.upper()}'
+    
 
 class Lesson(Base):
     __tablename__ = 'lessons'

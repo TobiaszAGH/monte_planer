@@ -28,16 +28,24 @@ class BlockText(QGraphicsTextItem):
             return 
         font = self.font()
         size = font.pointSize()
-        while self.document().begin().layout().lineCount() > self.row_num and size >=4:
+        if self.is_wrapping():
+            self.shorten_names()
+        while self.is_wrapping() and size >=4:
             size -= 0.2
             font.setPointSizeF(size)
             self.setFont(font)
             # print(self.font().pointSize())
+
+    def shorten_names(self) -> None:
+        self.setHtml('<br>'.join([l[1] for l in self.lessons]))
+
+    def is_wrapping(self) -> bool:
+        return self.document().begin().layout().lineCount() > self.row_num
     
-    def set_lessons(self, lesson_names):
-        self.row_num = len(lesson_names)
-        self.setHtml('<br>'.join(lesson_names))
-        print(self.row_num, lesson_names)
+    def set_lessons(self, lessons):
+        self.lessons = lessons
+        self.row_num = len(lessons)
+        self.setHtml('<br>'.join([l[0] for l in lessons]))
 
 
             
@@ -201,9 +209,9 @@ class LessonBlock(QGraphicsRectItem):
     def lesson_names(self, lessons):
 
         list = [
-            l.subject.full_name() 
+            (l.subject.full_name(), l.subject.short_full_name())
             if self.other_subclasses_visible() or l.subject.my_class 
-            else l.subject.name 
+            else (l.subject.name, l.subject.short_name)
             for l in lessons
         ]
         return list
