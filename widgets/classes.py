@@ -244,8 +244,17 @@ class ClassesWidget(QWidget):
 
     def new_student(self, subclass, student_list):
         def func():
-            new_name:QLineEdit = self.findChild(QLineEdit, f'new_name_{subclass.name}')
-            student = self.db.create_student(new_name.text(), subclass)
+            new_name_box = self.findChild(QLineEdit, f'new_name_{subclass.name}')
+            new_name = new_name_box.text()
+            if not new_name:
+                return
+            class_name = self.db.student_exists(new_name)
+            if class_name:
+                QMessageBox.warning(self, 'Uwaga', f'Taki uczeń już istnieje! ({class_name})')
+                new_name_box.clear()
+                return
+            student = self.db.create_student(new_name, subclass)
+
             self.add_student_to_list(student, student_list)
             new_name.clear()
         return func

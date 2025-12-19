@@ -252,6 +252,10 @@ class Data():
         student.subjects.append(subject)
         self.session.commit()
 
+    def student_exists(self, name):
+        student = self.session.query(Student).filter_by(name=name).first()
+        return student.subclass.full_name() if student else None
+
     # subjects
     def create_subject(self, name, basic, my_sub_class) -> Subject:
         subject = Subject(name=name, basic=basic, color='#c0c0c0', short_name=shorten_name(name))
