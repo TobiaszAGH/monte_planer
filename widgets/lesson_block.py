@@ -1,7 +1,10 @@
 from PyQt5.QtWidgets import QMenu
+from PyQt5.QtGui import QColor, QBrush
 from widgets.block import BasicBlock
 from widgets.add_lesson_dialog import AddLessonToBlockDialog
 from widgets.remove_lesson_dialog import RemoveLessonFromBlockDialog
+from data import Class
+from functions import contrast_ratio
 
 
 class LessonBlock(BasicBlock):
@@ -10,19 +13,13 @@ class LessonBlock(BasicBlock):
 
 
     def contextMenuEvent(self, event):
-        menu = QMenu()
-        remove_action = menu.addAction('Usuń')
-        remove_action.triggered.connect(self.delete)
-        add_lesson_action = menu.addAction('Dodaj lekcję')
+        super().contextMenuEvent(event)
+        add_lesson_action = self.menu.addAction('Dodaj lekcję')
         add_lesson_action.triggered.connect(self.add_subject)
-        remove_lesson_action = menu.addAction('Usuń lekcję')
+        remove_lesson_action = self.menu.addAction('Usuń lekcję')
         remove_lesson_action.triggered.connect(self.remove_lesson)
-        action = menu.exec(event.globalPos())
+        action = self.menu.exec(event.globalPos())
 
-    def delete(self):
-        self.parent.removeItem(self)
-        self.parent.removeItem(self.text_item)
-        self.db.delete_block(self.block)
 
     def add_subject(self):
         my_class = self.block.parent()
@@ -54,4 +51,31 @@ class LessonBlock(BasicBlock):
         lesson = dialog.list.currentData()
         self.db.remove_lesson_from_block(lesson)
         self.draw_lessons()
+
+    def draw_lessons(self):
+        # pick which lessons to draw
+        lessons = [l for l in self.block.lessons 
+                   if isinstance(l.subject.parent(), Class) 
+                   or l.subject.parent() in self.visible_classes
+                   or len(l.subject.parent().get_class().subclasses) == 1]
+
+        # pick background color
+        color = lessons[0].subject.color if len(lessons) == 1 else '#c0c0c0'
+        color = QColor(color)
+        color.setAlpha(210)
+        self.setBrush(QBrush(color))
+
+        # pick contrasting text color
+        if contrast_ratio(color, QColor('black')) < 4.5:
+            self.text_item.setDefaultTextColor(QColor('#ffffff'))
+
+        # get correct suffixes
+        lesson_names = self.lesson_names(lessons)
+        self.lessons = zip(lesson_names, lessons)
+
+        # write on screen
+        self.text_item.set_lessons(lesson_names)
+        self.text_item.setZValue(self.zValue()+0.1)
+
+        self.recenter_text()
 

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from PyQt5.QtWidgets import QGraphicsRectItem, QToolTip, QGraphicsScene
+from PyQt5.QtWidgets import QGraphicsRectItem, QToolTip, QGraphicsScene, QMenu
 from PyQt5.QtGui import QBrush, QColor
 from PyQt5.QtCore import Qt
 from data import Data, Class, LessonBlockDB
@@ -8,6 +8,12 @@ from widgets.block_text import BlockText
 
 
 class BasicBlock(QGraphicsRectItem):
+    
+    def contextMenuEvent(self, event):
+        self.menu = QMenu()
+        remove_action = self.menu.addAction('Usuń')
+        remove_action.triggered.connect(self.delete)
+
     def __init__(self, x,y,w,h, parent: QGraphicsScene, db, visible_classes):
         self.parent= parent
         self.db: Data = db
@@ -29,6 +35,11 @@ class BasicBlock(QGraphicsRectItem):
             self.start_x = self.x()
         super().mousePressEvent(event)
 
+    def delete(self):
+        self.parent.removeItem(self)
+        self.parent.removeItem(self.text_item)
+        self.db.delete_block(self.block)
+        
     def bring_back(self):
         if self.isSelected():
             z_values = [item.zValue()  for item in self.collidingItems() if isinstance(item, LessonBlockDB)]
@@ -88,36 +99,6 @@ class BasicBlock(QGraphicsRectItem):
 
             # move text
             self.recenter_text()
-
-    def draw_lessons(self):
-        # pick which lessons to draw
-        lessons = [l for l in self.block.lessons 
-                   if isinstance(l.subject.parent(), Class) 
-                   or l.subject.parent() in self.visible_classes
-                   or len(l.subject.parent().get_class().subclasses) == 1]
-
-        # pick background color
-        color = lessons[0].subject.color if len(lessons) == 1 else '#c0c0c0'
-        color = QColor(color)
-        color.setAlpha(210)
-        self.setBrush(QBrush(color))
-
-        # pick contrasting text color
-        if contrast_ratio(color, QColor('black')) < 4.5:
-            self.text_item.setDefaultTextColor(QColor('#ffffff'))
-
-        # get correct suffixes
-        lesson_names = self.lesson_names(lessons)
-        self.lessons = zip(lesson_names, lessons)
-
-        # write on screen
-        self.text_item.set_lessons(lesson_names)
-        self.text_item.setZValue(self.zValue()+0.1)
-
-        self.recenter_text()
-       
-        
-
     def recenter_text(self):
         if not self.text_item:
             return False

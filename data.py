@@ -179,7 +179,7 @@ class Data():
         self.session.commit()
         return block
 
-    def all_blocks(self) -> List[LessonBlockDB]:
+    def all_lesson_blocks(self) -> List[LessonBlockDB]:
         return self.session.query(LessonBlockDB).all()
     
     def delete_block(self, block):
@@ -198,3 +198,15 @@ class Data():
     def remove_lesson_from_block(self, lesson: Lesson):
         lesson.block = None
         self.session.commit()
+
+    def all_custom_blocks(self) -> List[CustomBlock]:
+        return self.session.query(CustomBlock).all()
+
+    def create_custom_block(self, day:int, start:int, length: int, subclasses: List[Subclass]):
+        block = CustomBlock(day=day, start=start, length=length, subclasses=subclasses)
+        self.session.add(block)
+        self.session.commit()
+        return block
+    
+    def all_blocks(self):
+        return self.all_lesson_blocks().extend(self.all_custom_blocks)

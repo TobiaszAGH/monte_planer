@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QToolTip, QGraphicsTextItem
 from PyQt5.QtGui import QPen
 from PyQt5.QtCore import QPoint, Qt
-from widgets.lesson_block import LessonBlock, LessonBlock
+from widgets.lesson_block import LessonBlock
+from widgets.custom_block import CustomBlock
 from functions import snap_position, display_hour
 from data import Data, Class, Subclass
 
@@ -59,19 +60,17 @@ class MyView(QGraphicsView):
         self.update_size_params()
         self.draw_frame()
 
-    def set_mode_new(self):
-        self.mode = 'new'
     def set_mode(self, mode):
         self.mode = mode
         for block in self.scene().items():
             if isinstance(block, LessonBlock):
                 block.set_movable(mode=='move', self.five_min_h, self.top_bar_h)
-                block.set_selectable(mode!='new')
+                block.set_selectable(mode not in ('new', 'new_custom'))
                 
     
     def mousePressEvent(self, event):
 
-        if self.mode == 'new':
+        if self.mode in ('new', 'new_custom'):
             if event.button() == Qt.MouseButton.LeftButton:
                 l = len(self.class_names)
                 if l == 0:
@@ -79,7 +78,11 @@ class MyView(QGraphicsView):
                 self.block_start = self.how_many_5_min_blocks(event)
                 self.new_block_top = snap_position(event.y(), self.five_min_h, self.top_bar_h)
                 self.new_block_left = snap_position(event.x(), self.block_w, self.left_bar_w)
-                self.new_block = LessonBlock(self.new_block_left, self.new_block_top, self.block_w, self.five_min_h, self.scene(), self.db, self.classes)
+                if self.mode == 'new':
+                    self.new_block = LessonBlock(self.new_block_left, self.new_block_top, self.block_w, self.five_min_h, self.scene(), self.db, self.classes)
+                elif self.mode == 'new_custom':
+                    self.new_block = CustomBlock(self.new_block_left, self.new_block_top, self.block_w, self.five_min_h, self.scene(), self.db, self.classes)
+
                 self.scene().addItem(self.new_block)
             elif event.button() == Qt.MouseButton.RightButton:
                 self.drop_new_block()
@@ -95,7 +98,7 @@ class MyView(QGraphicsView):
 
     def contextMenuEvent(self, event):
         item = self.itemAt(event.pos())
-        if isinstance(item, (QGraphicsTextItem, LessonBlock)):
+        if isinstance(item, (QGraphicsTextItem, LessonBlock, CustomBlock)):
             item.contextMenuEvent(event)
 
 
@@ -103,29 +106,37 @@ class MyView(QGraphicsView):
         super().mouseReleaseEvent(event)
         if self.new_block:
             # add new block to db
-            # find (sub)class
-            x = self.new_block.boundingRect().x() - self.left_bar_w + 1
-            i = x // self.block_w
-            i = int(i%len(self.classes))
-            my_class = self.classes[i]
-            # find if block spans entire class
-            # either is wide
-            if self.new_block.boundingRect().width() -1 > self.block_w:
-                my_class = my_class.get_class()
-            # ... or is the only subclass
-            if len(my_class.get_class().subclasses)==1:
-                my_class = my_class.get_class()
-            # print(my_class.full_name())
             # find day
+            x = self.new_block.boundingRect().x() - self.left_bar_w + 1
             day = int(x // self.day_w)
             y = self.new_block.boundingRect().y() - self.top_bar_h + 1
             start = int(y // self.five_min_h)
             length = int(self.new_block.boundingRect().height() // self.five_min_h)
-            block = self.db.create_block(day, start, length, my_class)
+            # find (sub)class
+            i = x // self.block_w
+            i = int(i%len(self.classes))
+            if self.mode == 'new':
+                my_class = self.classes[i]
+                # find if block spans entire class
+                # either is wide
+                if self.new_block.boundingRect().width() -1 > self.block_w:
+                    my_class = my_class.get_class()
+                # ... or is the only subclass
+                if len(my_class.get_class().subclasses)==1:
+                    my_class = my_class.get_class()
+            
+                block = self.db.create_block(day, start, length, my_class)
+
+            elif self.mode =='new_custom':
+                n_of_classes = int(self.new_block.boundingRect().width()//self.block_w)
+                classes = self.classes[i:i+n_of_classes]
+                subclasses = [s.subclasses[0] if isinstance(s, Class) else s for s in classes]
+                block = self.db.create_custom_block(day, start, length, subclasses)
+
+            # print(my_class.full_name())
             self.new_block.block = block
             self.new_block.set_selectable(True)
             self.blocks.append(self.new_block)
-            pass
         self.block_start = -1
         self.new_block = False
 
@@ -145,7 +156,7 @@ class MyView(QGraphicsView):
 
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
-        if self.mode == 'new':
+        if self.mode in ('new', 'new_custom'):
             # stop if moved out of bounds:
             if (event.y() < self.top_bar_h or event.x() < self.left_bar_w):
                 self.drop_new_block()
@@ -163,7 +174,7 @@ class MyView(QGraphicsView):
             # update block
             if self.new_block:
                 cursor_x = snap_position(event.x(), self.block_w, self.left_bar_w)
-                x, width = self.calculate_x_w(cursor_x)
+                x, width = self.calculate_x_w(cursor_x, self.mode)
                 
                 new_block_bottom = snap_position(event.y(), self.five_min_h, self.top_bar_h)
                 height = abs(new_block_bottom - self.new_block_top)
@@ -171,21 +182,31 @@ class MyView(QGraphicsView):
                 self.new_block.setRect(x, y, width, height)
 
 
-    def calculate_x_w(self, cursor_x):
+    def calculate_x_w(self, cursor_x, mode):
         # if in the same subclass block dont stretch
         if self.new_block_left==cursor_x:
             return self.new_block_left, self.block_w
 
-        # get the bottom boundry
-        x1 = (self.new_block_left - self.left_bar_w)%self.day_w + 2
-        for boundry in self.boundries:
-            if x1>=boundry:
-                bottom = boundry
-        
-        day_start = snap_position(self.new_block_left, self.day_w, self.left_bar_w)
-        x = bottom+day_start
-        top = self.boundries[self.boundries.index(bottom)+1]
-        w = top-bottom
+        if self.mode == 'new':
+            # get the bottom boundry
+            x1 = (self.new_block_left - self.left_bar_w)%self.day_w + 2
+            for boundry in self.boundries:
+                if x1>=boundry:
+                    bottom = boundry
+            
+            day_start = snap_position(self.new_block_left, self.day_w, self.left_bar_w)
+            x = bottom+day_start
+            top = self.boundries[self.boundries.index(bottom)+1]
+            w = top-bottom
+
+        elif self.mode == 'new_custom':
+            left, right = sorted([self.new_block_left, cursor_x])
+            day_start = snap_position(self.new_block_left, self.day_w, self.left_bar_w)
+            day_end = day_start + self.day_w
+            left = max(day_start, left)
+            right = min(day_end, right+self.block_w) 
+            x = left
+            w = right - left
         return x,w
 
 
@@ -196,16 +217,11 @@ class MyView(QGraphicsView):
 
         wide_pen = QPen()
         wide_pen.setWidth(2)
-        line = scene.addLine(0, self.top_bar_h, self.scene_width, self.top_bar_h)
-        line.setPen(wide_pen)
-        line = scene.addLine(0, 0, self.scene_width, 0)
-        line.setPen(wide_pen)
-        line = scene.addLine(0, 0, 0, self.scene_height)
-        line.setPen(wide_pen)
-        line = scene.addLine(0, self.scene_height, self.scene_width, self.scene_height)
-        line.setPen(wide_pen)
-        line = scene.addLine(self.left_bar_w, 0, self.left_bar_w, self.scene_height)
-        line.setPen(wide_pen)
+        line = scene.addLine(0, self.top_bar_h, self.scene_width, self.top_bar_h, wide_pen)
+        line = scene.addLine(0, 0, self.scene_width, 0, wide_pen)
+        line = scene.addLine(0, 0, 0, self.scene_height, wide_pen)
+        line = scene.addLine(0, self.scene_height, self.scene_width, self.scene_height, wide_pen)
+        line = scene.addLine(self.left_bar_w, 0, self.left_bar_w, self.scene_height, wide_pen)
 
         for hour in range(8,16):
             pos = self.top_bar_h+(hour - 7)*self.hour_h
@@ -242,7 +258,7 @@ class MyView(QGraphicsView):
                     scene.addLine(pos, self.top_bar_h/2, pos, self.scene_height)
 
             class_names = [c.full_name() for c in self.classes]
-            for z, block in enumerate(self.db.all_blocks()):
+            for z, block in enumerate(self.db.all_lesson_blocks()):
                 # class not represented
                 full_name = block.parent().full_name()
                 if full_name not in class_names:
@@ -279,10 +295,45 @@ class MyView(QGraphicsView):
 
 
                 new_block = LessonBlock(x, y, width, height, self.scene(), self.db, self.classes)
-                new_block.setZValue(z+10000)
+                new_block.setZValue(z+5000)
                 new_block.block = block
                 new_block.start = block.start
                 new_block.draw_lessons()
+
+                new_block.set_movable(self.mode=='move', self.five_min_h, self.top_bar_h)
+                self.blocks.append(new_block)
+                new_block.set_selectable(True)
+                self.scene().addItem(new_block)
+            for z, block in enumerate(self.db.all_custom_blocks()):
+                # class not represented
+                ns = []
+                w = 0
+                for subclass in block.subclasses:
+                    if subclass in self.classes:
+                        ns.append(self.classes.index(subclass))
+                        w += 1
+                    elif subclass.get_class() in self.classes:
+                        ns.append(self.classes.index(subclass.get_class()))
+                        w += 1
+                # print(n)
+                if len(ns) == 0:
+                    continue
+                
+                n = min(ns)
+                x = self.left_bar_w + self.day_w*block.day + n*self.block_w
+
+                y = self.five_min_h*block.start+ self.top_bar_h
+
+                
+                width = self.block_w*w
+                
+                height = self.five_min_h * block.length
+                # print([cl.full_name() for cl in block.subclasses])
+
+                new_block = CustomBlock(x, y, width, height, self.scene(), self.db, self.classes)
+                new_block.setZValue(z+10000)
+                new_block.block = block
+                new_block.start = block.start
 
                 new_block.set_movable(self.mode=='move', self.five_min_h, self.top_bar_h)
                 self.blocks.append(new_block)

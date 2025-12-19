@@ -27,6 +27,8 @@ class PlanWidget(QWidget):
         toolbar.layout().addWidget(tool_add_block)
         tool_move_block = ModeBtn("M", self.set_mode_move ,toolbar)
         toolbar.layout().addWidget(tool_move_block)
+        tool_add_custom = ModeBtn("c", self.set_mode_new_custom ,toolbar)
+        toolbar.layout().addWidget(tool_add_custom)
         
 
         self.view = MyView(self)
@@ -41,6 +43,12 @@ class PlanWidget(QWidget):
         else:
             self.view.set_mode('normal')
 
+    def set_mode_new_custom(self, checked):
+        if checked:
+            self.view.set_mode('new_custom')
+        else:
+            self.view.set_mode('normal')
+    
     def set_mode_move(self, checked):
         if checked:
             self.view.set_mode('move')
