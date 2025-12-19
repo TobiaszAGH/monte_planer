@@ -281,10 +281,11 @@ class SubjectsWidget(QWidget):
         self.load_data()
 
     def pick_color(self):
-        color = QColorDialog.getColor()
+        subject = self.list.currentData()
+        # curr_color = btn.styleSheet
+        color = QColorDialog.getColor(QColor(subject.color))
         if color.isValid():
             self.color_button.setStyleSheet(f'background-color: {color.name()}')
-            subject = self.list.currentData()
             self.db.update_subject_color(subject, color.name())
 
     def set_short_name(self):
