@@ -15,8 +15,12 @@ class SubjectButton(QPushButton):
         bg_color = QColor(subject.color)
         text_color  = '#000000' if contrast_ratio(bg_color, QColor('black')) > 4.5 else '#ffffff'
         self.setStyleSheet(f'color: {text_color}; background-color: {bg_color.name()}')
-        # self.clicked.connect(self.btn_clicked)
         
+    def mousePressEvent(self, e):
+        super().mousePressEvent(e)
+        self.setCheckable(True)
+        self.setChecked(True)
+    
     def mouseReleaseEvent(self, e):
         super().mouseReleaseEvent(e)
         # print(e.button)

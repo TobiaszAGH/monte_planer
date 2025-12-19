@@ -199,8 +199,14 @@ class ClassesWidget(QWidget):
             subject = dialog.subject_list.currentData()
             for checkbox in checkboxes:
                 if hasattr(checkbox, 'student'):
+                    if subject in checkbox.student.subjects:
+                        continue
                     self.db.add_subject_to_student(subject, checkbox.student)
-            self.load_class()
+                    btn = SubjectButton(self, checkbox.student, subject)
+                    index = student_list.layout().indexOf(checkbox) + 3 - subject.basic
+                    layout = student_list.layout().itemAt(index).layout()
+                    layout.insertWidget(layout.count()-1, btn)
+
         return func
 
     def add_student_to_list(self, student, student_list: QGridLayout): 
