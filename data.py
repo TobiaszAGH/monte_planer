@@ -203,10 +203,14 @@ class Data():
         return self.session.query(CustomBlock).all()
 
     def create_custom_block(self, day:int, start:int, length: int, subclasses: List[Subclass]):
-        block = CustomBlock(day=day, start=start, length=length, subclasses=subclasses)
+        block = CustomBlock(day=day, start=start, length=length, subclasses=subclasses, color='#c0c0c0', text='')
         self.session.add(block)
         self.session.commit()
         return block
+    
+    def update_custom_block_color(self, block, color):
+        block.color = color
+        self.session.commit()
     
     def all_blocks(self):
         return self.all_lesson_blocks().extend(self.all_custom_blocks)
