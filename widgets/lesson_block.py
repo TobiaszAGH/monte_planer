@@ -177,7 +177,10 @@ class LessonBlock(QGraphicsRectItem):
 
     def draw_lessons(self):
         # pick which lessons to draw
-        lessons = [l for l in self.block.lessons if isinstance(l.subject.parent(), Class) or l.subject.parent() in self.visible_classes]
+        lessons = [l for l in self.block.lessons 
+                   if isinstance(l.subject.parent(), Class) 
+                   or l.subject.parent() in self.visible_classes
+                   or len(l.subject.parent().get_class().subclasses) == 1]
 
         # pick background color
         color = lessons[0].subject.color if len(lessons) == 1 else '#c0c0c0'
@@ -187,7 +190,7 @@ class LessonBlock(QGraphicsRectItem):
 
         # pick contrasting text color
         if contrast_ratio(color, QColor('black')) < 4.5:
-            self.text_item.setDefaultTextColor(QColor('#d0d0d0'))
+            self.text_item.setDefaultTextColor(QColor('#ffffff'))
 
         # get correct suffixes
         lesson_names = self.lesson_names(lessons)

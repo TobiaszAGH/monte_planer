@@ -84,6 +84,8 @@ class Data():
             self.delete_student(student)
         for block in subclass.blocks:
             self.delete_block(block)
+        for subject in subclass.subjects:
+            self.delete_subject(subject)
         self.session.delete(subclass)
         self.session.commit()
         for name, subclass in zip(ascii_lowercase, my_class.subclasses):
