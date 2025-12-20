@@ -29,10 +29,12 @@ class LessonBlock(BasicBlock):
             return False
         subject = dialog.subject_list.currentData()
         lesson = dialog.lesson_list.currentData()
+        classroom = dialog.classroom_list.currentData()
         if subject and lesson:
             old_block: LessonBlock = lesson.block
                 
             # update db
+            self.db.update_lesson_classroom(lesson, classroom)
             self.db.add_lesson_to_block(lesson, self.block)
         
             # update visuals
@@ -58,6 +60,9 @@ class LessonBlock(BasicBlock):
                    if isinstance(l.subject.parent(), Class) 
                    or l.subject.parent() in self.visible_classes
                    or len(l.subject.parent().get_class().subclasses) == 1]
+        
+        classrooms = '/'.join([l.classroom.name if l.classroom else '_'
+                      for l in lessons])
 
         # pick background color
         color = lessons[0].subject.color if len(lessons) == 1 else '#c0c0c0'
@@ -68,6 +73,8 @@ class LessonBlock(BasicBlock):
         # pick contrasting text color
         if contrast_ratio(color, QColor('black')) < 4.5:
             self.text_item.setDefaultTextColor(QColor('#ffffff'))
+        else:
+            self.text_item.setDefaultTextColor(QColor('black'))
 
         # get correct suffixes
         lesson_names = self.lesson_names(lessons)
@@ -75,6 +82,7 @@ class LessonBlock(BasicBlock):
 
         # write on screen
         self.text_item.set_lessons(lesson_names)
+        self.text_item.add_classrooms(classrooms)
         self.text_item.setZValue(self.zValue()+0.1)
 
         self.recenter_text()

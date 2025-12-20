@@ -24,7 +24,7 @@ class BasicBlock(QGraphicsRectItem):
         self.setBrush(QBrush(color))
         self.moved = False
         self.block: LessonBlockDB
-        self.text_item = BlockText(self, w)
+        self.text_item = BlockText(self, w, h)
         self.parent.addItem(self.text_item)
         self.visible_classes = visible_classes
 
@@ -110,6 +110,7 @@ class BasicBlock(QGraphicsRectItem):
         self.text_item.shrink()
         self.text_item.setPos(self.rect().center().x() - self.text_item.boundingRect().width()/2,\
                             self.y_in_scene() + self.rect().height()/2 - self.text_item.boundingRect().height()/2)
+        self.text_item.set_h(self.rect().height())
         
     def other_subclasses_visible(self):
         my_class = self.block.parent().get_class()

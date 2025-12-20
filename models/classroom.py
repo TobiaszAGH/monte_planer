@@ -8,3 +8,4 @@ class Classroom(Base):
     name = Column(String, nullable=False)
     capacity = Column(Integer, nullable=False)
     subjects = relationship("Subject", backref="required_classroom")
+    lessons = relationship("Lesson", backref='classroom')

@@ -156,18 +156,24 @@ class Data():
         self.session.commit()
 
     def update_subject_classroom(self, subject: Subject, classroom: Classroom) -> None:
-        subject.classroom = classroom
+        subject.required_classroom = classroom
         self.session.commit()
 
     def delete_subject(self, subject: Subject) -> None:
         self.session.delete(subject)
         self.session.commit()
     
+
+    # lessons
     def create_lesson(self, length: int, subject: Subject) -> Lesson:
         lesson = Lesson(length=length, subject=subject)
         self.session.add(lesson)
         self.session.commit()
         return lesson
+    
+    def update_lesson_classroom(self, lesson: Lesson, classroom: Classroom) -> None:
+        lesson.classroom = classroom
+        self.session.commit()
     
     def delete_lesson(self, lesson: Lesson) -> None:
         self.session.delete(lesson)
@@ -224,7 +230,7 @@ class Data():
     
 
     # classrooms
-    def all_classrooms(self):
+    def all_classrooms(self) -> List[Classroom]:
         return self.session.query(Classroom).all()
     
     def create_classroom(self, name: str) -> Classroom:

@@ -196,7 +196,7 @@ class SubjectsWidget(QWidget):
         teacher_name = teacher.name if teacher else ''
         self.teacher_list.setCurrentText(teacher_name)
 
-        classroom = subject.classroom if hasattr(subject,'classroom') else None
+        classroom = subject.required_classroom
         classroom_name = classroom.name if classroom else ''
         self.classroom_list.setCurrentText(classroom_name)
 

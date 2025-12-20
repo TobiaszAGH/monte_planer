@@ -7,4 +7,5 @@ class Lesson(Base):
     length = Column(Integer, nullable=False)
     subject_id = Column(Integer, ForeignKey('subjects.id'))
     block_id =  Column(Integer, ForeignKey('blocks.id'))
+    classroom_id = Column(Integer, ForeignKey('classrooms.id'))
 

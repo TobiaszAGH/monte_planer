@@ -1,11 +1,11 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QComboBox, QDialogButtonBox
-from data import Subclass, Subject, Lesson, days
+from data import Subclass, Subject, Lesson, days, Data
 
 
 class AddLessonToBlockDialog(QDialog):
     def __init__(self, parent, subclass: Subclass):
         super().__init__()
-        self.db = parent.db
+        self.db: Data = parent.db
         self.subclass: Subclass = subclass
         
 
@@ -34,6 +34,12 @@ class AddLessonToBlockDialog(QDialog):
 
         self.lesson_list = QComboBox()
         layout.addWidget(self.lesson_list)
+
+        self.classroom_list = QComboBox()
+        layout.addWidget(self.classroom_list)
+        self.classroom_list.addItem('')
+        for classroom in self.db.all_classrooms():
+            self.classroom_list.addItem(classroom.name, classroom)
 
         buttonBox = QDialogButtonBox()
         layout.addWidget(buttonBox)
