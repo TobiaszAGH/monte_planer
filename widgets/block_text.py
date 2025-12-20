@@ -21,6 +21,7 @@ class BlockText(QGraphicsTextItem):
         if not self.row_num:
             return 
         font = self.font()
+        font.setPointSize(12)
         size = font.pointSize()
         if self.text_too_big() and self.lessons:
             self.shorten_names()

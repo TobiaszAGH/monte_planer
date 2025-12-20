@@ -106,11 +106,11 @@ class BasicBlock(QGraphicsRectItem):
     def recenter_text(self):
         if not self.text_item:
             return False
-        self.text_item.setZValue(self.zValue()+0.1)
+        self.text_item.set_h(self.rect().height())
         self.text_item.shrink()
+        self.text_item.setZValue(self.zValue()+0.1)
         self.text_item.setPos(self.rect().center().x() - self.text_item.boundingRect().width()/2,\
                             self.y_in_scene() + self.rect().height()/2 - self.text_item.boundingRect().height()/2)
-        self.text_item.set_h(self.rect().height())
         
     def other_subclasses_visible(self):
         my_class = self.block.parent().get_class()
