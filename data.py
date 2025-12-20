@@ -155,6 +155,10 @@ class Data():
         subject.color = color
         self.session.commit()
 
+    def update_subject_classroom(self, subject: Subject, classroom: Classroom) -> None:
+        subject.classroom = classroom
+        self.session.commit()
+
     def delete_subject(self, subject: Subject) -> None:
         self.session.delete(subject)
         self.session.commit()

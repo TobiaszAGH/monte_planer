@@ -83,6 +83,7 @@ class SubjectsWidget(QWidget):
         display_options_row.addStretch()
 
 
+
         # subject info row
         teacher_row = QHBoxLayout()
         self.frame_layout.addLayout(teacher_row)
@@ -91,8 +92,14 @@ class SubjectsWidget(QWidget):
         # teachers
         teacher_row.addWidget(QLabel('Nauczyciel:'))
         self.teacher_list = QComboBox()
-        self.teacher_list.currentTextChanged.connect(self.setTeacher)
+        self.teacher_list.currentTextChanged.connect(self.set_teacher)
         teacher_row.addWidget(self.teacher_list)
+
+        # required classroom
+        teacher_row.addWidget(QLabel('Wymagana sala:'))
+        self.classroom_list = QComboBox()
+        self.classroom_list.currentTextChanged.connect(self.set_classroom)
+        teacher_row.addWidget(self.classroom_list)
 
         # lessons
         teacher_row.addWidget(QLabel('Lekcje:'))
@@ -189,6 +196,10 @@ class SubjectsWidget(QWidget):
         teacher_name = teacher.name if teacher else ''
         self.teacher_list.setCurrentText(teacher_name)
 
+        classroom = subject.classroom if hasattr(subject,'classroom') else None
+        classroom_name = classroom.name if classroom else ''
+        self.classroom_list.setCurrentText(classroom_name)
+
         # color
         self.color_button.setStyleSheet(f'background-color: {subject.color}')
 
@@ -243,7 +254,7 @@ class SubjectsWidget(QWidget):
             self.db.remove_subject_from_student(subject, student)
 
 
-    def setTeacher(self):
+    def set_teacher(self):
         teacher = self.teacher_list.currentData()
         subject = self.list.currentData()
         if not (subject and teacher):
@@ -293,6 +304,11 @@ class SubjectsWidget(QWidget):
         short_name = self.short_name.text()
         self.db.update_subject_short_name(subject, short_name)
 
+    def set_classroom(self):
+        subject = self.list.currentData()
+        classroom = self.classroom_list.currentData()
+        self.db.update_subject_classroom(subject, classroom)
+
     def load_data(self):
         self.teacher_list.clear()
         self.teacher_list.addItem('')
@@ -301,5 +317,11 @@ class SubjectsWidget(QWidget):
         self.class_list.clear()
         for my_class in self.db.all_classes():
             self.class_list.addItem(my_class.name, my_class)
+        self.classroom_list.blockSignals(True)
+        self.classroom_list.clear()
+        self.classroom_list.addItem('')
+        for classroom in self.db.all_classrooms():
+            self.classroom_list.addItem(classroom.name, classroom)
+        self.classroom_list.blockSignals(False)
 
         self.load_subject()
