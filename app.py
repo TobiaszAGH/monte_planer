@@ -6,7 +6,7 @@ from PyQt5.QtCore import QSize
 import json
 
 from data import Data
-from widgets.tabs import Tabs
+from tabs import Tabs
 
 class MainWindow(QMainWindow):
     def __init__(self):
