@@ -45,11 +45,14 @@ class LessonBlock(BasicBlock):
     def remove_lesson(self):
         if not self.block.lessons:
             return False
-        dialog = RemoveLessonFromBlockDialog(self.lessons)
-        ok = dialog.exec()
-        if not ok:
-            return False
-        lesson = dialog.list.currentData()
+        if len(self.block.lessons) == 1:
+            lesson = self.block.lessons[0]
+        else:
+            dialog = RemoveLessonFromBlockDialog(self.lessons)
+            ok = dialog.exec()
+            if not ok:
+                return False
+            lesson = dialog.list.currentData()
         self.db.remove_lesson_from_block(lesson)
         self.draw_lessons()
 
