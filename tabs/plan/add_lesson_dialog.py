@@ -59,8 +59,25 @@ class AddLessonToBlockDialog(QDialog):
         sub_class = self.type_list.currentData()
         subjects = sub_class.subjects
         self.subject_list.clear()
-        for subject in subjects:
-            self.subject_list.addItem(subject.name, subject) 
+        self.subject_list.addItem('')
+        for i, subject in enumerate(subjects):
+            self.subject_list.addItem(subject.name, subject)
+            collisions = [
+                f'{subject.teacher.name} prowadzi {l.name_and_time()}'
+                for l in self.db.get_collisions_for_teacher_at_block(subject.teacher, self.block)
+            ]
+            collisions.extend([
+                f'Niektórzy uczniowie mają {l.name_and_time()}'
+                for l in self.db.get_collisions_for_students_at_block(subject.students, self.block)
+            ])
+            collisions = '\n'.join(collisions)
+            if collisions:
+                self.subject_list.setItemData(i+1, collisions, Qt.ToolTipRole)
+                if not settings.allow_creating_conflicts:
+                    self.subject_list.setItemData(i+1, 0, Qt.UserRole - 1)
+                else:
+                    self.subject_list.setItemData(i+1, QColor('red'), Qt.BackgroundRole)
+
 
     def update_lesson_list(self):
         subject: Subject = self.subject_list.currentData()
@@ -82,7 +99,7 @@ class AddLessonToBlockDialog(QDialog):
             if not classroom:
                 continue
             # classroom used in other lessons
-            collisions = self.db.possible_collisions_for_classroom_at_block(classroom, self.block)
+            collisions = self.db.get_collisions_for_classroom_at_block(classroom, self.block)
             collisions = [l.name_and_time() for l in collisions]         # collisions = '\n'
             # classroom to small
             subject = self.subject_list.currentData(Qt.UserRole)

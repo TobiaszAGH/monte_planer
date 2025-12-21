@@ -1,6 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, or_, and_
 from string import ascii_lowercase
 from typing import List
 from functions import shorten_name
@@ -258,11 +258,34 @@ class Data():
         self.session.delete(classroom)
         self.session.commit()
 
-    def possible_collisions_for_classroom_at_block(self, classroom: Classroom, block: LessonBlockDB):
-        lessons = self.session.query(Lesson).filter_by(classroom=classroom).all()
-        lessons = [l for l in lessons if l.block.day == block.day]
-        for lesson in lessons:
-            block_2 = lesson.block
-            if block.start <= block_2.start < block.start+block.length \
-              or block_2.start <= block.start < block_2.start + block_2.length:
-                yield lesson
+    def get_collisions_for_classroom_at_block(self, classroom: Classroom, block: LessonBlockDB) -> List[Lesson]:
+        return self.session.query(Lesson).filter_by(classroom=classroom)\
+                   .join(Lesson.block).filter(LessonBlockDB.day == block.day)\
+                   .filter(or_(
+                        LessonBlockDB.start.between(block.start, block.start+block.length-0.5), # 0.5 to emulate < instead of <=
+                        and_(LessonBlockDB.start <= block.start, block.start < LessonBlockDB.start+LessonBlockDB.length)
+                    )).all()
+
+   
+    def get_collisions_for_teacher_at_block(self, teacher: Teacher, block: LessonBlockDB) -> List[Lesson]:
+        return self.session.query(Lesson) \
+                    .join(Lesson.subject).filter_by(teacher=teacher) \
+                    .join(Lesson.block).filter(LessonBlockDB.day == block.day) \
+                    .filter(or_(
+                        LessonBlockDB.start.between(block.start, block.start+block.length-0.5), # 0.5 to emulate < instead of <=
+                        and_(LessonBlockDB.start <= block.start, block.start < LessonBlockDB.start+LessonBlockDB.length)
+                    )).all() \
+        if teacher else []
+    
+    
+    def get_collisions_for_students_at_block(self, students: List[Student], block: LessonBlockDB) -> List[Lesson]:
+        student_ids = [s.id for s in students]
+        return self.session.query(Lesson) \
+                    .join(Lesson.subject).filter(Subject.students.any(Student.id.in_(student_ids)))\
+                    .join(Lesson.block).filter(LessonBlockDB.day == block.day)\
+                    .filter(or_(
+                        LessonBlockDB.start.between(block.start, block.start+block.length-0.5), # 0.5 to emulate < instead of <=
+                        and_(LessonBlockDB.start <= block.start, block.start < LessonBlockDB.start+LessonBlockDB.length)
+                    )).all()
+
+ 
