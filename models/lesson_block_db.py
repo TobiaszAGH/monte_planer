@@ -24,4 +24,5 @@ class LessonBlockDB(Base):
     
     def print_full_time(self):
         return f'{days[self.day]} {self.print_time()}'
-
+    
+   

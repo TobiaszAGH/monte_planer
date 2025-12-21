@@ -22,8 +22,7 @@ class LessonBlock(BasicBlock):
 
 
     def add_subject(self):
-        my_class = self.block.parent()
-        dialog = AddLessonToBlockDialog(self, my_class)
+        dialog = AddLessonToBlockDialog(self)
         ok = dialog.exec()
         if not ok:
             return False

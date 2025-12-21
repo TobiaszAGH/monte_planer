@@ -191,8 +191,18 @@ class Data():
     def all_lesson_blocks(self) -> List[LessonBlockDB]:
         return self.session.query(LessonBlockDB).all()
     
+    def lesson_block_collides_with(self, block:LessonBlockDB, blocks: List[LessonBlockDB]):
+        # get all other blocks during the same day
+        for block_2 in blocks:
+            if block.start <= block_2.start < block.start+block.length \
+              or block_2.start <= block.start < block_2.start + block_2.length:
+                yield block
+
+    
     def delete_block(self, block):
         self.session.delete(block)
+        for lesson in block.lessons:
+            lesson.classroom = None
         self.session.commit()
 
     def update_block_start(self, block: LessonBlockDB, start: int):
@@ -205,6 +215,7 @@ class Data():
         self.session.commit()
 
     def remove_lesson_from_block(self, lesson: Lesson):
+        lesson.classroom = None
         lesson.block = None
         self.session.commit()
 
@@ -246,3 +257,12 @@ class Data():
     def delete_classroom(self, classroom: Classroom) -> None:
         self.session.delete(classroom)
         self.session.commit()
+
+    def possible_collisions_for_classroom_at_block(self, classroom: Classroom, block: LessonBlockDB):
+        lessons = self.session.query(Lesson).filter_by(classroom=classroom).all()
+        lessons = [l for l in lessons if l.block.day == block.day]
+        for lesson in lessons:
+            block_2 = lesson.block
+            if block.start <= block_2.start < block.start+block.length \
+              or block_2.start <= block.start < block_2.start + block_2.length:
+                yield lesson

@@ -23,11 +23,11 @@ class Subject(Base):
         if self.subclass:
             return self.subclass
         
-    def full_name(self):
+    def full_name(self, full_subclass_name = False):
         if self.my_class:
             return self.name + ' R'
         else:
-            return f'{self.name} {self.subclass.name.upper()}'
+            return f'{self.name} {self.subclass.full_name() if full_subclass_name else self.subclass.name.upper()}'
     
     def short_full_name(self):
         if self.my_class:

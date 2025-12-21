@@ -9,3 +9,6 @@ class Lesson(Base):
     block_id =  Column(Integer, ForeignKey('blocks.id'))
     classroom_id = Column(Integer, ForeignKey('classrooms.id'))
 
+    def name_and_time(self):
+        return f'{self.subject.full_name(True)} o {self.block.print_time()}'
+
