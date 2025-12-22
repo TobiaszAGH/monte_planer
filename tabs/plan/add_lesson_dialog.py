@@ -107,6 +107,8 @@ class AddLessonToBlockDialog(QDialog):
             subject = self.subject_list.currentData(Qt.UserRole)
             if classroom.capacity < len(subject.students):
                 collisions.append('Sala jest za mała.')
+            if subject.required_classroom and subject.required_classroom!=classroom:
+                collisions.append(f'{subject.name} musi odbywać się w {subject.required_classroom.name}')
             collisions = '\n'.join(collisions)
             if collisions:
                 self.classroom_list.setItemData(i, collisions, Qt.ToolTipRole)
