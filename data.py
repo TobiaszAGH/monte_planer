@@ -287,5 +287,13 @@ class Data():
                         LessonBlockDB.start.between(block.start, block.start+block.length-0.5), # 0.5 to emulate < instead of <=
                         and_(LessonBlockDB.start <= block.start, block.start < LessonBlockDB.start+LessonBlockDB.length)
                     )).all()
+    
+    def is_teacher_available(self, teacher: Teacher, block: LessonBlockDB) -> bool:
+        mask_start = int(block.start//6)
+        mask_end = int((block.start+block.length-0.5)//6) + 1
+        mask = 0
+        for shift in range(mask_start, mask_end):
+            mask |=  1 << shift
+        return not(mask & ~teacher.__getattribute__(f'av{block.day+1}'))
 
  

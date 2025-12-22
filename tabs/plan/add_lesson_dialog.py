@@ -70,6 +70,8 @@ class AddLessonToBlockDialog(QDialog):
                 f'Niektórzy uczniowie mają {l.name_and_time()}'
                 for l in self.db.get_collisions_for_students_at_block(subject.students, self.block)
             ])
+            if not self.db.is_teacher_available(subject.teacher, self.block):
+                collisions.append(f'{subject.teacher.name} nie jest dostępny w tych godzinach.')
             collisions = '\n'.join(collisions)
             if collisions:
                 self.subject_list.setItemData(i+1, collisions, Qt.ToolTipRole)
