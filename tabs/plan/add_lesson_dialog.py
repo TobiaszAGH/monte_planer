@@ -59,7 +59,8 @@ class AddLessonToBlockDialog(QDialog):
         sub_class = self.type_list.currentData()
         subjects = sub_class.subjects
         self.subject_list.clear()
-        self.subject_list.addItem('')
+        none_viable = True
+        select_next = False
         for i, subject in enumerate(subjects):
             self.subject_list.addItem(subject.name, subject)
             collisions = [
@@ -70,15 +71,23 @@ class AddLessonToBlockDialog(QDialog):
                 f'Niektórzy uczniowie mają {l.name_and_time()}'
                 for l in self.db.get_collisions_for_students_at_block(subject.students, self.block)
             ])
-            if not self.db.is_teacher_available(subject.teacher, self.block):
+            if subject.teacher and not self.db.is_teacher_available(subject.teacher, self.block):
                 collisions.append(f'{subject.teacher.name} nie jest dostępny w tych godzinach.')
             collisions = '\n'.join(collisions)
             if collisions:
-                self.subject_list.setItemData(i+1, collisions, Qt.ToolTipRole)
+                if self.subject_list.currentIndex() == i and i < self.subject_list.count():
+                    select_next = True
+                self.subject_list.setItemData(i, collisions, Qt.ToolTipRole)
                 if not settings.allow_creating_conflicts:
-                    self.subject_list.setItemData(i+1, 0, Qt.UserRole - 1)
+                    self.subject_list.setItemData(i, 0, Qt.UserRole - 1)
                 else:
-                    self.subject_list.setItemData(i+1, QColor('red'), Qt.BackgroundRole)
+                    self.subject_list.setItemData(i, QColor('red'), Qt.BackgroundRole)
+            else:
+                none_viable = False
+                if select_next:
+                    self.subject_list.setCurrentIndex(i)
+        if none_viable:
+            self.subject_list.setCurrentIndex(-1)
 
 
     def update_lesson_list(self):
@@ -100,25 +109,29 @@ class AddLessonToBlockDialog(QDialog):
             else:
                 none_viable = False
         if none_viable:
-            self.lesson_list.insertItem(0, '')
-            self.lesson_list.setCurrentIndex(0)
+            self.lesson_list.setCurrentIndex(-1)
 
     def update_classroom_list(self):
-        for i in range(self.classroom_list.count()):
-            self.classroom_list.setItemData(i, enabled_flags, Qt.UserRole - 1)
-            self.classroom_list.setItemData(i, '', Qt.ToolTipRole)
-            classroom = self.classroom_list.itemData(i, Qt.UserRole)
-            if not classroom:
-                continue
-            # classroom used in other lessons
+        self.classroom_list.clear()
+        subject = self.subject_list.currentData(Qt.UserRole)
+        if not subject:
+            return
+        none_viable = True
+        for i, classroom in enumerate(self.db.all_classrooms()):
+            self.classroom_list.addItem(classroom.name, classroom)
+
+            # other lesson is taking place in that classroom
             collisions = self.db.get_collisions_for_classroom_at_block(classroom, self.block)
-            collisions = [l.name_and_time() for l in collisions]         # collisions = '\n'
-            # classroom to small
-            subject = self.subject_list.currentData(Qt.UserRole)
+            collisions = [l.name_and_time() for l in collisions]
+
+            # classroom is to small
             if classroom.capacity < len(subject.students):
                 collisions.append('Sala jest za mała.')
+
+            # other classroom is required
             if subject.required_classroom and subject.required_classroom!=classroom:
                 collisions.append(f'{subject.name} musi odbywać się w {subject.required_classroom.name}')
+            
             collisions = '\n'.join(collisions)
             if collisions:
                 self.classroom_list.setItemData(i, collisions, Qt.ToolTipRole)
@@ -126,5 +139,9 @@ class AddLessonToBlockDialog(QDialog):
                     self.classroom_list.setItemData(i, 0, Qt.UserRole - 1)
                 else:
                     self.classroom_list.setItemData(i, QColor('red'), Qt.BackgroundRole)
+            else:
+                none_viable = False
+        if none_viable:
+            self.classroom_list.setCurrentIndex(-1)
 
 
