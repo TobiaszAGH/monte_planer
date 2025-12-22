@@ -264,7 +264,8 @@ class Data():
                    .filter(or_(
                         LessonBlockDB.start.between(block.start, block.start+block.length-0.5), # 0.5 to emulate < instead of <=
                         and_(LessonBlockDB.start <= block.start, block.start < LessonBlockDB.start+LessonBlockDB.length)
-                    )).all()
+                    )).all() \
+            if classroom else []
 
    
     def get_collisions_for_teacher_at_block(self, teacher: Teacher, block: LessonBlockDB) -> List[Lesson]:
@@ -295,5 +296,33 @@ class Data():
         for shift in range(mask_start, mask_end):
             mask |=  1 << shift
         return not(mask & ~teacher.__getattribute__(f'av{block.day+1}'))
+    
+    def lesson_collisions(self, lesson):
+        subject = lesson.subject
+
+        # students
+        collisions = [
+            f'{subject.name}: Niektórzy uczniowie mają {les.name_and_time()}'
+            for les in self.get_collisions_for_students_at_block(subject.students, lesson.block)
+            if les is not lesson]
+        
+        # teacher
+        collisions.extend([
+            f'{subject.name}: {subject.teacher.name} prowadzi {les.name_and_time()}'
+            for les in self.get_collisions_for_teacher_at_block(subject.teacher, lesson.block)
+            if les is not lesson])
+        
+        if subject.teacher and not self.is_teacher_available(subject.teacher, lesson.block):
+            collisions.append(f'{subject.name}: {subject.teacher.name} nie jest dostępny w tych godzinach')
+        
+        # classroom
+        collisions.extend([
+            f'{subject.name}: {lesson.classroom.name} jest zajęte przez {les.name_and_time()}'
+            for les in self.get_collisions_for_classroom_at_block(lesson.classroom, lesson.block)
+            if les is not lesson])
+        
+        return collisions
+        
+
 
  

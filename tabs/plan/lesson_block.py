@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QAction, QToolTip
+from PyQt5.QtWidgets import QAction, QToolTip, QGraphicsRectItem
 from PyQt5.QtGui import QColor, QBrush, QPen
 from PyQt5.QtCore import Qt
 from .block import BasicBlock
@@ -24,39 +24,16 @@ class LessonBlock(BasicBlock):
         action = self.menu.exec(event.globalPos())
 
     def mouseMoveEvent(self, event):
+        colliding_blocks = [bl for bl in self.collidingItems() if isinstance(bl, BasicBlock)]
         super().mouseMoveEvent(event, False)
-        for lesson in self.block.lessons:
-            subject = lesson.subject
 
-            # students
-            collisions = [
-                f'{subject.name}: Niektórzy uczniowie mają {les.name_and_time()}'
-                for les in self.db.get_collisions_for_students_at_block(subject.students, self.block)
-                if les is not lesson]
-            
-            # teacher
-            collisions.extend([
-                f'{subject.name}: {subject.teacher.name} prowadzi {les.name_and_time()}'
-                for les in self.db.get_collisions_for_teacher_at_block(subject.teacher, self.block)
-                if les is not lesson])
-            
-            if subject.teacher and not self.db.is_teacher_available(subject.teacher, self.block):
-                collisions.append(f'{subject.name}: {subject.teacher.name} nie jest dostępny w tych godzinach')
-            
-            # classroom
-            collisions.extend([
-                f'{subject.name}: {lesson.classroom.name} jest zajęte przez {les.name_and_time()}'
-                for les in self.db.get_collisions_for_classroom_at_block(lesson.classroom, self.block)
-                if les is not lesson])
-            
-            collisions = '\n'.join(collisions)
+        if self.isSelected() and self.flags() & QGraphicsRectItem.ItemIsMovable:
+            collisions = self.draw_collisions()
             if collisions:
-                self.msg += '\n' + collisions
-                self.setPen(QPen(QBrush(Qt.red),4))
-            else:
-                self.setPen(QPen())
-            QToolTip.showText(event.screenPos(), self.msg)
-
+                QToolTip.showText(event.screenPos(), self.msg + '\n' + collisions)
+            colliding_blocks.extend([bl for bl in self.collidingItems() if isinstance(bl, BasicBlock)])
+            for block in colliding_blocks:
+                block.draw_collisions()
 
     def add_subject(self):
         dialog = AddLessonToBlockDialog(self)
@@ -125,4 +102,18 @@ class LessonBlock(BasicBlock):
         self.text_item.setZValue(self.zValue()+0.1)
 
         self.recenter_text()
+        
+        self.draw_collisions()
+        
+    def draw_collisions(self):
+        collisions = []
+        for lesson in self.block.lessons:
+            collisions.extend(self.db.lesson_collisions(lesson))
 
+        collisions = '\n'.join(collisions)
+
+        if collisions:
+            self.setPen(QPen(QBrush(Qt.red),4))
+        else:
+            self.setPen(QPen())
+        return collisions
