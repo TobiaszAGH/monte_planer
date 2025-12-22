@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QAction, QToolTip
-from PyQt5.QtGui import QColor, QBrush
+from PyQt5.QtGui import QColor, QBrush, QPen
+from PyQt5.QtCore import Qt
 from .block import BasicBlock
 from .add_lesson_dialog import AddLessonToBlockDialog
 from .remove_lesson_dialog import RemoveLessonFromBlockDialog
@@ -33,7 +34,7 @@ class LessonBlock(BasicBlock):
                 for les in self.db.get_collisions_for_students_at_block(subject.students, self.block)
                 if les is not lesson]
             
-            # teachers
+            # teacher
             collisions.extend([
                 f'{subject.name}: {subject.teacher.name} prowadzi {les.name_and_time()}'
                 for les in self.db.get_collisions_for_teacher_at_block(subject.teacher, self.block)
@@ -42,7 +43,7 @@ class LessonBlock(BasicBlock):
             if subject.teacher and not self.db.is_teacher_available(subject.teacher, self.block):
                 collisions.append(f'{subject.name}: {subject.teacher.name} nie jest dostępny w tych godzinach')
             
-            # classrooms
+            # classroom
             collisions.extend([
                 f'{subject.name}: {lesson.classroom.name} jest zajęte przez {les.name_and_time()}'
                 for les in self.db.get_collisions_for_classroom_at_block(lesson.classroom, self.block)
@@ -51,6 +52,9 @@ class LessonBlock(BasicBlock):
             collisions = '\n'.join(collisions)
             if collisions:
                 self.msg += '\n' + collisions
+                self.setPen(QPen(QBrush(Qt.red),4))
+            else:
+                self.setPen(QPen())
             QToolTip.showText(event.screenPos(), self.msg)
 
 
