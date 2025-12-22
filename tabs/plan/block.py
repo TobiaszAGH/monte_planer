@@ -83,7 +83,7 @@ class BasicBlock(QGraphicsRectItem):
             self.setPos(x, y)
 
             # correct if out of bounds
-            while self.y_in_scene() + 1< self.top_bar_h:
+            while self.y_in_scene() + self.five_min_h/2 < self.top_bar_h:
                 self.moveBy(0, self.five_min_h)
             while self.y_in_scene() + self.block.length*self.five_min_h > self.parent.height():
                 self.moveBy(0, -self.five_min_h)
