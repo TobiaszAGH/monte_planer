@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMenu
+from PyQt5.QtWidgets import QAction, QToolTip
 from PyQt5.QtGui import QColor, QBrush
 from .block import BasicBlock
 from .add_lesson_dialog import AddLessonToBlockDialog
@@ -14,11 +14,44 @@ class LessonBlock(BasicBlock):
 
     def contextMenuEvent(self, event):
         super().contextMenuEvent(event)
-        add_lesson_action = self.menu.addAction('Dodaj lekcję')
+        add_lesson_action =  QAction('Dodaj lekcję')
+        self.menu.insertAction(self.remove_action, add_lesson_action)
         add_lesson_action.triggered.connect(self.add_subject)
-        remove_lesson_action = self.menu.addAction('Usuń lekcję')
+        remove_lesson_action =  QAction('Usuń lekcję')
+        self.menu.insertAction(self.remove_action, remove_lesson_action)
         remove_lesson_action.triggered.connect(self.remove_lesson)
         action = self.menu.exec(event.globalPos())
+
+    def mouseMoveEvent(self, event):
+        super().mouseMoveEvent(event, False)
+        for lesson in self.block.lessons:
+            subject = lesson.subject
+
+            # students
+            collisions = [
+                f'{subject.name}: Niektórzy uczniowie mają {les.name_and_time()}'
+                for les in self.db.get_collisions_for_students_at_block(subject.students, self.block)
+                if les is not lesson]
+            
+            # teachers
+            collisions.extend([
+                f'{subject.name}: {subject.teacher.name} prowadzi {les.name_and_time()}'
+                for les in self.db.get_collisions_for_teacher_at_block(subject.teacher, self.block)
+                if les is not lesson])
+            
+            if subject.teacher and not self.db.is_teacher_available(subject.teacher, self.block):
+                collisions.append(f'{subject.name}: {subject.teacher.name} nie jest dostępny w tych godzinach')
+            
+            # classrooms
+            collisions.extend([
+                f'{subject.name}: {lesson.classroom.name} jest zajęte przez {les.name_and_time()}'
+                for les in self.db.get_collisions_for_classroom_at_block(lesson.classroom, self.block)
+                if les is not lesson])
+            
+            collisions = '\n'.join(collisions)
+            if collisions:
+                self.msg += '\n' + collisions
+            QToolTip.showText(event.screenPos(), self.msg)
 
 
     def add_subject(self):

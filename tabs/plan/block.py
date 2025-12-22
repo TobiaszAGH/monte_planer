@@ -11,8 +11,8 @@ class BasicBlock(QGraphicsRectItem):
     
     def contextMenuEvent(self, event):
         self.menu = QMenu()
-        remove_action = self.menu.addAction('Usuń')
-        remove_action.triggered.connect(self.delete)
+        self.remove_action = self.menu.addAction('Usuń')
+        self.remove_action.triggered.connect(self.delete)
 
     def __init__(self, x,y,w,h, parent: QGraphicsScene, db, visible_classes):
         self.parent= parent
@@ -69,14 +69,12 @@ class BasicBlock(QGraphicsRectItem):
         super().mouseReleaseEvent(event)
         if not self.flags() & QGraphicsRectItem.ItemIsMovable:
             return
-        start = (self.mapToScene(self.boundingRect()).boundingRect().y() - self.top_bar_h) // self.five_min_h + 1 
-        self.db.update_block_start(self.block, start)
 
 
     def y_in_scene(self):
         return self.mapToScene(self.boundingRect()).boundingRect().y() 
     
-    def mouseMoveEvent(self, event):
+    def mouseMoveEvent(self, event, show_tooltip=True):
         super().mouseMoveEvent(event)
         if self.isSelected() and self.flags() & QGraphicsRectItem.ItemIsMovable:
             # snap to grid
@@ -99,10 +97,18 @@ class BasicBlock(QGraphicsRectItem):
             msg = '-'.join([display_hour(t) for t in times])
             if self.block.length>=0:
                 msg += f' ({int(self.block.length)*5})'
-            QToolTip.showText(event.screenPos(), msg)
+            if show_tooltip:
+                QToolTip.showText(event.screenPos(), msg)
+            else:
+                self.msg = msg
 
             # move text
             self.recenter_text()
+
+            # update database 
+            self.db.update_block_start(self.block, start)
+
+
     def recenter_text(self):
         if not self.text_item:
             return False
