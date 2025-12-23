@@ -29,6 +29,8 @@ class MyView(QGraphicsView):
     def set_classes(self, classes):
         self.widths = [0]
         self.classes = classes
+        if not len(classes):
+            return
         last_cls = classes[0].get_class()
         for cls in classes:
             if cls.get_class() != last_cls:
@@ -70,7 +72,6 @@ class MyView(QGraphicsView):
                 
     
     def mousePressEvent(self, event):
-
         if self.mode in ('new', 'new_custom'):
             if event.button() == Qt.MouseButton.LeftButton:
                 l = len(self.class_names)
@@ -325,7 +326,6 @@ class MyView(QGraphicsView):
             width = self.block_w*w
             
             height = self.five_min_h * block.length
-            # print([cl.full_name() for cl in block.subclasses])
 
             return CustomBlock(x, y, width, height, self.scene(), self.db, self.classes)
                 

@@ -3,6 +3,7 @@ from PyQt5.QtCore import Qt
 from data import Data
 from .mode_btn import ModeBtn
 from .plan_view import MyView
+from.filter import FilterWidget
 
         
 
@@ -14,15 +15,11 @@ class PlanWidget(QWidget):
         self.setLayout(layout)
 
 
-        self.class_filter = QWidget()
-        self.class_filter.setLayout(QHBoxLayout())
-        self.class_filter.layout().addStretch()
-        self.load_classes()
-        layout.addWidget(self.class_filter)
+        self.view = MyView(self)
+        self.class_filter = FilterWidget(self, self.view)
 
 
         toolbar = QWidget()
-        layout.addWidget(toolbar)
         toolbar.setLayout(QHBoxLayout())
         tool_add_block = ModeBtn("Nowy blok zajęciowy", self.set_mode_new, toolbar)
         toolbar.layout().addWidget(tool_add_block)
@@ -45,7 +42,8 @@ class PlanWidget(QWidget):
         toolbar.layout().addStretch()
         
 
-        self.view = MyView(self)
+        layout.addWidget(self.class_filter)
+        layout.addWidget(toolbar)
         layout.addWidget(self.view)
         self.load_data()
 
@@ -65,7 +63,7 @@ class PlanWidget(QWidget):
             self.view.set_mode('new_custom')
             for button in self.class_filter.findChildren(QPushButton):
                 button.setChecked(True)
-            self.update_filter() 
+            self.class_filter.update_filter() 
         else:
             self.view.set_mode('normal')
     
@@ -75,43 +73,8 @@ class PlanWidget(QWidget):
         else:
             self.view.set_mode('normal')
     
-
-    def load_classes(self):
-        self.classes = []
-        for my_class in self.db.all_classes():
-            l = len(my_class.subclasses)
-            if l == 1:
-                self.classes.append(my_class)
-            else:
-                for subclass in my_class.subclasses:
-                    self.classes.append(subclass)
-
-        for widget in self.class_filter.findChildren(QPushButton):
-            widget.deleteLater()
-
-        for my_class in self.classes[::-1]:
-            button = QPushButton(my_class.full_name())
-            button.setCheckable(True)
-            button.setChecked(True)
-            button.my_class = my_class
-            button.clicked.connect(self.filter_btn_clicked)
-            self.class_filter.layout().insertWidget(0, button)
-
-    def filter_btn_clicked(self):
-        self.tool_add_custom.uncheck()
-        self.view.set_mode('normal')
-        self.update_filter()
-
-    def update_filter(self):
-        display_names = []
-        for button in self.class_filter.findChildren(QPushButton):
-            if button.isChecked():
-                display_names.append(button.my_class)
-        self.view.set_classes(display_names[::-1])
-        self.view.draw()
-
     def load_data(self):
-        self.load_classes()
-        if self.classes:
-            self.view.set_classes(self.classes)
+        self.class_filter.load_classes()
+        if self.class_filter.classes:
+            self.view.set_classes(self.class_filter.classes)
             self.view.draw()
