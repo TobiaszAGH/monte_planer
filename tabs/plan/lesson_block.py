@@ -70,6 +70,9 @@ class LessonBlock(BasicBlock):
                 return False
             lesson = dialog.list.currentData()
         self.db.remove_lesson_from_block(lesson)
+        for block in self.collidingItems():
+            if isinstance(block, LessonBlock):
+                block.draw_collisions()
         self.draw_lessons()
 
     def draw_lessons(self):
