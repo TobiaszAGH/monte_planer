@@ -2,17 +2,18 @@ from PyQt5.QtWidgets import QHBoxLayout, QComboBox, QWidget, QPushButton
 from .mode_btn import ModeBtn
 
 class FilterWidget(QWidget):
-    def __init__(self, parent, view):
+    def __init__(self, parent, view, tool_add_custom):
         super().__init__(parent)
         self.view = view
         self.db = parent.db
         self.setLayout(QHBoxLayout())
         self.layout().addStretch()
+        self.tool_add_custom = tool_add_custom
         # self.load_classes()
 
     
     def filter_btn_clicked(self):
-        # self.tool_add_custom.uncheck()
+        self.tool_add_custom.uncheck()
         self.view.set_mode('normal')
         self.update_filter()
 

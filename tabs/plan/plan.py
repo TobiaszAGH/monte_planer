@@ -15,8 +15,6 @@ class PlanWidget(QWidget):
         self.setLayout(layout)
 
 
-        self.view = MyView(self)
-        self.class_filter = FilterWidget(self, self.view)
 
 
         toolbar = QWidget()
@@ -25,8 +23,8 @@ class PlanWidget(QWidget):
         toolbar.layout().addWidget(tool_add_block)
         tool_move_block = ModeBtn("Przesuwanie", self.set_mode_move ,toolbar)
         toolbar.layout().addWidget(tool_move_block)
-        self.tool_add_custom = ModeBtn("Nowy blok", self.set_mode_new_custom ,toolbar)
-        toolbar.layout().addWidget(self.tool_add_custom)
+        tool_add_custom = ModeBtn("Nowy blok", self.set_mode_new_custom ,toolbar)
+        toolbar.layout().addWidget(tool_add_custom)
         self.scale_slider = QSlider(Qt.Horizontal, self)
         self.scale_slider.setMaximumWidth(150)
         self.scale_slider.setMinimum(100)
@@ -40,6 +38,10 @@ class PlanWidget(QWidget):
         self.scale_label = QLabel('100%', self.scale_slider)
         toolbar.layout().addWidget(self.scale_label)
         toolbar.layout().addStretch()
+
+
+        self.view = MyView(self)
+        self.class_filter = FilterWidget(self, self.view, tool_add_custom)
         
 
         layout.addWidget(self.class_filter)
