@@ -48,6 +48,11 @@ class Data():
         self.session.delete(t)
         self.session.commit()
 
+
+    # subclasses
+    def all_subclasses(self) -> List[Subclass]:
+        return self.session.query(Subclass).all()
+
     # classes
     def all_classes(self) -> List[Class]:
         return self.session.query(Class).all()

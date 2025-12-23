@@ -13,7 +13,10 @@ class Subclass(Base):
     custom_blocks = relationship("CustomBlock", secondary=subclass_customblock, back_populates="subclasses")
 
     def full_name(self):
-        return self.my_class.name + self.name
+        if len(self.my_class.subclasses) == 1:
+            return self.my_class.name
+        else:
+            return self.my_class.name + self.name
     
     def get_class(self):
         return self.my_class

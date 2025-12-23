@@ -267,70 +267,52 @@ class MyView(QGraphicsView):
 
 
     def place_block(self, block):
-        class_names = [c.full_name() for c in self.classes]
+        # class_names = [c.full_name() for c in self.classes]
         if isinstance(block, LessonBlockDB):
-            # class not represented
-            full_name = block.parent().full_name()
-            if full_name not in class_names:
-                # either is a subclass
-                if isinstance(block.parent(), Subclass):
-                    return
-                
-                # find first subclass that is shown
+            # find subclass
+            if block.subclass in self.classes:
+                n = self.classes.index(block.subclass)
+            # find first subclass
+            elif block.my_class:
                 n = -1
-                for subclass in block.parent().subclasses:
-                    if subclass.full_name() in class_names:
-                        n = class_names.index(subclass.full_name())
+                for subclass in block.my_class.subclasses:
+                    if subclass in self.classes:
+                        n = self.classes.index(subclass)
                         break
                 # if none are found don't draw the block
                 if n < 0:
                     return
             else:
-                n = class_names.index(full_name)
-                
-            
-            x = self.left_bar_w + self.day_w*block.day + n*self.block_w
-
-            y = self.five_min_h*block.start+ self.top_bar_h
+                return
 
             # stretch the width if needed
-            if isinstance(block.parent(), Class):
-                mask = [1 if cl.get_class().id == block.parent().id else 0 for cl in self.classes]
-                witdth_multiplier = sum(mask)
+            if block.my_class:
+                mask = [1 if cl.get_class().id == block.class_id else 0 for cl in self.classes]
+                width_multiplier = sum(mask)
             else:
-                witdth_multiplier = 1
-            width = self.block_w*witdth_multiplier
+                width_multiplier = 1
             
-            height = self.five_min_h* block.length
-            new_block = LessonBlock(x, y, width, height, self.scene(), self.db, self.classes)
 
-
-            return new_block
-        
         else:
             ns = []
-            w = 0
+            width_multiplier = 0
             for subclass in block.subclasses:
                 if subclass in self.classes:
                     ns.append(self.classes.index(subclass))
-                    w += 1
-                elif subclass.get_class() in self.classes:
-                    ns.append(self.classes.index(subclass.get_class()))
-                    w += 1
-            # print(n)
+                    width_multiplier += 1
             if len(ns) == 0:
                 return
             
-            n = min(ns)
-            x = self.left_bar_w + self.day_w*block.day + n*self.block_w
+            n = ns[0]
 
-            y = self.five_min_h*block.start+ self.top_bar_h
+        x = self.left_bar_w + self.day_w*block.day + n*self.block_w
+        y = self.five_min_h*block.start+ self.top_bar_h
+        width = self.block_w*width_multiplier
+        height = self.five_min_h * block.length
 
-            
-            width = self.block_w*w
-            
-            height = self.five_min_h * block.length
-
+        if isinstance(block, LessonBlockDB):
+            return LessonBlock(x, y, width, height, self.scene(), self.db, self.classes)
+        else:
             return CustomBlock(x, y, width, height, self.scene(), self.db, self.classes)
                 
 

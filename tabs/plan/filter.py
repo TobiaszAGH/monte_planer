@@ -48,23 +48,17 @@ class FilterWidget(QWidget):
             if button.isChecked():
                 display_names.append(button.my_class)
         def filter(l):
-            return isinstance(l.subject.parent(), Class) \
-                or l.subject.parent() in display_names \
-                or len(l.subject.parent().get_class().subclasses) == 1
+            return l.subject.subclass in display_names \
+                or l.subject.my_class
         self.view.set_classes(display_names)
         self.view.filter_func = filter
         self.view.draw()
 
     def load_classes(self):
-        self.classes = []
-        for my_class in self.db.all_classes():
-            l = len(my_class.subclasses)
-            if l == 1:
-                self.classes.append(my_class)
-            else:
-                for subclass in my_class.subclasses:
-                    self.classes.append(subclass)
+        self.classes = self.db.all_subclasses()
+        # for  in self.db.all_classes():
 
+            
         for widget in self.findChildren(QPushButton):
             widget.deleteLater()
 
