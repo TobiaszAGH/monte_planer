@@ -76,7 +76,7 @@ class PlanWidget(QWidget):
             self.view.set_mode('normal')
     
     def load_data(self):
-        self.class_filter.load_classes()
+        self.class_filter.load_data()
         if self.class_filter.classes:
             self.view.set_classes(self.class_filter.classes)
             self.view.draw()

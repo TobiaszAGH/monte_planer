@@ -6,6 +6,7 @@ from .custom_block import CustomBlock
 from .block import BasicBlock
 from functions import snap_position, display_hour, contrast_ratio
 from data import Data, Class, Subclass, LessonBlockDB
+from db_config import settings
 
 
 class MyView(QGraphicsView):
@@ -34,6 +35,8 @@ class MyView(QGraphicsView):
         self.widths = [0]
         self.classes = classes
         if not len(classes):
+            self.class_names = []
+            self.update_column_sizes()
             return
         last_cls = classes[0].get_class()
         for cls in classes:
@@ -251,9 +254,10 @@ class MyView(QGraphicsView):
             
             text = scene.addSimpleText(days[day])
             text_x = pos - (self.day_w + text.boundingRect().width())/2
-            text_y = (self.top_bar_h/2 - text.boundingRect().height())/2
+            text_y = (self.top_bar_h/2 - text.boundingRect().height()/2)\
+                /(2 if not settings.draw_blocks_full_width else 1)
             text.setPos(text_x, text_y)
-        if l>0:
+        if l>0 and not settings.draw_blocks_full_width:
             scene.addLine(self.left_bar_w, self.top_bar_h/2, self.scene_width, self.top_bar_h/2)
             self.block_w = self.day_w/l
             for i in range(5):
@@ -268,7 +272,10 @@ class MyView(QGraphicsView):
 
     def place_block(self, block):
         # class_names = [c.full_name() for c in self.classes]
-        if isinstance(block, LessonBlockDB):
+        if settings.draw_blocks_full_width:
+            n = 0
+            width_multiplier = len(self.classes)
+        elif isinstance(block, LessonBlockDB):
             # find subclass
             if block.subclass in self.classes:
                 n = self.classes.index(block.subclass)
@@ -313,6 +320,8 @@ class MyView(QGraphicsView):
         if isinstance(block, LessonBlockDB):
             return LessonBlock(x, y, width, height, self.scene(), self.db, self.classes)
         else:
+            if not settings.draw_custom_blocks:
+                return
             return CustomBlock(x, y, width, height, self.scene(), self.db, self.classes)
                 
 

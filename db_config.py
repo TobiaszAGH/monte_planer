@@ -23,5 +23,7 @@ class Settings():
     def __init__(self):
         self.allow_creating_conflicts = False
         self.hide_empty_blocks = False
+        self.draw_blocks_full_width = False
+        self.draw_custom_blocks = True
 
 settings = Settings()

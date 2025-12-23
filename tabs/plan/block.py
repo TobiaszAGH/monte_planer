@@ -5,6 +5,7 @@ from PyQt5.QtCore import Qt
 from data import Data, Class, LessonBlockDB
 from functions import snap_position, display_hour, contrast_ratio
 from .block_text import BlockText
+from db_config import settings
 
 
 class BasicBlock(QGraphicsRectItem):
@@ -125,6 +126,7 @@ class BasicBlock(QGraphicsRectItem):
         return [
             (l.subject.full_name(), l.subject.short_full_name())
             if l.subject.my_class or (self.block.class_id and self.other_subclasses_visible())
+            or settings.draw_blocks_full_width
             else (l.subject.name, l.subject.short_name)
             for l in lessons
         ]

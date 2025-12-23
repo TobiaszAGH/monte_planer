@@ -1,4 +1,4 @@
-from db_config import Base, student_subject
+from db_config import Base, student_subject, settings
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
@@ -25,9 +25,9 @@ class Subject(Base):
         
     def full_name(self, full_subclass_name = False):
         if self.my_class:
-            return self.name + ' R'
+            return f'{self.name} {self.my_class.name if settings.draw_blocks_full_width else ""} R'
         else:
-            return f'{self.name} {self.subclass.full_name() if full_subclass_name else self.subclass.name.upper()}'
+            return f'{self.name} {self.subclass.full_name() if full_subclass_name or settings.draw_blocks_full_width else self.subclass.name.upper()}'
     
     def short_full_name(self):
         if self.my_class:
