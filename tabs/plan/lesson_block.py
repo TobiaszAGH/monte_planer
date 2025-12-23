@@ -43,7 +43,7 @@ class LessonBlock(BasicBlock):
         subject = dialog.subject_list.currentData()
         lesson = dialog.lesson_list.currentData()
         classroom = dialog.classroom_list.currentData()
-        if subject and lesson:
+        if subject and lesson and classroom:
             old_block: LessonBlock = lesson.block
                 
             # update db
