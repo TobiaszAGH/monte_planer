@@ -129,3 +129,5 @@ class BasicBlock(QGraphicsRectItem):
             for l in lessons
         ]
     
+    def set_filter(self, filter):
+        self.filter = filter

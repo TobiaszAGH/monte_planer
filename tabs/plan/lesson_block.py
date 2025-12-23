@@ -92,9 +92,7 @@ class LessonBlock(BasicBlock):
     def draw_contents(self):
         # pick which lessons to draw
         lessons = [l for l in self.block.lessons 
-                   if isinstance(l.subject.parent(), Class) 
-                   or l.subject.parent() in self.visible_classes
-                   or len(l.subject.parent().get_class().subclasses) == 1]
+                   if self.filter(l)]
         
         classrooms = '/'.join([l.classroom.name if l.classroom else '_'
                       for l in lessons])

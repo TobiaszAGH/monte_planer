@@ -25,6 +25,10 @@ class MyView(QGraphicsView):
         self.top_bar_h = 75
         self.left_bar_w = 50
         self.update_size_params()
+        def filter(l):
+            return True
+        self.filter_func = filter
+    
 
     def set_classes(self, classes):
         self.widths = [0]
@@ -339,6 +343,7 @@ class MyView(QGraphicsView):
             new_block.setZValue(z+5000)
             new_block.block = block
             new_block.start = block.start
+            new_block.set_filter(self.filter_func)
             new_block.draw_contents()
 
             new_block.set_movable(self.mode=='move', self.five_min_h, self.top_bar_h)

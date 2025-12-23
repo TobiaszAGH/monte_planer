@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QHBoxLayout, QComboBox, QWidget, QPushButton
 from .mode_btn import ModeBtn
+from data import Class
 
 class FilterWidget(QWidget):
     def __init__(self, parent, view, tool_add_custom):
@@ -22,7 +23,12 @@ class FilterWidget(QWidget):
         for button in self.findChildren(QPushButton):
             if button.isChecked():
                 display_names.append(button.my_class)
-        self.view.set_classes(display_names[::-1])
+        def filter(l):
+            return isinstance(l.subject.parent(), Class) \
+                or l.subject.parent() in display_names \
+                or len(l.subject.parent().get_class().subclasses) == 1
+        self.view.set_classes(display_names)
+        self.view.filter_func = filter
         self.view.draw()
 
     def load_classes(self):
@@ -38,13 +44,14 @@ class FilterWidget(QWidget):
         for widget in self.findChildren(QPushButton):
             widget.deleteLater()
 
-        for my_class in self.classes[::-1]:
+        for my_class in self.classes:
             button = QPushButton(my_class.full_name())
             button.setCheckable(True)
             button.setChecked(True)
             button.my_class = my_class
             button.clicked.connect(self.filter_btn_clicked)
-            self.layout().insertWidget(0, button)
+            index = self.layout().count()-1
+            self.layout().insertWidget(index, button)
 
 
 
