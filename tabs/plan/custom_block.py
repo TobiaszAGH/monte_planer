@@ -34,3 +34,13 @@ class CustomBlock(BasicBlock):
             self.text_item.set_custom_text(text)
             self.recenter_text()
             self.db.update_custom_block_text(self.block, text)
+
+    def draw_contents(self):
+
+        color = QColor(self.block.color)
+        color.setAlpha(210)
+        self.setBrush(color)
+        self.text_item.set_custom_text(self.block.text)
+        if contrast_ratio(color, QColor('black')) < 4.5:
+            self.text_item.setDefaultTextColor(QColor('#ffffff'))
+        self.recenter_text()

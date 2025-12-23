@@ -108,10 +108,10 @@ class PlanWidget(QWidget):
             if button.isChecked():
                 display_names.append(button.my_class)
         self.view.set_classes(display_names[::-1])
-        self.view.draw_frame()
+        self.view.draw()
 
     def load_data(self):
         self.load_classes()
         if self.classes:
             self.view.set_classes(self.classes)
-            self.view.draw_frame()
+            self.view.draw()

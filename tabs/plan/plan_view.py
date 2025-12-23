@@ -5,7 +5,7 @@ from .lesson_block import LessonBlock
 from .custom_block import CustomBlock
 from .block import BasicBlock
 from functions import snap_position, display_hour, contrast_ratio
-from data import Data, Class, Subclass
+from data import Data, Class, Subclass, LessonBlockDB
 
 
 class MyView(QGraphicsView):
@@ -59,7 +59,7 @@ class MyView(QGraphicsView):
         QGraphicsView.resizeEvent(self, event)
 
         self.update_size_params()
-        self.draw_frame()
+        self.draw()
 
     def set_mode(self, mode):
         self.mode = mode
@@ -181,7 +181,7 @@ class MyView(QGraphicsView):
             if self.new_block:
                 self.new_block.bring_forward()
                 cursor_x = snap_position(event.x(), self.block_w, self.left_bar_w)
-                x, width = self.calculate_x_w(cursor_x, self.mode)
+                x, width = self.calculate_x_w(cursor_x)
                 
                 new_block_bottom = snap_position(event.y(), self.five_min_h, self.top_bar_h)
                 height = abs(new_block_bottom - self.new_block_top)
@@ -189,7 +189,7 @@ class MyView(QGraphicsView):
                 self.new_block.setRect(x, y, width, height)
 
 
-    def calculate_x_w(self, cursor_x, mode):
+    def calculate_x_w(self, cursor_x):
         # if in the same subclass block dont stretch
         if self.new_block_left==cursor_x:
             return self.new_block_left, self.block_w
@@ -216,12 +216,8 @@ class MyView(QGraphicsView):
             w = right - left
         return x,w
 
-
     def draw_frame(self):
         scene = self.scene()
-        scene.clear()
-        scene.setSceneRect(0,0, self.scene_width, self.scene_height)
-
         wide_pen = QPen()
         wide_pen.setWidth(2)
         line = scene.addLine(0, self.top_bar_h, self.scene_width, self.top_bar_h, wide_pen)
@@ -264,92 +260,104 @@ class MyView(QGraphicsView):
                     text.setPos(text_x, text_y)
                     scene.addLine(pos, self.top_bar_h/2, pos, self.scene_height)
 
-            class_names = [c.full_name() for c in self.classes]
-            for z, block in enumerate(self.db.all_lesson_blocks()):
-                # class not represented
-                full_name = block.parent().full_name()
-                if full_name not in class_names:
-                    # either is a subclass
-                    if isinstance(block.parent(), Subclass):
-                        continue
-                    
-                    # find first subclass that is shown
-                    n = -1
-                    for subclass in block.parent().subclasses:
-                        if subclass.full_name() in class_names:
-                            n = class_names.index(subclass.full_name())
-                            break
-                    # if none are found don't draw the block
-                    if n < 0:
-                        continue
-                else:
-                    n = class_names.index(full_name)
-                    
+
+    def place_block(self, block):
+        class_names = [c.full_name() for c in self.classes]
+        if isinstance(block, LessonBlockDB):
+            # class not represented
+            full_name = block.parent().full_name()
+            if full_name not in class_names:
+                # either is a subclass
+                if isinstance(block.parent(), Subclass):
+                    return
                 
-                x = self.left_bar_w + self.day_w*block.day + n*self.block_w
-
-                y = self.five_min_h*block.start+ self.top_bar_h
-
-                # stretch the width if needed
-                if isinstance(block.parent(), Class):
-                    mask = [1 if cl.get_class().id == block.parent().id else 0 for cl in self.classes]
-                    witdth_multiplier = sum(mask)
-                else:
-                    witdth_multiplier = 1
-                width = self.block_w*witdth_multiplier
+                # find first subclass that is shown
+                n = -1
+                for subclass in block.parent().subclasses:
+                    if subclass.full_name() in class_names:
+                        n = class_names.index(subclass.full_name())
+                        break
+                # if none are found don't draw the block
+                if n < 0:
+                    return
+            else:
+                n = class_names.index(full_name)
                 
-                height = self.five_min_h* block.length
+            
+            x = self.left_bar_w + self.day_w*block.day + n*self.block_w
+
+            y = self.five_min_h*block.start+ self.top_bar_h
+
+            # stretch the width if needed
+            if isinstance(block.parent(), Class):
+                mask = [1 if cl.get_class().id == block.parent().id else 0 for cl in self.classes]
+                witdth_multiplier = sum(mask)
+            else:
+                witdth_multiplier = 1
+            width = self.block_w*witdth_multiplier
+            
+            height = self.five_min_h* block.length
+            new_block = LessonBlock(x, y, width, height, self.scene(), self.db, self.classes)
 
 
-                new_block = LessonBlock(x, y, width, height, self.scene(), self.db, self.classes)
-                new_block.setZValue(z+5000)
-                new_block.block = block
-                new_block.start = block.start
-                new_block.draw_lessons()
+            return new_block
+        
+        else:
+            ns = []
+            w = 0
+            for subclass in block.subclasses:
+                if subclass in self.classes:
+                    ns.append(self.classes.index(subclass))
+                    w += 1
+                elif subclass.get_class() in self.classes:
+                    ns.append(self.classes.index(subclass.get_class()))
+                    w += 1
+            # print(n)
+            if len(ns) == 0:
+                return
+            
+            n = min(ns)
+            x = self.left_bar_w + self.day_w*block.day + n*self.block_w
 
-                new_block.set_movable(self.mode=='move', self.five_min_h, self.top_bar_h)
-                self.blocks.append(new_block)
-                new_block.set_selectable(True)
-                self.scene().addItem(new_block)
-            for z, block in enumerate(self.db.all_custom_blocks()):
-                # class not represented
-                ns = []
-                w = 0
-                for subclass in block.subclasses:
-                    if subclass in self.classes:
-                        ns.append(self.classes.index(subclass))
-                        w += 1
-                    elif subclass.get_class() in self.classes:
-                        ns.append(self.classes.index(subclass.get_class()))
-                        w += 1
-                # print(n)
-                if len(ns) == 0:
-                    continue
+            y = self.five_min_h*block.start+ self.top_bar_h
+
+            
+            width = self.block_w*w
+            
+            height = self.five_min_h * block.length
+            # print([cl.full_name() for cl in block.subclasses])
+
+            return CustomBlock(x, y, width, height, self.scene(), self.db, self.classes)
                 
-                n = min(ns)
-                x = self.left_bar_w + self.day_w*block.day + n*self.block_w
 
-                y = self.five_min_h*block.start+ self.top_bar_h
+    def draw_blocks(self, blocks):
+        for z, block in enumerate(blocks):
+            new_block = self.place_block(block)
+            if not new_block:
+                continue
+            
+            new_block.setZValue(z+5000)
+            new_block.block = block
+            new_block.start = block.start
+            new_block.draw_contents()
 
-                
-                width = self.block_w*w
-                
-                height = self.five_min_h * block.length
-                # print([cl.full_name() for cl in block.subclasses])
+            new_block.set_movable(self.mode=='move', self.five_min_h, self.top_bar_h)
+            self.blocks.append(new_block)
+            new_block.set_selectable(True)
+            self.scene().addItem(new_block)
 
-                new_block = CustomBlock(x, y, width, height, self.scene(), self.db, self.classes)
-                new_block.setZValue(z+10000)
-                new_block.block = block
-                new_block.start = block.start
-                color = QColor(block.color)
-                color.setAlpha(210)
-                new_block.setBrush(color)
-                new_block.text_item.set_custom_text(block.text)
-                if contrast_ratio(color, QColor('black')) < 4.5:
-                    new_block.text_item.setDefaultTextColor(QColor('#ffffff'))
-                new_block.recenter_text()
 
-                new_block.set_movable(self.mode=='move', self.five_min_h, self.top_bar_h)
-                self.blocks.append(new_block)
-                new_block.set_selectable(True)
-                self.scene().addItem(new_block)
+         
+
+    def draw(self):
+        scene = self.scene()
+        scene.clear()
+        scene.setSceneRect(0,0, self.scene_width, self.scene_height)
+
+        self.draw_frame()
+
+        if len(self.classes):
+            self.draw_blocks(self.db.all_blocks())
+            # self.draw_blocks(self.db.all_lesson_blocks())
+            # self.draw_blocks(self.db.all_custom_blocks())
+

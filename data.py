@@ -238,7 +238,9 @@ class Data():
         self.session.commit()
     
     def all_blocks(self):
-        return self.all_lesson_blocks().extend(self.all_custom_blocks)
+        blocks = self.all_lesson_blocks()
+        blocks.extend(self.all_custom_blocks())
+        return blocks
     
 
     # classrooms

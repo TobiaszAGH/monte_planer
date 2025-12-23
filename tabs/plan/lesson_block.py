@@ -60,8 +60,8 @@ class LessonBlock(BasicBlock):
             # update visuals
             if old_block:
                 old_block_item: LessonBlock = [bl for bl in self.parent.items() if isinstance(bl, LessonBlock) and bl.block==old_block][0]
-                old_block_item.draw_lessons()
-            self.draw_lessons()
+                old_block_item.draw_contents()
+            self.draw_contents()
 
     def remove_lesson(self):
         if not self.block.lessons:
@@ -78,18 +78,18 @@ class LessonBlock(BasicBlock):
         for block in self.collidingItems():
             if isinstance(block, LessonBlock):
                 block.draw_collisions()
-        self.draw_lessons()
+        self.draw_contents()
 
     def manage_classrooms(self):
         if not len(self.block.lessons):
             return
         ManageClassroomsDialog(self).exec()
-        self.draw_lessons()
+        self.draw_contents()
         for item in self.collidingItems():
             if isinstance(item, LessonBlock):
                 item.draw_collisions()
 
-    def draw_lessons(self):
+    def draw_contents(self):
         # pick which lessons to draw
         lessons = [l for l in self.block.lessons 
                    if isinstance(l.subject.parent(), Class) 
