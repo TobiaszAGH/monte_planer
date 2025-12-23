@@ -20,9 +20,9 @@ class BasicBlock(QGraphicsRectItem):
         self.db: Data = db
         super().__init__(x,y,w,h)
         self.five_min_h = h
-        color = QColor('#c0c0c0')
-        color.setAlpha(210)
-        self.setBrush(QBrush(color))
+        # color = QColor('#c0c0c0')
+        # color.setAlpha(210)
+        # self.setBrush(QBrush(color))
         self.moved = False
         self.block: LessonBlockDB
         self.text_item = BlockText(self, w, h)

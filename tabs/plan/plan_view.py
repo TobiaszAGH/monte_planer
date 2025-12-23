@@ -227,7 +227,7 @@ class MyView(QGraphicsView):
     def draw_frame(self):
         scene = self.scene()
         wide_pen = QPen()
-        wide_pen.setWidth(2)
+        wide_pen.setWidth(3)
         line = scene.addLine(0, self.top_bar_h, self.scene_width, self.top_bar_h, wide_pen)
         line = scene.addLine(0, 0, self.scene_width, 0, wide_pen)
         line = scene.addLine(0, 0, 0, self.scene_height, wide_pen)
@@ -250,6 +250,7 @@ class MyView(QGraphicsView):
         for day in range(5):
             pos = self.day_w*(day+1)+self.left_bar_w
             line = scene.addLine(pos, 0, pos, self.scene_height)
+            line.setZValue(10000)
             line.setPen(wide_pen)
             
             text = scene.addSimpleText(days[day])
