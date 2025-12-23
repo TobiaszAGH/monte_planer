@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QGraphicsTextItem
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QTextOption
+from PyQt5.QtGui import QTextOption, QFont, QTextCursor, QTextCharFormat
 
 
 class BlockText(QGraphicsTextItem):
@@ -18,10 +18,12 @@ class BlockText(QGraphicsTextItem):
         self.row_num = 0
 
     def shrink(self):
-        if not self.row_num:
-            return 
+        doc = self.document()
+        cursor = QTextCursor(doc)
+        cursor.select(QTextCursor.Document)
+        cursor.setCharFormat(QTextCharFormat())  # reset formatting
+        self.setFont(QFont())
         font = self.font()
-        font.setPointSize(12)
         size = font.pointSize()
         if self.text_too_big() and self.lessons:
             self.shorten_names()
