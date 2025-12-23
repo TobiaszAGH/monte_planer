@@ -51,7 +51,7 @@ class Data():
 
     # subclasses
     def all_subclasses(self) -> List[Subclass]:
-        return self.session.query(Subclass).all()
+        return self.session.query(Subclass).order_by(Subclass.class_id).all()
 
     # classes
     def all_classes(self) -> List[Class]:
@@ -90,6 +90,8 @@ class Data():
             self.delete_block(block)
         for subject in subclass.subjects:
             self.delete_subject(subject)
+        for custom_block in subclass.custom_blocks:
+            custom_block.subclasses.remove(subclass)
         self.session.delete(subclass)
         self.session.commit()
         for name, subclass in zip(ascii_lowercase, my_class.subclasses):

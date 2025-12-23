@@ -56,8 +56,6 @@ class FilterWidget(QWidget):
 
     def load_classes(self):
         self.classes = self.db.all_subclasses()
-        # for  in self.db.all_classes():
-
             
         for widget in self.findChildren(QPushButton):
             widget.deleteLater()
