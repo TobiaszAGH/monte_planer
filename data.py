@@ -201,8 +201,9 @@ class Data():
     
     def delete_block(self, block):
         self.session.delete(block)
-        for lesson in block.lessons:
-            lesson.classroom = None
+        if hasattr(block, 'lessons'):
+            for lesson in block.lessons:
+                lesson.classroom = None
         self.session.commit()
 
     def update_block_start(self, block: LessonBlockDB, start: int):

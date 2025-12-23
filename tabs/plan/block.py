@@ -94,13 +94,11 @@ class BasicBlock(QGraphicsRectItem):
             start = (self.y_in_scene() - self.top_bar_h) // self.five_min_h + 1
             duration = self.block.length
             times = [start, start+duration]
-            msg = '-'.join([display_hour(t) for t in times])
+            time = '-'.join([display_hour(t) for t in times])
             if self.block.length>=0:
-                msg += f' ({int(self.block.length)*5})'
+                time += f' ({int(self.block.length)*5})'
             if show_tooltip:
-                QToolTip.showText(event.screenPos(), msg)
-            else:
-                self.msg = msg
+                QToolTip.showText(event.screenPos(), time)
 
             # move text
             self.recenter_text()
@@ -130,3 +128,4 @@ class BasicBlock(QGraphicsRectItem):
             else (l.subject.name, l.subject.short_name)
             for l in lessons
         ]
+    

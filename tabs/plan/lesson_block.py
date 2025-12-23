@@ -30,7 +30,9 @@ class LessonBlock(BasicBlock):
         if self.isSelected() and self.flags() & QGraphicsRectItem.ItemIsMovable:
             collisions = self.draw_collisions()
             if collisions:
-                QToolTip.showText(event.screenPos(), self.msg + '\n' + collisions)
+                QToolTip.showText(event.screenPos(), self.time() + '\n' + collisions)
+            else:
+                QToolTip.showText(event.screenPos(), self.time())
             colliding_blocks.extend([bl for bl in self.collidingItems() if isinstance(bl, BasicBlock)])
             for block in colliding_blocks:
                 block.draw_collisions()
@@ -114,6 +116,11 @@ class LessonBlock(BasicBlock):
 
         if collisions:
             self.setPen(QPen(QBrush(Qt.red),4))
+            self.setToolTip(self.time() + '\n' + collisions)
         else:
             self.setPen(QPen())
+            self.setToolTip(self.time())
         return collisions
+    
+    def time(self):
+        return f'{self.block.print_time()} ({self.block.length*5})'
