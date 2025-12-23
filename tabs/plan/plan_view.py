@@ -344,7 +344,7 @@ class MyView(QGraphicsView):
                 color = QColor(block.color)
                 color.setAlpha(210)
                 new_block.setBrush(color)
-                new_block.text_item.setHtml(block.text)
+                new_block.text_item.set_custom_text(block.text)
                 if contrast_ratio(color, QColor('black')) < 4.5:
                     new_block.text_item.setDefaultTextColor(QColor('#ffffff'))
                 new_block.recenter_text()

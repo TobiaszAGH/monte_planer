@@ -1,5 +1,5 @@
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QColorDialog, QInputDialog
+from PyQt5.QtWidgets import QColorDialog, QInputDialog, QLineEdit
 from .block import BasicBlock
 from functions import contrast_ratio
 
@@ -26,8 +26,9 @@ class CustomBlock(BasicBlock):
                 self.text_item.setDefaultTextColor(QColor('#ffffff'))
 
     def set_text(self):
-        text, ok = QInputDialog.getText(None, 'Podaj tekst', 'Tekst:') 
+        placeholder = self.text_item.toPlainText().replace('\n', '<br>')
+        text, ok = QInputDialog.getText(None, 'Podaj tekst', 'Tekst:', QLineEdit.Normal, placeholder) 
         if ok:
-            self.text_item.setHtml(text)
+            self.text_item.set_custom_text(text)
             self.recenter_text()
             self.db.update_custom_block_text(self.block, text)

@@ -36,13 +36,13 @@ class BlockText(QGraphicsTextItem):
         self.setHtml('<br>'.join([l[1] for l in self.lessons]) + '<br>' + self.classrooms)
 
     def text_too_big(self) -> bool:
-        wrapping = self.document().begin().layout().lineCount() > self.row_num + 1
+        wrapping = self.document().begin().layout().lineCount() > self.row_num
         overflowing = self.boundingRect().width() > self.w or self.boundingRect().height() > self.h
         return wrapping or overflowing
     
     def set_lessons(self, lessons):
         self.lessons = lessons
-        self.row_num = len(lessons)
+        self.row_num = len(lessons) + 1
         self.setHtml('<br>'.join([l[0] for l in lessons]))
 
     def set_h(self, h):
@@ -51,4 +51,9 @@ class BlockText(QGraphicsTextItem):
     def add_classrooms(self, classrooms: str):
         self.classrooms = classrooms
         self.setHtml(self.toHtml() + classrooms)
+
+    def set_custom_text(self, text):
+        self.setHtml(text)
+        newlines = '<br />'.split()
+        self.row_num = sum([self.toHtml().count(s) for s in newlines]) + 1 
 
