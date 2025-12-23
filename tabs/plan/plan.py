@@ -65,7 +65,7 @@ class PlanWidget(QWidget):
             self.view.set_mode('new_custom')
             for button in self.class_filter.findChildren(QPushButton):
                 button.setChecked(True)
-            self.class_filter.update_filter() 
+            self.class_filter.update_class_filter() 
         else:
             self.view.set_mode('normal')
     

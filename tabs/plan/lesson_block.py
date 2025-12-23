@@ -5,8 +5,8 @@ from .block import BasicBlock
 from .add_lesson_dialog import AddLessonToBlockDialog
 from .remove_lesson_dialog import RemoveLessonFromBlockDialog
 from .manage_classrooms_dialog import ManageClassroomsDialog
-from data import Class
 from functions import contrast_ratio
+from db_config import settings
 
 
 class LessonBlock(BasicBlock):
@@ -91,8 +91,10 @@ class LessonBlock(BasicBlock):
 
     def draw_contents(self):
         # pick which lessons to draw
-        lessons = [l for l in self.block.lessons 
-                   if self.filter(l)]
+        self.show()
+        lessons = list(filter(self.filter, self.block.lessons))
+        if settings.hide_empty_blocks and not len(lessons):
+            self.hide()
         
         classrooms = '/'.join([l.classroom.name if l.classroom else '_'
                       for l in lessons])

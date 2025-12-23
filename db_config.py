@@ -22,5 +22,6 @@ student_subject = Table(
 class Settings():
     def __init__(self):
         self.allow_creating_conflicts = False
+        self.hide_empty_blocks = False
 
 settings = Settings()

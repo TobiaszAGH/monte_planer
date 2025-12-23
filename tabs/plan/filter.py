@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QHBoxLayout, QComboBox, QWidget, QPushButton
+from PyQt5.QtWidgets import QHBoxLayout, QComboBox, QWidget, QPushButton, QGridLayout, QStackedLayout, QStackedWidget, QSizePolicy
+from PyQt5.QtCore import Qt
 from .mode_btn import ModeBtn
 from data import Class
 
@@ -7,18 +8,41 @@ class FilterWidget(QWidget):
         super().__init__(parent)
         self.view = view
         self.db = parent.db
-        self.setLayout(QHBoxLayout())
-        self.layout().addStretch()
         self.tool_add_custom = tool_add_custom
-        # self.load_classes()
+
+        main_layout = QGridLayout()
+        self.setLayout(main_layout)
+        main_layout.setColumnStretch(0,1)
+        main_layout.setColumnStretch(1,2)
+
+        filter_selection = QComboBox()
+        items = 'Klasy Uczniowie Nauczyciele Sale'.split()
+        filter_selection.addItems(items)
+        main_layout.addWidget(filter_selection, 0, 0)
+
+        self.stacked = QStackedWidget()
+        self.stacked.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+        main_layout.addWidget(self.stacked, 0, 1)
+
+        # classes
+        self.class_filter = QWidget()
+        self.class_filter.setLayout(QHBoxLayout())
+        self.stacked.layout().addWidget(self.class_filter)
+
+        # students
+        self.student_filter = QWidget()
+        self.student_filter.setLayout(QHBoxLayout())
+        self.student_class_selection = QComboBox()
+
+
 
     
     def filter_btn_clicked(self):
         self.tool_add_custom.uncheck()
         self.view.set_mode('normal')
-        self.update_filter()
+        self.update_class_filter()
 
-    def update_filter(self):
+    def update_class_filter(self):
         display_names = []
         for button in self.findChildren(QPushButton):
             if button.isChecked():
@@ -44,14 +68,14 @@ class FilterWidget(QWidget):
         for widget in self.findChildren(QPushButton):
             widget.deleteLater()
 
-        for my_class in self.classes:
+        for index, my_class in enumerate(self.classes):
+            self.student_class_selection.addItem(my_class.full_name(), my_class)
             button = QPushButton(my_class.full_name())
             button.setCheckable(True)
             button.setChecked(True)
             button.my_class = my_class
             button.clicked.connect(self.filter_btn_clicked)
-            index = self.layout().count()-1
-            self.layout().insertWidget(index, button)
+            self.class_filter.layout().insertWidget(index, button)
 
 
 
