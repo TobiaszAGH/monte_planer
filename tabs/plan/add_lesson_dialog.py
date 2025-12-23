@@ -86,6 +86,7 @@ class AddLessonToBlockDialog(QDialog):
                 none_viable = False
                 if select_next:
                     self.subject_list.setCurrentIndex(i)
+                    select_next = False
         if none_viable:
             self.subject_list.setCurrentIndex(-1)
 
@@ -113,27 +114,21 @@ class AddLessonToBlockDialog(QDialog):
 
     def update_classroom_list(self):
         self.classroom_list.clear()
-        subject = self.subject_list.currentData(Qt.UserRole)
-        if not subject:
+        # subject = self.subject_list.currentData(Qt.UserRole)
+        lesson = self.lesson_list.currentData()
+        if not lesson:
             return
         none_viable = True
+        select_next = False
         for i, classroom in enumerate(self.db.all_classrooms()):
             self.classroom_list.addItem(classroom.name, classroom)
 
-            # other lesson is taking place in that classroom
-            collisions = self.db.get_collisions_for_classroom_at_block(classroom, self.block)
-            collisions = [l.name_and_time() for l in collisions]
+            collisions = self.db.classroom_collisions(classroom, self.block, lesson)
 
-            # classroom is to small
-            if classroom.capacity < len(subject.students):
-                collisions.append('Sala jest za mała.')
-
-            # other classroom is required
-            if subject.required_classroom and subject.required_classroom!=classroom:
-                collisions.append(f'{subject.name} musi odbywać się w {subject.required_classroom.name}')
-            
             collisions = '\n'.join(collisions)
             if collisions:
+                if self.classroom_list.currentIndex() == i and i < self.classroom_list.count():
+                    select_next = True
                 self.classroom_list.setItemData(i, collisions, Qt.ToolTipRole)
                 if not settings.allow_creating_conflicts:
                     self.classroom_list.setItemData(i, 0, Qt.UserRole - 1)
@@ -141,6 +136,9 @@ class AddLessonToBlockDialog(QDialog):
                     self.classroom_list.setItemData(i, QColor('red'), Qt.BackgroundRole)
             else:
                 none_viable = False
+                if select_next:
+                    self.classroom_list.setCurrentIndex(i)
+                    select_next = False
         if none_viable:
             self.classroom_list.setCurrentIndex(-1)
 

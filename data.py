@@ -323,6 +323,22 @@ class Data():
             if les is not lesson])
         
         return collisions
+    
+    def classroom_collisions(self, classroom, block, lesson):
+        subject = lesson.subject
+        # other lesson is taking place in that classroom
+        collisions = self.get_collisions_for_classroom_at_block(classroom, block)
+        collisions = [l.name_and_time() for l in collisions if l is not lesson]
+
+        # classroom is to small
+        if classroom.capacity < len(subject.students):
+            collisions.append('Sala jest za mała.')
+
+        # other classroom is required
+        if subject.required_classroom and subject.required_classroom!=classroom:
+            collisions.append(f'{subject.name} musi odbywać się w {subject.required_classroom.name}')
+        
+        return collisions
         
 
 

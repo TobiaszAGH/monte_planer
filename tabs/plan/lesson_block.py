@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt
 from .block import BasicBlock
 from .add_lesson_dialog import AddLessonToBlockDialog
 from .remove_lesson_dialog import RemoveLessonFromBlockDialog
+from .manage_classrooms_dialog import ManageClassroomsDialog
 from data import Class
 from functions import contrast_ratio
 
@@ -18,6 +19,9 @@ class LessonBlock(BasicBlock):
         add_lesson_action =  QAction('Dodaj lekcję')
         self.menu.insertAction(self.remove_action, add_lesson_action)
         add_lesson_action.triggered.connect(self.add_subject)
+        manage_classrooms_action =  QAction('Zarządzaj salami')
+        self.menu.insertAction(self.remove_action, manage_classrooms_action)
+        manage_classrooms_action.triggered.connect(self.manage_classrooms)
         remove_lesson_action =  QAction('Usuń lekcję')
         self.menu.insertAction(self.remove_action, remove_lesson_action)
         remove_lesson_action.triggered.connect(self.remove_lesson)
@@ -74,6 +78,15 @@ class LessonBlock(BasicBlock):
             if isinstance(block, LessonBlock):
                 block.draw_collisions()
         self.draw_lessons()
+
+    def manage_classrooms(self):
+        if not len(self.block.lessons):
+            return
+        ManageClassroomsDialog(self).exec()
+        self.draw_lessons()
+        for item in self.collidingItems():
+            if isinstance(item, LessonBlock):
+                item.draw_collisions()
 
     def draw_lessons(self):
         # pick which lessons to draw
