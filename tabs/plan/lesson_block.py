@@ -19,12 +19,13 @@ class LessonBlock(BasicBlock):
         add_lesson_action =  QAction('Dodaj lekcję')
         self.menu.insertAction(self.remove_action, add_lesson_action)
         add_lesson_action.triggered.connect(self.add_subject)
-        manage_classrooms_action =  QAction('Zarządzaj salami')
-        self.menu.insertAction(self.remove_action, manage_classrooms_action)
-        manage_classrooms_action.triggered.connect(self.manage_classrooms)
-        remove_lesson_action =  QAction('Usuń lekcję')
-        self.menu.insertAction(self.remove_action, remove_lesson_action)
-        remove_lesson_action.triggered.connect(self.remove_lesson)
+        if len(self.block.lessons):
+            manage_classrooms_action =  QAction('Zarządzaj salami')
+            self.menu.insertAction(self.remove_action, manage_classrooms_action)
+            manage_classrooms_action.triggered.connect(self.manage_classrooms)
+            remove_lesson_action =  QAction('Usuń lekcję')
+            self.menu.insertAction(self.remove_action, remove_lesson_action)
+            remove_lesson_action.triggered.connect(self.remove_lesson)
         action = self.menu.exec(event.globalPos())
 
     def mouseMoveEvent(self, event):

@@ -1,5 +1,5 @@
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QColorDialog, QInputDialog, QLineEdit
+from PyQt5.QtWidgets import QColorDialog, QInputDialog, QLineEdit, QAction
 from .block import BasicBlock
 from functions import contrast_ratio
 
@@ -9,10 +9,12 @@ class CustomBlock(BasicBlock):
 
     def contextMenuEvent(self, event):
         super().contextMenuEvent(event)
-        remove_lesson_action = self.menu.addAction('Wybierz kolor')
-        remove_lesson_action.triggered.connect(self.pick_color)
-        remove_lesson_action = self.menu.addAction('Ustaw tekst')
-        remove_lesson_action.triggered.connect(self.set_text)
+        pick_color_action = QAction('Wybierz kolor')
+        pick_color_action.triggered.connect(self.pick_color)
+        self.menu.insertAction(self.remove_action, pick_color_action)
+        set_text_action = QAction('Ustaw tekst')
+        set_text_action.triggered.connect(self.set_text)
+        self.menu.insertAction(self.remove_action, set_text_action)
         self.menu.exec(event.globalPos())
     
     def pick_color(self):
