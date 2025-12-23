@@ -74,7 +74,7 @@ class LessonBlock(BasicBlock):
         if len(self.block.lessons) == 1:
             lesson = self.block.lessons[0]
         else:
-            dialog = RemoveLessonFromBlockDialog(self.lessons)
+            dialog = RemoveLessonFromBlockDialog(self.block.lessons)
             ok = dialog.exec()
             if not ok:
                 return False

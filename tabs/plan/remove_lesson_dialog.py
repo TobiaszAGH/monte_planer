@@ -14,7 +14,7 @@ class RemoveLessonFromBlockDialog(QDialog):
 
 
         for lesson in lessons:
-            self.list.addItem(lesson[0][0], lesson[1]) 
+            self.list.addItem(lesson.subject.full_name(), lesson) 
 
         buttonBox = QDialogButtonBox()
         layout.addWidget(buttonBox)
