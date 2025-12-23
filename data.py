@@ -263,8 +263,8 @@ class Data():
         return self.session.query(Lesson).filter_by(classroom=classroom)\
                    .join(Lesson.block).filter(LessonBlockDB.day == block.day)\
                    .filter(or_(
-                        LessonBlockDB.start.between(block.start, block.start+block.length-0.5), # 0.5 to emulate < instead of <=
-                        and_(LessonBlockDB.start <= block.start, block.start < LessonBlockDB.start+LessonBlockDB.length)
+                        LessonBlockDB.start.between(block.start, block.start+block.length),
+                        and_(LessonBlockDB.start <= block.start, block.start <= LessonBlockDB.start+LessonBlockDB.length)
                     )).all() \
             if classroom else []
 
@@ -274,8 +274,8 @@ class Data():
                     .join(Lesson.subject).filter_by(teacher=teacher) \
                     .join(Lesson.block).filter(LessonBlockDB.day == block.day) \
                     .filter(or_(
-                        LessonBlockDB.start.between(block.start, block.start+block.length-0.5), # 0.5 to emulate < instead of <=
-                        and_(LessonBlockDB.start <= block.start, block.start < LessonBlockDB.start+LessonBlockDB.length)
+                        LessonBlockDB.start.between(block.start, block.start+block.length), 
+                        and_(LessonBlockDB.start <= block.start, block.start <= LessonBlockDB.start+LessonBlockDB.length)
                     )).all() \
         if teacher else []
     
@@ -286,8 +286,8 @@ class Data():
                     .join(Lesson.subject).filter(Subject.students.any(Student.id.in_(student_ids)))\
                     .join(Lesson.block).filter(LessonBlockDB.day == block.day)\
                     .filter(or_(
-                        LessonBlockDB.start.between(block.start, block.start+block.length-0.5), # 0.5 to emulate < instead of <=
-                        and_(LessonBlockDB.start <= block.start, block.start < LessonBlockDB.start+LessonBlockDB.length)
+                        LessonBlockDB.start.between(block.start, block.start+block.length),
+                        and_(LessonBlockDB.start <= block.start, block.start <= LessonBlockDB.start+LessonBlockDB.length)
                     )).all()
     
     def is_teacher_available(self, teacher: Teacher, block: LessonBlockDB) -> bool:
