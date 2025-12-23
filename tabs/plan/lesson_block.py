@@ -24,7 +24,7 @@ class LessonBlock(BasicBlock):
         action = self.menu.exec(event.globalPos())
 
     def mouseMoveEvent(self, event):
-        colliding_blocks = [bl for bl in self.collidingItems() if isinstance(bl, BasicBlock)]
+        colliding_blocks = [bl for bl in self.collidingItems() if isinstance(bl, LessonBlock)]
         super().mouseMoveEvent(event, False)
 
         if self.isSelected() and self.flags() & QGraphicsRectItem.ItemIsMovable:
@@ -33,7 +33,7 @@ class LessonBlock(BasicBlock):
                 QToolTip.showText(event.screenPos(), self.time() + '\n' + collisions)
             else:
                 QToolTip.showText(event.screenPos(), self.time())
-            colliding_blocks.extend([bl for bl in self.collidingItems() if isinstance(bl, BasicBlock)])
+            colliding_blocks.extend([bl for bl in self.collidingItems() if isinstance(bl, LessonBlock)])
             for block in colliding_blocks:
                 block.draw_collisions()
 
