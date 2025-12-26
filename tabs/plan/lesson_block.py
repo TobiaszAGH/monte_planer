@@ -16,6 +16,8 @@ class LessonBlock(BasicBlock):
         self.text_items = {}
         # self.text_items = [BlockText(self, w, h) for n in range(]
 
+    def filter(self, l):
+        return True
 
 
     def contextMenuEvent(self, event):
@@ -95,6 +97,8 @@ class LessonBlock(BasicBlock):
                 item.draw_collisions()
 
     def paint(self, painter, option, widget = ...):
+        if not hasattr(self, 'block'):
+            return super().paint(painter, option)
         lessons = list(filter(self.filter, self.block.lessons))
         if settings.hide_empty_blocks and not len(lessons):
             self.hide()
