@@ -85,8 +85,8 @@ class MyView(QGraphicsView):
                 if l == 0:
                     return False
                 self.block_start = self.how_many_5_min_blocks(event)
-                self.new_block_top = snap_position(event.y(), self.five_min_h, self.top_bar_h)
-                self.new_block_left = snap_position(event.x(), self.block_w, self.left_bar_w)
+                self.new_block_top = snap_position(self.mapToScene(event.pos()).y(), self.five_min_h, self.top_bar_h)
+                self.new_block_left = snap_position(self.mapToScene(event.pos()).x(), self.block_w, self.left_bar_w)
                 if self.mode == 'new':
                     self.new_block = LessonBlock(self.new_block_left, self.new_block_top, self.block_w, self.five_min_h, self.scene(), self.db, self.classes)
                 elif self.mode == 'new_custom':
@@ -157,7 +157,7 @@ class MyView(QGraphicsView):
 
     
     def how_many_5_min_blocks(self, event):
-        y = event.y() - self.top_bar_h
+        y = self.mapToScene(event.pos()).y() - self.top_bar_h
         mins = y//self.five_min_h
         return mins
 
@@ -188,10 +188,10 @@ class MyView(QGraphicsView):
             # update block
             if self.new_block:
                 self.new_block.bring_forward()
-                cursor_x = snap_position(event.x(), self.block_w, self.left_bar_w)
+                cursor_x = snap_position(self.mapToScene(event.pos()).x(), self.block_w, self.left_bar_w)
                 x, width = self.calculate_x_w(cursor_x)
                 
-                new_block_bottom = snap_position(event.y(), self.five_min_h, self.top_bar_h)
+                new_block_bottom = snap_position(self.mapToScene(event.pos()).y(), self.five_min_h, self.top_bar_h)
                 height = abs(new_block_bottom - self.new_block_top)
                 y = min(new_block_bottom, self.new_block_top)
                 self.new_block.setRect(x, y, width, height)
