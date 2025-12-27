@@ -127,7 +127,6 @@ class LessonBlock(BasicBlock):
         else:
             rects = [self.rect()]
             buckets = {self.block.subclass: lessons}
-
         for rect, subclass, lessons in zip(rects, buckets.keys(), buckets.values()):
             if settings.hide_empty_blocks and not len(lessons):
                 continue
@@ -163,7 +162,9 @@ class LessonBlock(BasicBlock):
                 text_item.setDefaultTextColor(QColor('black'))
 
             # write on screen
-            text_item.set_lessons(lesson_names)
+            text_item.setHtml('')
+            if len(lesson_names):
+                text_item.set_lessons(lesson_names)
             text_item.add_time(self.block.start, self.block.length)
             text_item.add_classrooms('/'.join([l.classroom.name if l.classroom else '_' for l in lessons]))
             text_item.setZValue(self.zValue()+0.1)
@@ -173,6 +174,8 @@ class LessonBlock(BasicBlock):
 
 
     def draw_contents(self):
+        for text_item in self.text_items.values():
+            text_item.setHtml('')
         self.update()
     
     def draw_collisions(self):
