@@ -16,11 +16,11 @@ class FilterWidget(QWidget):
         main_layout.setColumnStretch(0,1)
         main_layout.setColumnStretch(1,2)
 
-        filter_selection = QComboBox()
+        self.filter_selection = QComboBox()
         items = 'Klasy Uczniowie Nauczyciele Sale'.split()
-        filter_selection.addItems(items)
-        filter_selection.currentIndexChanged.connect(self.select_filter)
-        main_layout.addWidget(filter_selection, 0, 0)
+        self.filter_selection.addItems(items)
+        self.filter_selection.currentIndexChanged.connect(self.select_filter)
+        main_layout.addWidget(self.filter_selection, 0, 0)
 
         self.stacked = QStackedWidget()
         self.stacked.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
@@ -57,6 +57,9 @@ class FilterWidget(QWidget):
         self.classroom_filter.layout().addWidget(self.classroom_list) 
         self.classroom_list.currentIndexChanged.connect(self.update_filter)
         self.stacked.layout().addWidget(self.classroom_filter)
+
+    def go_to_class_filter(self):
+        self.filter_selection.setCurrentIndex(0)
 
 
 
@@ -118,6 +121,8 @@ class FilterWidget(QWidget):
 
     def update_filter(self):
         index = self.stacked.currentIndex()
+        if index>0:
+            self.view.uncheck_all_modes()
         filters = [
             self.update_class_filter,
             self.update_student_filter,

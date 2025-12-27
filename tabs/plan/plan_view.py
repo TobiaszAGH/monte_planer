@@ -29,6 +29,10 @@ class MyView(QGraphicsView):
         def filter(l):
             return True
         self.filter_func = filter
+
+    def uncheck_all_modes(self):
+        self.parent().uncheck_all_modes()
+        self.set_mode('normal')
     
 
     def set_classes(self, classes):

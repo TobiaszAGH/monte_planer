@@ -19,12 +19,12 @@ class PlanWidget(QWidget):
 
         toolbar = QWidget()
         toolbar.setLayout(QHBoxLayout())
-        tool_add_block = ModeBtn("Nowy blok zajęciowy", self.set_mode_new, toolbar)
-        toolbar.layout().addWidget(tool_add_block)
-        tool_move_block = ModeBtn("Przesuwanie", self.set_mode_move ,toolbar)
-        toolbar.layout().addWidget(tool_move_block)
-        tool_add_custom = ModeBtn("Nowy blok", self.set_mode_new_custom ,toolbar)
-        toolbar.layout().addWidget(tool_add_custom)
+        self.tool_add_block = ModeBtn("Nowy blok zajęciowy", self.set_mode_new, toolbar)
+        toolbar.layout().addWidget(self.tool_add_block)
+        self.tool_move_block = ModeBtn("Przesuwanie", self.set_mode_move ,toolbar)
+        toolbar.layout().addWidget(self.tool_move_block)
+        self.tool_add_custom = ModeBtn("Nowy blok", self.set_mode_new_custom ,toolbar)
+        toolbar.layout().addWidget(self.tool_add_custom)
         self.scale_slider = QSlider(Qt.Horizontal, self)
         self.scale_slider.setMaximumWidth(150)
         self.scale_slider.setMinimum(100)
@@ -41,7 +41,7 @@ class PlanWidget(QWidget):
 
 
         self.view = MyView(self)
-        self.class_filter = FilterWidget(self, self.view, tool_add_custom)
+        self.class_filter = FilterWidget(self, self.view, self.tool_add_custom)
         
 
         layout.addWidget(self.class_filter)
@@ -56,12 +56,14 @@ class PlanWidget(QWidget):
         
     def set_mode_new(self, checked):
         if checked:
+            self.class_filter.go_to_class_filter()
             self.view.set_mode('new')
         else:
             self.view.set_mode('normal')
 
     def set_mode_new_custom(self, checked):
         if checked:
+            self.class_filter.go_to_class_filter()
             self.view.set_mode('new_custom')
             for button in self.class_filter.findChildren(QPushButton):
                 button.setChecked(True)
@@ -71,9 +73,15 @@ class PlanWidget(QWidget):
     
     def set_mode_move(self, checked):
         if checked:
+            self.class_filter.go_to_class_filter()
             self.view.set_mode('move')
         else:
             self.view.set_mode('normal')
+
+    def uncheck_all_modes(self):
+        self.tool_add_block.uncheck()
+        self.tool_add_custom.uncheck()
+        self.tool_move_block.uncheck()
     
     def load_data(self):
         self.class_filter.load_data()
