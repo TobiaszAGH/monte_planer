@@ -74,21 +74,41 @@ class PlanWidget(QWidget):
         scene = self.hidden_view.scene()
         parent_folder = QFileDialog.getExistingDirectory(self, 'Wybierz folder')
         rect = scene.sceneRect()
+
+        printer = QPrinter(QPrinter.HighResolution)
+
+        # set PDF output
+        printer.setOutputFormat(QPrinter.PdfFormat)
+        printer.setPaperSize(QPrinter.A4)
+        printer.setOrientation(QPrinter.Landscape)
+
+        # set paper format (A4, Letter, etc.)
+
+        # set orientation (Portrait or Landscape)
+
+
         pix = QPixmap(rect.size().toSize())
         for subclass in self.db.all_subclasses():
             os.makedirs(f'{parent_folder}/{subclass.full_name()}')
             subclass_folder = parent_folder
             for student in subclass.students:
+                filename = f'{parent_folder}/{subclass.full_name()}/{student.name}'
                 def filter_func(l):
                     return student in l.subject.students
                 self.hidden_view.filter_func = filter_func
                 self.hidden_view.set_classes([subclass])
                 self.hidden_view.draw()
+
                 pix.fill(Qt.white)
                 painter = QPainter(pix)
                 scene.render(painter)
+                pix.save(filename + '.png', 'PNG', 100)
                 painter.end()
-                pix.save(f'{parent_folder}/{subclass.full_name()}/{student.name}.png', 'PNG', 100)
+
+                printer.setOutputFileName(filename + '.pdf')
+                painter_pdf = QPainter(printer)
+                scene.render(painter_pdf)
+                painter_pdf.end()
 
         
         settings.hide_empty_blocks = False
