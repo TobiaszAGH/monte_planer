@@ -14,6 +14,7 @@ class LessonBlock(BasicBlock):
     def __init__(self, x, y, w, h, parent, db, visible_classes):
         super().__init__(x, y, w, h, parent, db, visible_classes)
         self.text_items = {}
+        # self.text_item
         # self.text_items = [BlockText(self, w, h) for n in range(]
 
     def filter(self, l):
@@ -96,9 +97,21 @@ class LessonBlock(BasicBlock):
             if isinstance(item, LessonBlock):
                 item.draw_collisions()
 
+
     def paint(self, painter, option, widget = ...):
         if not hasattr(self, 'block'):
             return super().paint(painter, option)
+        
+
+        rects, buckets, colors = self.get_rects()
+        for rect, color in zip(rects, colors):
+
+            brush = QBrush(color)
+            painter.fillRect(rect, brush)
+            painter.drawRect(rect)
+        super().paint(painter, option)
+
+    def get_rects(self):
         lessons = list(filter(self.filter, self.block.lessons))
         if settings.hide_empty_blocks and not len(lessons):
             self.hide()
@@ -129,6 +142,7 @@ class LessonBlock(BasicBlock):
             rects = [self.rect()]
             buckets = {self.block.subclass: lessons}
             show_full_subject_names = True
+        final_colors = []
         for rect, subclass, lessons in zip(rects, buckets.keys(), buckets.values()):
             if settings.hide_empty_blocks and not len(lessons):
                 continue
@@ -136,20 +150,32 @@ class LessonBlock(BasicBlock):
             colors = list(set([lesson.subject.color for lesson in lessons]))
             color = colors[0] if len(colors) == 1 else '#c0c0c0'
             color = QColor(color)
+            final_colors.append(color)
             # print(color)
-            brush = QBrush(color)
+        return rects, buckets, final_colors
 
-            painter.fillRect(rect, brush)
-            painter.drawRect(rect)
-
-            try:
-                text_item = self.text_items[subclass]
-            except:
-                text_item = BlockText(self, rect.width(), rect.height())
-                self.text_items[subclass] = text_item
-
+       
+    def write(self):
+        n=0
+        rects, buckets, colors = self.get_rects()
+        for rect, subclass, lessons, color in zip(rects, buckets.keys(), buckets.values(), colors):
+            rect = self.mapRectToScene(rect)
+            if settings.hide_empty_blocks and not len(lessons):
+                continue
+            # subclass, lessons = bucket
+            match(n):
+                case 0:
+                    text_item = self.text_item0
+                case 1:
+                    text_item = self.text_item1
+                case 2: 
+                    text_item = self.text_item2
+                case 3:
+                    text_item = self.text_item3
+            n+=1
+            
             text_item.set_h(rect.height())
-
+            # self.recenter_text(text_item, rect)
             text_item.setZValue(self.zValue()+0.1)
             text_item.setPos(rect.center().x() - text_item.boundingRect().width()/2,\
                     rect.top() + rect.height()/2 - text_item.boundingRect().height()/2)
@@ -164,20 +190,19 @@ class LessonBlock(BasicBlock):
                 text_item.setDefaultTextColor(QColor('black'))
 
             # write on screen
-            text_item.set_show_full_names(show_full_subject_names)
+            # text_item.set_show_full_names(show_full_subject_names)
             text_item.set_lessons(lessons)
             text_item.add_time(self.block.start, self.block.length)
             text_item.add_classrooms('/'.join([l.classroom.name if l.classroom else '_' for l in lessons]))
-            text_item.setZValue(self.zValue()+0.1)
+            text_item.setZValue(self.zValue()+0.2)
             text_item.shrink()
-        super().paint(painter, option, widget)
-        
-
+    
 
     def draw_contents(self):
         self.draw_collisions()
-        for text_item in self.text_items.values():
-            text_item.setHtml('')
+        self.write()
+        # for text_item in self.text_items.values():
+        #     text_item.setHtml('')
         self.update()
     
     def draw_collisions(self):
@@ -197,3 +222,9 @@ class LessonBlock(BasicBlock):
     
     def time(self):
         return f'{self.block.print_time()} ({self.block.length*5})'
+
+
+    def mouseMoveEvent(self, event):
+        super().mouseMoveEvent(event)
+        self.update()
+        self.write()

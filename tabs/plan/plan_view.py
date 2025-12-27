@@ -335,6 +335,7 @@ class MyView(QGraphicsView):
 
         if isinstance(block, LessonBlockDB):
             return LessonBlock(x, y, width, height, self.scene(), self.db, self.classes)
+            
         else:
             if not settings.draw_custom_blocks:
                 return
@@ -352,10 +353,15 @@ class MyView(QGraphicsView):
             new_block.start = block.start
             new_block.set_filter(self.filter_func)
             new_block.draw_contents()
+            try:
+                new_block.write()
+            except:
+                pass
 
             new_block.set_movable(self.mode=='move', self.five_min_h, self.top_bar_h)
             self.blocks.append(new_block)
             new_block.set_selectable(True)
+            new_block.update()
             self.scene().addItem(new_block)
 
 

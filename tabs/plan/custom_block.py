@@ -24,13 +24,13 @@ class CustomBlock(BasicBlock):
             self.db.update_custom_block_color(self.block, color.name())
 
             if contrast_ratio(color, QColor('black')) < 4.5:
-                self.text_item.setDefaultTextColor(QColor('#ffffff'))
+                self.text_item0.setDefaultTextColor(QColor('#ffffff'))
 
     def set_text(self):
-        placeholder = self.text_item.toPlainText().replace('\n', '<br>')
+        placeholder = self.text_item0.toPlainText().replace('\n', '<br>')
         text, ok = QInputDialog.getText(None, 'Podaj tekst', 'Tekst:', QLineEdit.Normal, placeholder) 
         if ok:
-            self.text_item.set_custom_text(text)
+            self.text_item0.set_custom_text(text)
             self.recenter_text()
             self.db.update_custom_block_text(self.block, text)
 
@@ -39,7 +39,11 @@ class CustomBlock(BasicBlock):
         color = QColor(self.block.color)
         # color.setAlpha(210)
         self.setBrush(color)
-        self.text_item.set_custom_text(self.block.text)
+        self.text_item0.set_custom_text(self.block.text)
         if contrast_ratio(color, QColor('black')) < 4.5:
-            self.text_item.setDefaultTextColor(QColor('#ffffff'))
+            self.text_item0.setDefaultTextColor(QColor('#ffffff'))
+        self.recenter_text()
+
+    def mouseMoveEvent(self, event, show_tooltip=True):
+        super().mouseMoveEvent(event, show_tooltip)
         self.recenter_text()

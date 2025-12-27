@@ -25,8 +25,16 @@ class BasicBlock(QGraphicsRectItem):
         # self.setBrush(QBrush(color))
         self.moved = False
         self.block: LessonBlockDB
-        self.text_item = BlockText(self, w, h)
-        self.parent.addItem(self.text_item)
+        self.text_item0 = BlockText(self, w, h)
+        self.text_item1 = BlockText(self, w, h)
+        self.text_item2 = BlockText(self, w, h)
+        self.text_item3 = BlockText(self, w, h)
+        self.text_item4 = BlockText(self, w, h)
+        self.parent.addItem(self.text_item0)
+        self.parent.addItem(self.text_item1)
+        self.parent.addItem(self.text_item2)
+        self.parent.addItem(self.text_item3)
+        self.parent.addItem(self.text_item4)
         self.visible_classes = visible_classes
         self.setAcceptHoverEvents(True)
 
@@ -43,7 +51,7 @@ class BasicBlock(QGraphicsRectItem):
 
     def delete(self):
         self.parent.removeItem(self)
-        self.parent.removeItem(self.text_item)
+        self.parent.removeItem(self.text_item0)
         if hasattr(self, 'block'):
             self.db.delete_block(self.block)
 
@@ -53,14 +61,14 @@ class BasicBlock(QGraphicsRectItem):
             if z_values:
                 z = min(z_values) - 1
                 self.setZValue(z)
-                self.text_item.setZValue(z+0.1)
+                self.text_item0.setZValue(z+0.1)
 
     def bring_forward(self):
         z_values = [item.zValue()  for item in self.collidingItems() if isinstance(item, BasicBlock)]
         if z_values:
             z = max(z_values) + 1
             self.setZValue(z)
-            self.text_item.setZValue(z+0.1)
+            self.text_item0.setZValue(z+0.1)
 
     def set_selectable(self, on:bool):
         self.setFlag(QGraphicsRectItem.GraphicsItemFlag.ItemIsSelectable, on)
@@ -106,20 +114,22 @@ class BasicBlock(QGraphicsRectItem):
                 QToolTip.showText(event.screenPos(), time)
 
             # move text
-            self.recenter_text()
+            # self.recenter_text()
 
             # update database 
             self.db.update_block_start(self.block, start)
 
 
-    def recenter_text(self):
-        if not self.text_item:
-            return False
-        self.text_item.set_h(self.rect().height())
-        self.text_item.shrink()
-        self.text_item.setZValue(self.zValue()+0.1)
-        self.text_item.setPos(self.rect().center().x() - self.text_item.boundingRect().width()/2,\
-                            self.y_in_scene() + self.rect().height()/2 - self.text_item.boundingRect().height()/2)
+    def recenter_text(self, text_item=None, rect=None):
+        if not rect:
+            rect = self.rect()
+        if not text_item:
+            text_item = self.text_item0
+        text_item.set_h(rect.height())
+        text_item.shrink()
+        text_item.setZValue(self.zValue()+0.1)
+        text_item.setPos(rect.center().x() - text_item.boundingRect().width()/2,\
+                            self.y_in_scene() + rect.height()/2 - text_item.boundingRect().height()/2)
         
     def other_subclasses_visible(self):
         my_class = self.block.parent().get_class()
