@@ -32,10 +32,11 @@ class BlockText(QGraphicsTextItem):
         cursor.select(QTextCursor.Document)
         cursor.setCharFormat(QTextCharFormat())  # reset formatting
         self.setFont(QFont())
-        # print(self.toPlainText())
         font = self.font()
+        font.setPointSize(8)
         size = font.pointSize()
-        if self.is_wrapping() and hasattr(self, 'lessons') and len(self.lessons):
+        
+        if self.text_too_big() and hasattr(self, 'lessons') and len(self.lessons):
             self.shorten_names()
         while self.text_too_big() and size >=4:
             size -= 0.2

@@ -7,7 +7,8 @@ from data import Data
 from .mode_btn import ModeBtn
 from .plan_view import MyView
 from.filter import FilterWidget
-from time import sleep
+from db_config import settings
+import os
         
 
 class PlanWidget(QWidget):
@@ -44,10 +45,7 @@ class PlanWidget(QWidget):
 
         export_btn = QPushButton('Eksportuj')
         toolbar.layout().addWidget(export_btn)
-        export_btn.clicked.connect(self.render_scene_to_pixmap)
-        # resize_btn = QPushButton('Resize')
-        # toolbar.layout().addWidget(resize_btn)
-        # resize_btn.clicked.connect(self.resize_view)
+        export_btn.clicked.connect(self.render_plans_for_students)
 
         self.view = MyView(self)
         self.hidden_view = MyView(self)
@@ -64,11 +62,40 @@ class PlanWidget(QWidget):
 
         layout.addWidget(self.class_filter)
         layout.addWidget(toolbar)
-        # layout.addWidget(self.hidden_view)
-        # self.hidden_view.show()
-        # self.hidden_view.hide()
         layout.addWidget(self.view)
         self.load_data()
+
+    def render_plans_for_students(self):
+        
+        settings.hide_empty_blocks = True
+        settings.draw_blocks_full_width = False
+        settings.draw_custom_blocks = True
+
+        scene = self.hidden_view.scene()
+        parent_folder = QFileDialog.getExistingDirectory(self, 'Wybierz folder')
+        rect = scene.sceneRect()
+        pix = QPixmap(rect.size().toSize())
+        for subclass in self.db.all_subclasses():
+            os.makedirs(f'{parent_folder}/{subclass.full_name()}')
+            subclass_folder = parent_folder
+            for student in subclass.students:
+                def filter_func(l):
+                    return student in l.subject.students
+                self.hidden_view.filter_func = filter_func
+                self.hidden_view.set_classes([subclass])
+                self.hidden_view.draw()
+                pix.fill(Qt.white)
+                painter = QPainter(pix)
+                scene.render(painter)
+                painter.end()
+                pix.save(f'{parent_folder}/{subclass.full_name()}/{student.name}.png', 'PNG', 100)
+
+        
+        settings.hide_empty_blocks = False
+        settings.draw_blocks_full_width = False
+        settings.draw_custom_blocks = True
+
+
 
     def render_scene_to_pixmap(self):
         self.container.show()
