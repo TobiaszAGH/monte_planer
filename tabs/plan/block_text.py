@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QGraphicsTextItem
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QTextOption, QFont, QTextCursor, QTextCharFormat
+from functions import display_hour
 
 
 class BlockText(QGraphicsTextItem):
@@ -33,7 +34,7 @@ class BlockText(QGraphicsTextItem):
             self.setFont(font)
 
     def shorten_names(self) -> None:
-        self.setHtml('<br>'.join([l[1] for l in self.lessons]) + '<br>' + self.classrooms)
+        self.setHtml('<br>'.join([l[1] for l in self.lessons]) + '<br>' + self.time + '<br>' + self.classrooms)
 
     def text_too_big(self) -> bool:
         wrapping = self.document().begin().layout().lineCount() > self.row_num
@@ -42,7 +43,7 @@ class BlockText(QGraphicsTextItem):
     
     def set_lessons(self, lessons):
         self.lessons = lessons
-        self.row_num = len(lessons) + 1
+        self.row_num = len(lessons) + 2
         self.setHtml('<br>'.join([l[0] for l in lessons]))
 
     def set_h(self, h):
@@ -51,6 +52,10 @@ class BlockText(QGraphicsTextItem):
     def add_classrooms(self, classrooms: str):
         self.classrooms = classrooms
         self.setHtml(self.toHtml() + classrooms)
+
+    def add_time(self, start, length):
+        self.time = f'{display_hour(start)}-{display_hour(start+length)}'
+        self.setHtml(self.toHtml() + self.time)
 
     def set_custom_text(self, text):
         self.setHtml(text)
