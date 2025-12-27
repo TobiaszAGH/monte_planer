@@ -148,7 +148,10 @@ class MyView(QGraphicsView):
                 n_of_classes = int(self.new_block.boundingRect().width()//self.block_w)
                 classes = self.classes[i:i+n_of_classes]
                 subclasses = [s.subclasses[0] if isinstance(s, Class) else s for s in classes]
-                block = self.db.create_custom_block(day, start, length, subclasses)
+                block: CustomBlock = self.db.create_custom_block(day, start, length, subclasses)
+                self.new_block.block = block
+                self.new_block.pick_color()
+                self.new_block.set_text()
 
             # print(my_class.full_name())
             self.new_block.block = block

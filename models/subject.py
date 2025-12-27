@@ -29,10 +29,10 @@ class Subject(Base):
         else:
             return f'{self.name} {self.subclass.full_name() if full_subclass_name or settings.draw_blocks_full_width else self.subclass.name.upper()}'
     
-    def short_full_name(self):
+    def short_full_name(self, full_subclass_name = False):
         if self.my_class:
             return self.short_name + ' R'
         else:
-            return f'{self.short_name} {self.subclass.name.upper()}'
+            return f'{self.short_name} {self.subclass.full_name() if full_subclass_name or settings.draw_blocks_full_width else self.subclass.name.upper()}'
     
 

@@ -20,7 +20,6 @@ class CustomBlock(BasicBlock):
     def pick_color(self):
         color = QColorDialog.getColor(QColor(self.block.color))
         if color.isValid():
-            color.setAlpha(210)
             self.setBrush(color)
             self.db.update_custom_block_color(self.block, color.name())
 
@@ -38,7 +37,7 @@ class CustomBlock(BasicBlock):
     def draw_contents(self):
 
         color = QColor(self.block.color)
-        color.setAlpha(210)
+        # color.setAlpha(210)
         self.setBrush(color)
         self.text_item.set_custom_text(self.block.text)
         if contrast_ratio(color, QColor('black')) < 4.5:

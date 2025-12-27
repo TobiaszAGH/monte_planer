@@ -82,7 +82,7 @@ class FilterWidget(QWidget):
 
     def update_student_filter(self):
         settings.hide_empty_blocks = True
-        settings.draw_blocks_full_width = True
+        settings.draw_blocks_full_width = False
         settings.draw_custom_blocks = True
         student = self.student_list.currentData()
         if not student:
