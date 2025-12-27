@@ -37,7 +37,7 @@ class LessonBlock(BasicBlock):
 
     def mouseMoveEvent(self, event):
         colliding_blocks = [bl for bl in self.collidingItems() if isinstance(bl, LessonBlock)]
-        super().mouseMoveEvent(event, False)
+        super().mouseMoveEvent(event, True)
 
         if self.isSelected() and self.flags() & QGraphicsRectItem.ItemIsMovable:
             collisions = self.draw_collisions()

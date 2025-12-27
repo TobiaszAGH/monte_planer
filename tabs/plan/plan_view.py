@@ -169,14 +169,9 @@ class MyView(QGraphicsView):
         QToolTip.showText(QPoint(), '')
 
     def mouseMoveEvent(self, event):
-        super().mouseMoveEvent(event)
-        if self.mode in ('new', 'new_custom'):
-            # stop if moved out of bounds:
-            if (event.y() < self.top_bar_h or event.x() < self.left_bar_w):
-                self.drop_new_block()
-                return
-            
-            # show tooltip
+        # show tooltip
+        item = self.itemAt(event.pos())
+        if not item or self.new_block:
             now = self.how_many_5_min_blocks(event)
             times = [now, self.block_start] if self.block_start >=0 else [now]
             times.sort()
@@ -184,8 +179,18 @@ class MyView(QGraphicsView):
             if self.block_start>=0:
                 msg += f' ({int(abs(now-self.block_start)*5)})'
             QToolTip.showText(event.globalPos(), msg)
+        else:
+            QToolTip.showText(event.globalPos(), '')
 
-            # update block
+
+        super().mouseMoveEvent(event)
+        if self.mode in ('new', 'new_custom'):
+            # stop if moved out of bounds:
+            if (event.y() < self.top_bar_h or event.x() < self.left_bar_w):
+                self.drop_new_block()
+                return
+            
+                        # update block
             if self.new_block:
                 self.new_block.bring_forward()
                 cursor_x = snap_position(self.mapToScene(event.pos()).x(), self.block_w, self.left_bar_w)

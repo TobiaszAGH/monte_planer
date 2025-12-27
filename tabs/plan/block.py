@@ -28,6 +28,8 @@ class BasicBlock(QGraphicsRectItem):
         self.text_item = BlockText(self, w, h)
         self.parent.addItem(self.text_item)
         self.visible_classes = visible_classes
+        self.setAcceptHoverEvents(True)
+
 
     def mousePressEvent(self, event):
         self.moved = True
@@ -36,6 +38,8 @@ class BasicBlock(QGraphicsRectItem):
                 item.setSelected(False)
             self.start_x = self.x()
         super().mousePressEvent(event)
+
+
 
     def delete(self):
         self.parent.removeItem(self)
