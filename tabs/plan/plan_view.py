@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QToolTip, QGraphicsTextItem
-from PyQt5.QtGui import QPen, QColor
+from PyQt5.QtGui import QPen, QColor, QBrush
 from PyQt5.QtCore import QPoint, Qt
 from .lesson_block import LessonBlock
 from .custom_block import CustomBlock
@@ -92,6 +92,8 @@ class MyView(QGraphicsView):
                 elif self.mode == 'new_custom':
                     self.new_block = CustomBlock(self.new_block_left, self.new_block_top, self.block_w, self.five_min_h, self.scene(), self.db, self.classes)
                 self.new_block.bring_forward()
+                self.new_block.setBrush(QBrush(QColor('#c0c0c0')))
+                
                 self.scene().addItem(self.new_block)
             elif event.button() == Qt.MouseButton.RightButton:
                 self.drop_new_block()
@@ -114,6 +116,7 @@ class MyView(QGraphicsView):
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
         if self.new_block:
+            self.new_block.setBrush(QColor(0,0,0,0))
             # drop block if it has no length:
             if self.new_block.boundingRect().height() < self.five_min_h:
                 self.new_block.delete()

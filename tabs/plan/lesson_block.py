@@ -162,9 +162,7 @@ class LessonBlock(BasicBlock):
                 text_item.setDefaultTextColor(QColor('black'))
 
             # write on screen
-            text_item.setHtml('')
-            if len(lesson_names):
-                text_item.set_lessons(lesson_names)
+            text_item.set_lessons(lesson_names)
             text_item.add_time(self.block.start, self.block.length)
             text_item.add_classrooms('/'.join([l.classroom.name if l.classroom else '_' for l in lessons]))
             text_item.setZValue(self.zValue()+0.1)
