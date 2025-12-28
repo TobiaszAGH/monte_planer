@@ -209,3 +209,6 @@ __marimo__/
 # project specific
 data.vts
 *.db
+output/
+db_name
+*.mtp

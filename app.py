@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
             db_name = f.read().strip()
             if not db_name:
                 db_name = 'planer.mtp'
-            f.write(db_name)
+                f.write(db_name)
 
         self.db = Data(db_name)
 
