@@ -24,7 +24,7 @@ class BlockText(QGraphicsTextItem):
         self.lessons = []
         self.show_full_names = False
 
-    def shrink(self):
+    def shrink(self, size = 16):
         if not self.toHtml():
             return
         
@@ -36,7 +36,6 @@ class BlockText(QGraphicsTextItem):
         # self.setFont(QFont())
         # initial font size
         font = QFont()
-        size = 16
         font.setPointSize(size)
         self.setFont(font)
         while self.text_too_big() and size >=4:
@@ -126,9 +125,10 @@ class BlockText(QGraphicsTextItem):
             lines.append(time)
             lines.append('/'.join([l.classroom.name if l.classroom else '_'for l in lessons ]))
             self.setHtml('<br>'.join(lines))
+            self.shrink()
         else:
             self.setHtml(time)
-        self.shrink()
+            self.shrink(12)
         
 
 

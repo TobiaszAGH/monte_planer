@@ -83,8 +83,16 @@ class PlanWidget(QWidget):
 
         pix = QPixmap(rect.size().toSize())
         for subclass in self.db.all_subclasses():
-            os.makedirs(f'{parent_folder}/{subclass.full_name()}')
-            subclass_folder = parent_folder
+            os.makedirs(f'{parent_folder}/{subclass.full_name()}', exist_ok=True)
+            def filter_func(l):
+                return l.subject.parent() in [subclass, subclass.my_class]
+            self.hidden_view.filter_func = filter_func
+            self.hidden_view.set_classes([subclass])
+            self.hidden_view.draw()
+
+            filename = f'{parent_folder}/{subclass.full_name()}/{subclass.full_name()}'
+            self.render(filename, pix, printer, scene)
+
             for student in subclass.students:
                 filename = f'{parent_folder}/{subclass.full_name()}/{student.name}'
                 def filter_func(l):
@@ -93,21 +101,50 @@ class PlanWidget(QWidget):
                 self.hidden_view.set_classes([subclass])
                 self.hidden_view.draw()
 
-                pix.fill(Qt.white)
-                painter = QPainter(pix)
-                scene.render(painter)
-                pix.save(filename + '.png', 'PNG', 100)
-                painter.end()
+                self.render(filename, pix, printer, scene)
 
-                printer.setOutputFileName(filename + '.pdf')
-                painter_pdf = QPainter(printer)
-                scene.render(painter_pdf)
-                painter_pdf.end()
+        settings.draw_custom_blocks = False
+        settings.draw_blocks_full_width = True
 
-        
+        os.makedirs(f'{parent_folder}/nauczyciele', exist_ok=True)
+        for teacher in self.db.read_all_teachers():
+            filename = f'{parent_folder}/nauczyciele/{teacher.name}'
+            def filter_func(l):
+                return l.subject.teacher == teacher
+            self.hidden_view.filter_func = filter_func
+            self.hidden_view.set_classes(self.db.all_subclasses())
+            self.hidden_view.draw()
+
+            self.render(filename, pix, printer, scene)
+
+        os.makedirs(f'{parent_folder}/sale', exist_ok=True)
+        for classroom in self.db.all_classrooms():
+            filename = f'{parent_folder}/sale/{classroom.name}'
+            def filter_func(l):
+                return l.classroom == classroom
+            self.hidden_view.filter_func = filter_func
+            self.hidden_view.set_classes(self.db.all_subclasses())
+            self.hidden_view.draw()
+
+            self.render(filename, pix, printer, scene)
+
+
+                       
         settings.hide_empty_blocks = False
         settings.draw_blocks_full_width = False
         settings.draw_custom_blocks = True
+
+    def render(self, filename, pix, printer, scene):
+        pix.fill(Qt.white)
+        painter = QPainter(pix)
+        scene.render(painter)
+        pix.save(filename + '.png', 'PNG', 100)
+        painter.end()
+
+        printer.setOutputFileName(filename + '.pdf')
+        painter_pdf = QPainter(printer)
+        scene.render(painter_pdf)
+        painter_pdf.end()
 
 
 
@@ -166,7 +203,7 @@ class PlanWidget(QWidget):
     
     def load_data(self):
         self.class_filter.load_data()
-        if self.class_filter.classes:
+        if self.class_filter.filter_selection.currentText() == 'Klasy':
             self.view.set_classes(self.class_filter.classes)
             self.view.draw()
             self.hidden_view.set_classes(self.class_filter.classes)
