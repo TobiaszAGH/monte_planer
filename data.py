@@ -312,22 +312,22 @@ class Data():
 
         # students
         collisions = [
-            f'{subject.name}: Niektórzy uczniowie mają {les.name_and_time()}'
+            f'{subject.get_name()}: Niektórzy uczniowie mają {les.name_and_time()}'
             for les in self.get_collisions_for_students_at_block(subject.students, lesson.block)
             if les is not lesson]
         
         # teacher
         collisions.extend([
-            f'{subject.name}: {subject.teacher.name} prowadzi {les.name_and_time()}'
+            f'{subject.get_name()}: {subject.teacher.name} prowadzi {les.name_and_time()}'
             for les in self.get_collisions_for_teacher_at_block(subject.teacher, lesson.block)
             if les is not lesson])
         
         if subject.teacher and not self.is_teacher_available(subject.teacher, lesson.block):
-            collisions.append(f'{subject.name}: {subject.teacher.name} nie jest dostępny w tych godzinach')
+            collisions.append(f'{subject.get_name()}: {subject.teacher.name} nie jest dostępny w tych godzinach')
         
         # classroom
         collisions.extend([
-            f'{subject.name}: {lesson.classroom.name} jest zajęte przez {les.name_and_time()}'
+            f'{subject.get_name()}: {lesson.classroom.name} jest zajęte przez {les.name_and_time()}'
             for les in self.get_collisions_for_classroom_at_block(lesson.classroom, lesson.block)
             if les is not lesson])
         

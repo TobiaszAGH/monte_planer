@@ -35,7 +35,7 @@ class LessonBlock(BasicBlock):
 
     def mouseMoveEvent(self, event):
         colliding_blocks = [bl for bl in self.collidingItems() if isinstance(bl, LessonBlock)]
-        super().mouseMoveEvent(event, True)
+        super().mouseMoveEvent(event, False)
 
         if self.isSelected() and self.flags() & QGraphicsRectItem.ItemIsMovable:
             collisions = self.draw_collisions()
@@ -46,6 +46,7 @@ class LessonBlock(BasicBlock):
             colliding_blocks.extend([bl for bl in self.collidingItems() if isinstance(bl, LessonBlock)])
             for block in colliding_blocks:
                 block.draw_collisions()
+        self.draw_contents()
 
     def add_subject(self):
         dialog = AddLessonToBlockDialog(self)
@@ -99,6 +100,7 @@ class LessonBlock(BasicBlock):
 
 
     def paint(self, painter, option, widget = ...):
+        super().paint(painter, option)
         if not hasattr(self, 'block'):
             return super().paint(painter, option)
         
@@ -111,7 +113,6 @@ class LessonBlock(BasicBlock):
             brush = QBrush(color)
             painter.fillRect(rect, brush)
             painter.drawRect(rect)
-        super().paint(painter, option)
 
     def get_rects(self):
         lessons = list(filter(self.filter, self.block.lessons))
@@ -209,6 +210,7 @@ class LessonBlock(BasicBlock):
 
         if collisions:
             self.setPen(QPen(QBrush(Qt.red),4))
+            # QToolTip.showText(self.mapRectToScene(self.boundingRect().topLeft().toPoint()), self.time() + '\n' + collisions)
             self.setToolTip(self.time() + '\n' + collisions)
         else:
             self.setPen(QPen())
@@ -217,9 +219,3 @@ class LessonBlock(BasicBlock):
     
     def time(self):
         return f'{self.block.print_time()} ({self.block.length*5})'
-
-
-    def mouseMoveEvent(self, event):
-        super().mouseMoveEvent(event)
-        self.update()
-        self.write()
