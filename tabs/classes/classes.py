@@ -91,6 +91,7 @@ class ClassesWidget(QWidget):
             try:
                 my_class = self.db.create_class(class_name)
                 self.list.addItem(my_class.name, my_class)
+                self.list.setCurrentText(my_class.name)
             except IntegrityError:
                 QMessageBox.warning(self, 'Uwaga', 'Taka klasa już istnieje')
 
@@ -120,11 +121,15 @@ class ClassesWidget(QWidget):
         return func
 
     def load_data(self, db):
+        opened_class = self.list.currentText()
         self.db = db
         self.list.clear()
         for cl in self.db.all_classes():    
             self.list.addItem(cl.name, cl)
-    
+        try:
+            self.list.setCurrentText(opened_class)
+        except:
+            pass
     def load_class(self):
         #clear widget
         for i in range(self.container_layout.count()):
@@ -187,6 +192,8 @@ class ClassesWidget(QWidget):
             remove_subclass_btn = QPushButton('Usuń podklasę')
             remove_subclass_btn.clicked.connect(self.remove_subclass(subclass))
             bottom_button_group.addWidget(remove_subclass_btn)
+        
+            pass
 
     def add_subject_to_student(self, subclass: str, student_list:QWidget):
         def func():

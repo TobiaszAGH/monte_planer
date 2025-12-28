@@ -107,9 +107,9 @@ class TeachersWidget(QWidget):
         top_row = QHBoxLayout()
         self.list = QComboBox(self)
         self.list.currentIndexChanged.connect(self.load_teacher_av)
-        self.list.setEditable(True)
-        self.list.setInsertPolicy(QComboBox.InsertAtCurrent)
-        self.list.lineEdit().returnPressed.connect(self.update_teacher_name)
+        # self.list.setEditable(True)
+        # self.list.setInsertPolicy(QComboBox.InsertAtCurrent)
+        # self.list.lineEdit().returnPressed.connect(self.update_teacher_name)
         top_row.addWidget(self.list)
 
         self.new_teacher_btn = QPushButton('Dodaj Nauczyciela')
@@ -193,9 +193,14 @@ class TeachersWidget(QWidget):
 
 
     def load_data(self, db):
+        opened_teacher = self.list.currentText()
         self.db = db
         self.list.clear()
         for teacher in self.db.read_all_teachers():
             self.list.addItem(teacher.name, teacher)
         if self.list.currentText():
             self.frame.show()
+        try:
+            self.list.setCurrentText(opened_teacher)
+        except:
+            pass

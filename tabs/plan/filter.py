@@ -151,10 +151,18 @@ class FilterWidget(QWidget):
             self.student_list.addItem(student.name, student)
 
     def load_data(self, db):
+        opened_class = self.student_class_selection.currentText()
+        opened_student = self.student_list.currentText()
+        opened_teacher = self.teacher_list.currentText()
+        opened_classroom = self.classroom_list.currentText()
+
         self.db = db
         self.classes = self.db.all_subclasses()
-            
+        
+        checked_classes = []
         for widget in self.findChildren(QPushButton):
+            if widget.isChecked():
+                checked_classes.append(widget.text())
             widget.deleteLater()
         self.student_class_selection.clear()
         self.teacher_list.clear()
@@ -174,6 +182,28 @@ class FilterWidget(QWidget):
 
         for classroom in self.db.all_classrooms():
             self.classroom_list.addItem(classroom.name, classroom)
+
+        match(self.filter_selection.currentIndex()):
+            case 0: # klasy
+                for widget in self.findChildren(QPushButton):
+                    widget.setChecked(widget.text() in checked_classes or not len(checked_classes))
+                    self.update_class_filter()
+            case 1: # uczniowie
+                try:
+                    self.student_class_selection.setCurrentText(opened_class)
+                    self.student_list.setCurrentText(opened_student)
+                except:
+                    pass
+            case 2: # nauczyciele
+                try:
+                    self.teacher_list.setCurrentText(opened_teacher)
+                except:
+                    pass
+            case 3: # sale
+                try: 
+                    self.classroom_list.setCurrentText(opened_classroom)
+                except:
+                    pass
 
 
 

@@ -20,7 +20,6 @@ class Data():
 
     # teachers
     def create_teacher(self, name, availability = [0]*5):
-        print(availability)
         teacher = Teacher(name=name, av=availability)
         try:
             self.session.add(teacher)

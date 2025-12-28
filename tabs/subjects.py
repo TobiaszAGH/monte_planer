@@ -210,7 +210,7 @@ class SubjectsWidget(QWidget):
         for n in range(self.lessons.count()):
             self.lessons.itemAt(n).widget().deleteLater()
         for lesson in subject.lessons:
-            suffix = f' ({lesson.block.print_full_time()})' if lesson.block else '(nieprzypisana)'
+            suffix = f' ({lesson.block.print_full_time()})' if lesson.block else ''
             btn = QPushButton(str(lesson.length) + suffix)
             btn.lesson = lesson
             self.lessons.addWidget(btn)
@@ -310,6 +310,10 @@ class SubjectsWidget(QWidget):
         self.db.update_subject_classroom(subject, classroom)
 
     def load_data(self, db):
+        opened_class = self.class_list.currentText()
+        opened_subclass = self.type_list.currentText()
+        opened_subject = self.list.currentText()
+
         self.db = db
         self.teacher_list.clear()
         self.teacher_list.addItem('')
@@ -325,4 +329,10 @@ class SubjectsWidget(QWidget):
             self.classroom_list.addItem(classroom.name, classroom)
         self.classroom_list.blockSignals(False)
 
+        try:
+            self.class_list.setCurrentText(opened_class)
+            self.type_list.setCurrentText(opened_subclass)
+            self.list.setCurrentText(opened_subject)
+        except:
+            pass
         self.load_subject()
