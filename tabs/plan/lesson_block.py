@@ -63,10 +63,13 @@ class LessonBlock(BasicBlock):
             self.db.add_lesson_to_block(lesson, self.block)
         
             # update visuals
+            for n in range(5):
+                self.__getattribute__(f'text_item{n}').setHtml('')
             if old_block:
                 old_block_item: LessonBlock = [bl for bl in self.parent.items() if isinstance(bl, LessonBlock) and bl.block==old_block][0]
                 old_block_item.draw_contents()
             self.draw_contents()
+
 
     def remove_lesson(self):
         if not self.block.lessons:
@@ -151,14 +154,15 @@ class LessonBlock(BasicBlock):
         return rects, buckets, final_colors
 
        
-    def write(self):
+    def write(self, specify_class=False):
         n=0
         rects, buckets, colors = self.get_rects()
         for rect, subclass, lessons, color in zip(rects, buckets.keys(), buckets.values(), colors):
-            rect = self.mapRectToScene(rect)
+            
             if settings.hide_empty_blocks and not len(lessons):
                 continue
-            # subclass, lessons = bucket
+
+            rect = self.mapRectToScene(rect)
             match(n):
                 case 0:
                     text_item = self.text_item0
@@ -181,13 +185,10 @@ class LessonBlock(BasicBlock):
                 text_item.setDefaultTextColor(QColor('black'))
 
             # write on screen
-            # text_item.set_lessons(lessons)
-            # text_item.add_time(self.block.start, self.block.length)
-            # text_item.add_classrooms('/'.join([l.classroom.name if l.classroom else '_' for l in lessons]))
-            text_item.setZValue(self.zValue()+0.2)
-            text_item.write_lessons(lessons, self.block.start, self.block.length)
+            specify_subclass = len([l for l in lessons if not l.subject.basic]) or specify_class
+            text_item.write_lessons(lessons, self.block.start, self.block.length, specify_class, specify_subclass)
             # recenter
-            text_item.setZValue(self.zValue()+0.1)
+            text_item.setZValue(self.zValue()+0.2)
             text_item.setPos(rect.center().x() - text_item.boundingRect().width()/2,\
                     rect.top() + rect.height()/2 - text_item.boundingRect().height()/2)
     

@@ -273,7 +273,9 @@ class MyView(QGraphicsView):
             text_y = (self.top_bar_h/2 - text.boundingRect().height()/2)\
                 /(2 if not settings.draw_blocks_full_width else 1)
             text.setPos(text_x, text_y)
-        if l>0 and not settings.draw_blocks_full_width:
+        self.draw_headers = l>0 and not settings.draw_blocks_full_width
+        if self.draw_headers:
+            
             scene.addLine(self.left_bar_w, self.top_bar_h/2, self.scene_width, self.top_bar_h/2)
             self.block_w = self.day_w/l
             for i in range(5):
@@ -354,7 +356,7 @@ class MyView(QGraphicsView):
             new_block.set_filter(self.filter_func)
             new_block.draw_contents()
             try:
-                new_block.write()
+                new_block.write(not self.draw_headers)
             except:
                 pass
 

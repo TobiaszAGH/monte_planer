@@ -116,17 +116,13 @@ class BlockText(QGraphicsTextItem):
     def set_custom_text(self, text):
         self.setHtml(text)
 
-    def write_lessons(self, lessons, start, length):
+    def write_lessons(self, lessons, start, length, show_class, show_subclass):
         time = f'{display_hour(start)}-{display_hour(start+length)}'
         if len(lessons):
-            lines = [l.subject.full_name() 
-                    if self.show_full_names or settings.draw_blocks_full_width
-                    else l.subject.get_name() for l in lessons]
+            lines = [l.subject.get_name(False, show_class, show_subclass) for l in lessons]
             self.setHtml('<br>'.join(lines))
             if self.is_wrapping() or self.boundingRect().width() > self.w:
-                lines = [l.subject.short_full_name() 
-                    if self.show_full_names or settings.draw_blocks_full_width
-                    else l.subject.get_short_name() for l in lessons]
+                lines = [l.subject.get_name(True, show_class, show_subclass) for l in lessons]
             lines.append(time)
             lines.append('/'.join([l.classroom.name if l.classroom else '_'for l in lessons ]))
             self.setHtml('<br>'.join(lines))

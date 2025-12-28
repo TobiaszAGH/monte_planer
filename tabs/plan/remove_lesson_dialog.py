@@ -12,9 +12,12 @@ class RemoveLessonFromBlockDialog(QDialog):
         self.list = QComboBox()
         layout.addWidget(self.list)
 
+        represented_subclasses = list(set([lesson.subject.parent().name for lesson in lessons]))
+        show_subclass_name = len(represented_subclasses)>1
+
 
         for lesson in lessons:
-            self.list.addItem(lesson.subject.full_name(), lesson) 
+            self.list.addItem(lesson.subject.get_name(short=False, show_subclass_name=show_subclass_name), lesson) 
 
         buttonBox = QDialogButtonBox()
         layout.addWidget(buttonBox)

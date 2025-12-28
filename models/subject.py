@@ -22,6 +22,9 @@ class Subject(Base):
             return self.my_class
         if self.subclass:
             return self.subclass
+        
+    def class_name(self):
+        return self.my_class.name if self.my_class else self.subclass.my_class.name
 
     def get_name(self):
         return f'{self.name}' + (' R' if self.my_class else '')
@@ -40,5 +43,18 @@ class Subject(Base):
             return self.short_name + ' R'
         else:
             return f'{self.short_name} {self.subclass.full_name() if full_subclass_name or settings.draw_blocks_full_width else self.subclass.name.upper()}'
+        
+    def get_name(self, short=False, show_class_name = False, show_subclass_name = False):
+        name = self.short_name if short else self.name
+        class_name = ''
+        if show_class_name:
+            class_name += self.class_name()
+        if show_subclass_name:
+            class_name += 'R' if self.my_class else self.subclass.name.upper()
+        if class_name:
+            name += ' ' + class_name
+        return name
+        
+        
     
 
