@@ -22,6 +22,12 @@ class Subject(Base):
             return self.my_class
         if self.subclass:
             return self.subclass
+
+    def get_name(self):
+        return f'{self.name}' + (' R' if self.my_class else '')
+    
+    def get_short_name(self):
+        return f'{self.short_name}' + (' R' if self.my_class else '')
         
     def full_name(self, full_subclass_name = False):
         if self.my_class:

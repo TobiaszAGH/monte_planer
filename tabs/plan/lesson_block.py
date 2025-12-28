@@ -14,12 +14,9 @@ class LessonBlock(BasicBlock):
     def __init__(self, x, y, w, h, parent, db, visible_classes):
         super().__init__(x, y, w, h, parent, db, visible_classes)
         self.text_items = {}
-        # self.text_item
-        # self.text_items = [BlockText(self, w, h) for n in range(]
 
     def filter(self, l):
         return True
-
 
     def contextMenuEvent(self, event):
         super().contextMenuEvent(event)
@@ -129,7 +126,7 @@ class LessonBlock(BasicBlock):
                 return
             
             width = r.width()/n_of_buckets
-            height = r.height()
+            height = r.height() 
             y = r.top()
             for n in range(n_of_buckets):
                 x = r.left()
@@ -151,7 +148,6 @@ class LessonBlock(BasicBlock):
             color = colors[0] if len(colors) == 1 else '#c0c0c0'
             color = QColor(color)
             final_colors.append(color)
-            # print(color)
         return rects, buckets, final_colors
 
        
@@ -175,13 +171,8 @@ class LessonBlock(BasicBlock):
             n+=1
             
             text_item.set_h(rect.height())
-            # self.recenter_text(text_item, rect)
-            text_item.setZValue(self.zValue()+0.1)
-            text_item.setPos(rect.center().x() - text_item.boundingRect().width()/2,\
-                    rect.top() + rect.height()/2 - text_item.boundingRect().height()/2)
-            # get correct suffixes
-            lesson_names = self.lesson_names(lessons)
-            self.lessons = zip(lesson_names, lessons)
+
+            text_item.set_w(rect.width())
 
             # correct color
             if contrast_ratio(color, QColor('black')) < 4.5:
@@ -190,19 +181,20 @@ class LessonBlock(BasicBlock):
                 text_item.setDefaultTextColor(QColor('black'))
 
             # write on screen
-            # text_item.set_show_full_names(show_full_subject_names)
-            text_item.set_lessons(lessons)
-            text_item.add_time(self.block.start, self.block.length)
-            text_item.add_classrooms('/'.join([l.classroom.name if l.classroom else '_' for l in lessons]))
+            # text_item.set_lessons(lessons)
+            # text_item.add_time(self.block.start, self.block.length)
+            # text_item.add_classrooms('/'.join([l.classroom.name if l.classroom else '_' for l in lessons]))
             text_item.setZValue(self.zValue()+0.2)
-            text_item.shrink()
+            text_item.write_lessons(lessons, self.block.start, self.block.length)
+            # recenter
+            text_item.setZValue(self.zValue()+0.1)
+            text_item.setPos(rect.center().x() - text_item.boundingRect().width()/2,\
+                    rect.top() + rect.height()/2 - text_item.boundingRect().height()/2)
     
 
     def draw_contents(self):
         self.draw_collisions()
         self.write()
-        # for text_item in self.text_items.values():
-        #     text_item.setHtml('')
         self.update()
     
     def draw_collisions(self):

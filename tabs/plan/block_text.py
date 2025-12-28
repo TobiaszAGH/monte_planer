@@ -27,17 +27,18 @@ class BlockText(QGraphicsTextItem):
     def shrink(self):
         if not self.toHtml():
             return
+        
+        # reset formating
         doc = self.document()
         cursor = QTextCursor(doc)
         cursor.select(QTextCursor.Document)
-        cursor.setCharFormat(QTextCharFormat())  # reset formatting
-        self.setFont(QFont())
-        font = self.font()
-        font.setPointSize(8)
-        size = font.pointSize()
-        
-        if self.text_too_big() and hasattr(self, 'lessons') and len(self.lessons):
-            self.shorten_names()
+        cursor.setCharFormat(QTextCharFormat())
+        # self.setFont(QFont())
+        # initial font size
+        font = QFont()
+        size = 16
+        font.setPointSize(size)
+        self.setFont(font)
         while self.text_too_big() and size >=4:
             size -= 0.2
             font.setPointSizeF(size)
@@ -46,7 +47,7 @@ class BlockText(QGraphicsTextItem):
     def shorten_names(self) -> None:
         lines = [l.subject.short_full_name() 
                  if self.show_full_names or settings.draw_blocks_full_width
-                 else l.subject.short_name for l in self.lessons]
+                 else l.subject.get_short_name() for l in self.lessons]
         if self.time:
             lines.append(self.time)
         if self.classrooms:
@@ -79,13 +80,17 @@ class BlockText(QGraphicsTextItem):
 
 
     def text_too_big(self) -> bool:
-        # print(self.toPlainText())
-        overflowing = self.boundingRect().width() > self.w or self.boundingRect().height() > self.h
-        return self.is_wrapping() or overflowing
+        overflowing_w = self.boundingRect().width() > self.w 
+        overflowing_h = self.boundingRect().height() > self.h
+        return self.is_wrapping() or overflowing_w or overflowing_h
     
     def set_lessons(self, lessons):
         self.lessons: List[Lesson] = lessons
         self.update_text()
+
+    def set_w(self, w):
+        self.w = w
+        self.setTextWidth(w)
 
     def set_h(self, h):
         self.h = h
@@ -101,7 +106,7 @@ class BlockText(QGraphicsTextItem):
     def update_text(self):
         lines = [l.subject.full_name() 
                  if self.show_full_names or settings.draw_blocks_full_width
-                 else l.subject.name for l in self.lessons]
+                 else l.subject.get_name() for l in self.lessons]
         if self.time:
             lines.append(self.time)
         if self.classrooms:
@@ -110,4 +115,24 @@ class BlockText(QGraphicsTextItem):
 
     def set_custom_text(self, text):
         self.setHtml(text)
+
+    def write_lessons(self, lessons, start, length):
+        time = f'{display_hour(start)}-{display_hour(start+length)}'
+        if len(lessons):
+            lines = [l.subject.full_name() 
+                    if self.show_full_names or settings.draw_blocks_full_width
+                    else l.subject.get_name() for l in lessons]
+            self.setHtml('<br>'.join(lines))
+            if self.is_wrapping() or self.boundingRect().width() > self.w:
+                lines = [l.subject.short_full_name() 
+                    if self.show_full_names or settings.draw_blocks_full_width
+                    else l.subject.get_short_name() for l in lessons]
+            lines.append(time)
+            lines.append('/'.join([l.classroom.name if l.classroom else '_'for l in lessons ]))
+            self.setHtml('<br>'.join(lines))
+        else:
+            self.setHtml(time)
+        self.shrink()
+        
+
 

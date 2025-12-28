@@ -76,15 +76,9 @@ class PlanWidget(QWidget):
         rect = scene.sceneRect()
 
         printer = QPrinter(QPrinter.HighResolution)
-
-        # set PDF output
         printer.setOutputFormat(QPrinter.PdfFormat)
         printer.setPaperSize(QPrinter.A4)
         printer.setOrientation(QPrinter.Landscape)
-
-        # set paper format (A4, Letter, etc.)
-
-        # set orientation (Portrait or Landscape)
 
 
         pix = QPixmap(rect.size().toSize())
