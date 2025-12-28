@@ -32,9 +32,17 @@ class LessonBlock(BasicBlock):
             remove_lesson_action.triggered.connect(self.remove_lesson)
         action = self.menu.exec(event.globalPos())
 
+    def get_colliding_blocks(self):
+        rect = self.mapRectToScene(self.boundingRect())
+
+        return [bl for bl in self.scene().items() \
+                            if isinstance(bl, LessonBlock) \
+                            and (rect.top() <= bl.boundingRect().top() <= rect.bottom() \
+                            or rect.top() <= bl.boundingRect().bottom() <= rect.bottom())]
+    
 
     def mouseMoveEvent(self, event):
-        colliding_blocks = [bl for bl in self.collidingItems() if isinstance(bl, LessonBlock)]
+        colliding_blocks = self.get_colliding_blocks()
         super().mouseMoveEvent(event, False)
 
         if self.isSelected() and self.flags() & QGraphicsRectItem.ItemIsMovable:
@@ -43,7 +51,7 @@ class LessonBlock(BasicBlock):
                 QToolTip.showText(event.screenPos(), self.time() + '\n' + collisions)
             else:
                 QToolTip.showText(event.screenPos(), self.time())
-            colliding_blocks.extend([bl for bl in self.collidingItems() if isinstance(bl, LessonBlock)])
+            colliding_blocks.extend(self.get_colliding_blocks())
             for block in colliding_blocks:
                 block.draw_collisions()
         self.draw_contents()
