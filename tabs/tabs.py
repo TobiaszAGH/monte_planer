@@ -6,7 +6,7 @@ from .plan import PlanWidget
 from .classrooms import ClassroomsWidget
 
 class Tabs(QTabWidget):
-    def __init__(self, parent, data):
+    def __init__(self, parent):
         super().__init__()
         self.setTabPosition(QTabWidget.TabPosition.North)
         self.setMovable(True)

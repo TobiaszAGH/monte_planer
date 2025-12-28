@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QAction
 from PyQt5.QtCore import QSize
 
 import json
+import os
 
 from data import Data
 from tabs import Tabs
@@ -11,53 +12,36 @@ from tabs import Tabs
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.data = ''
-        self.db = Data()
 
-        self.save_path = ''
+        if not os.path.isfile('db_name'):
+            with open('db_name', 'x') as f:
+                pass
+        
+        with open('db_name', 'r+') as f:
+            db_name = f.read().strip()
+            if not db_name:
+                db_name = 'planer.mtp'
+            f.write(db_name)
+
+        self.db = Data(db_name)
+
+
 
         self.setWindowTitle("Monte Planer")
         self.setMinimumSize(QSize(800, 800))
-        self.tabs = Tabs(self, self.data)
-
-        save_action = QAction('Zapisz', self)
-        save_action.triggered.connect(self.save_data)
-
-        save_as_action = QAction('Zapisz jako', self)
-        save_as_action.triggered.connect(self.save_as_data)
+        self.tabs = Tabs(self)
 
         load_action = QAction('Wczytaj', self)
         load_action.triggered.connect(self.load_data)
 
-
         menu = self.menuBar()
         file_menu = menu.addMenu('&Plik')
         file_menu.addActions([
-            # save_action,
-            # save_as_action,
             load_action,
         ])
 
 
         self.setCentralWidget(self.tabs)
-
-
-    def save_data(self):
-        if self.save_path:
-            data_json = json.dumps(self.data)
-            with open(self.save_path, 'w') as save_file:
-                save_file.write(data_json)
-        else:
-            self.save_as_data()
-
-
-    def save_as_data(self):
-        data_json = json.dumps(self.data)
-        self.save_path, _ = QFileDialog.getSaveFileName(self, "Zapisz dane", 'data.mtp', "Dane programu (*.mtp)")
-        if not self.save_path:
-            return
-        with open(self.save_path, 'w') as save_file:
-            save_file.write(data_json)
 
 
     def load_data(self):
@@ -66,6 +50,8 @@ class MainWindow(QMainWindow):
             return
         self.db = Data(open_path)
         self.tabs.load_data(self.db)
+        with open('db_name', mode='w') as f:
+            f.write(open_path)
         return True
 
 app = QApplication(sys.argv)
