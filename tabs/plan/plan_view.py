@@ -381,3 +381,6 @@ class MyView(QGraphicsView):
             # self.draw_blocks(self.db.all_lesson_blocks())
             # self.draw_blocks(self.db.all_custom_blocks())
 
+    def load_data(self, db):
+        self.db = db
+

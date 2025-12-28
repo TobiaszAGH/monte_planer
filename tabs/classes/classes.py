@@ -119,7 +119,8 @@ class ClassesWidget(QWidget):
             self.load_class() 
         return func
 
-    def load_data(self):
+    def load_data(self, db):
+        self.db = db
         self.list.clear()
         for cl in self.db.all_classes():    
             self.list.addItem(cl.name, cl)

@@ -28,9 +28,10 @@ class Tabs(QTabWidget):
 
     def refresh(self):
         try:
-            self.currentWidget().load_data()
+            self.currentWidget().load_data(self.db)
         except:
             pass
 
-    def load_data(self):
+    def load_data(self, db):
+        self.db = db
         self.refresh()

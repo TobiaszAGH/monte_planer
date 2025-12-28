@@ -63,7 +63,7 @@ class PlanWidget(QWidget):
         layout.addWidget(self.class_filter)
         layout.addWidget(toolbar)
         layout.addWidget(self.view)
-        self.load_data()
+        self.load_data(self.db)
 
     def render_plans_for_students(self):
         
@@ -201,8 +201,11 @@ class PlanWidget(QWidget):
         self.tool_add_custom.uncheck()
         self.tool_move_block.uncheck()
     
-    def load_data(self):
-        self.class_filter.load_data()
+    def load_data(self, db):
+        self.db = db
+        self.class_filter.load_data(db)
+        self.view.load_data(db)
+        self.hidden_view.load_data(db)
         if self.class_filter.filter_selection.currentText() == 'Klasy':
             self.view.set_classes(self.class_filter.classes)
             self.view.draw()

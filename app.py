@@ -33,8 +33,8 @@ class MainWindow(QMainWindow):
         menu = self.menuBar()
         file_menu = menu.addMenu('&Plik')
         file_menu.addActions([
-            save_action,
-            save_as_action,
+            # save_action,
+            # save_as_action,
             load_action,
         ])
 
@@ -64,10 +64,8 @@ class MainWindow(QMainWindow):
         open_path, _ = QFileDialog.getOpenFileName(self, 'Wczytaj dane', '', '*.mtp', '*.mtp')
         if not open_path:
             return
-        self.save_path = open_path
-        with open(open_path, 'r') as open_file:
-            self.data = json.load(open_file)
-            self.tabs.load_data(self.data)
+        self.db = Data(open_path)
+        self.tabs.load_data(self.db)
         return True
 
 app = QApplication(sys.argv)

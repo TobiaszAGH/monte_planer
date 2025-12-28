@@ -150,7 +150,8 @@ class FilterWidget(QWidget):
         for student in subclass.students:
             self.student_list.addItem(student.name, student)
 
-    def load_data(self):
+    def load_data(self, db):
+        self.db = db
         self.classes = self.db.all_subclasses()
             
         for widget in self.findChildren(QPushButton):

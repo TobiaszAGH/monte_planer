@@ -9,8 +9,8 @@ from models import *
 
 
 class Data():
-    def __init__(self):
-        engine = create_engine("sqlite:///planer.db")
+    def __init__(self, filename="planer.mtp"):
+        engine = create_engine('sqlite:///' + filename)
         Base.metadata.create_all(engine)
         DBsession = sessionmaker(bind=engine)
         self.session = DBsession()

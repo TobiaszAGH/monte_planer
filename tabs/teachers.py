@@ -192,7 +192,8 @@ class TeachersWidget(QWidget):
 
 
 
-    def load_data(self):
+    def load_data(self, db):
+        self.db = db
         self.list.clear()
         for teacher in self.db.read_all_teachers():
             self.list.addItem(teacher.name, teacher)

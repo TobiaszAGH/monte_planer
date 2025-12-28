@@ -309,7 +309,8 @@ class SubjectsWidget(QWidget):
         classroom = self.classroom_list.currentData()
         self.db.update_subject_classroom(subject, classroom)
 
-    def load_data(self):
+    def load_data(self, db):
+        self.db = db
         self.teacher_list.clear()
         self.teacher_list.addItem('')
         for t in self.db.read_all_teachers():

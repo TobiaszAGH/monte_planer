@@ -21,7 +21,8 @@ class ClassroomsWidget(QWidget):
         self.classrooms = []
         # self.setLayout(self.grid)
 
-    def load_data(self):
+    def load_data(self, db):
+        self.db = db
         self.classrooms = self.db.all_classrooms()
         for col in range(self.grid.columnCount()):
             for row in range(self.grid.rowCount()):
