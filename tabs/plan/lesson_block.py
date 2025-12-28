@@ -105,6 +105,8 @@ class LessonBlock(BasicBlock):
 
         rects, buckets, colors = self.get_rects()
         for rect, color in zip(rects, colors):
+            if not color:
+                continue
 
             brush = QBrush(color)
             painter.fillRect(rect, brush)
@@ -132,12 +134,12 @@ class LessonBlock(BasicBlock):
             height = r.height() 
             y = r.top()
             for n in range(n_of_buckets):
-                x = r.left()
                 if settings.draw_blocks_full_width:
-                    width = r.width()
+                    rects.append(self.rect())
                 else:
+                    x = r.left()
                     x += width * n
-                rects.append(QRectF(x, y, width, height))
+                    rects.append(QRectF(x, y, width, height))
         else:
             rects = [self.rect()]
             buckets = {self.block.subclass: lessons}
@@ -145,6 +147,7 @@ class LessonBlock(BasicBlock):
         final_colors = []
         for rect, subclass, lessons in zip(rects, buckets.keys(), buckets.values()):
             if settings.hide_empty_blocks and not len(lessons):
+                final_colors.append(None)
                 continue
             # subclass, lessons = bucket
             colors = list(set([lesson.subject.color for lesson in lessons]))
@@ -158,7 +161,6 @@ class LessonBlock(BasicBlock):
         n=0
         rects, buckets, colors = self.get_rects()
         for rect, subclass, lessons, color in zip(rects, buckets.keys(), buckets.values(), colors):
-            
             if settings.hide_empty_blocks and not len(lessons):
                 continue
 
