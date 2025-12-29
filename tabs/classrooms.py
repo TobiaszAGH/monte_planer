@@ -66,7 +66,7 @@ class ClassroomsWidget(QWidget):
     def del_classroom(self, classroom):
         def func():
             self.db.delete_classroom(classroom)
-            self.load_data()
+            self.load_data(self.db)
         return func
 
 

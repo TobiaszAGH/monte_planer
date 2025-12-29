@@ -10,7 +10,6 @@ class FilterWidget(QWidget):
         self.view = view
         self.db: Data = parent.db
         self.tool_add_custom = tool_add_custom
-
         main_layout = QGridLayout()
         self.setLayout(main_layout)
         main_layout.setColumnStretch(0,1)

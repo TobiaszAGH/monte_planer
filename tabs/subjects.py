@@ -93,6 +93,7 @@ class SubjectsWidget(QWidget):
         teacher_row.addWidget(QLabel('Nauczyciel:'))
         self.teacher_list = QComboBox()
         self.teacher_list.currentTextChanged.connect(self.set_teacher)
+        self.teacher_list.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         teacher_row.addWidget(self.teacher_list)
 
         # required classroom
@@ -319,6 +320,8 @@ class SubjectsWidget(QWidget):
         self.teacher_list.addItem('')
         for t in self.db.read_all_teachers():
             self.teacher_list.addItem(t.name, t)
+        # self.teacher_list.adjustSize()
+        # self.teacher_list.updateGeometry()
         self.class_list.clear()
         for my_class in self.db.all_classes():
             self.class_list.addItem(my_class.name, my_class)

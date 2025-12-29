@@ -160,6 +160,7 @@ class MyView(QGraphicsView):
             # print(my_class.full_name())
             self.new_block.block = block
             self.new_block.set_selectable(True)
+            self.new_block.draw_contents()
             self.blocks.append(self.new_block)
         self.block_start = -1
         self.new_block = False
@@ -349,16 +350,16 @@ class MyView(QGraphicsView):
             new_block = self.place_block(block)
             if not new_block:
                 continue
-            
-            new_block.setZValue(z+5000)
+
             new_block.block = block
+            if isinstance(new_block, LessonBlock): 
+                new_block.setZValue(z+5000)
+                # new_block.write(not self.draw_headers)
+            else:
+                new_block.setZValue(z+2000)
             new_block.start = block.start
             new_block.set_filter(self.filter_func)
             new_block.draw_contents()
-            try:
-                new_block.write(not self.draw_headers)
-            except:
-                pass
 
             new_block.set_movable(self.mode=='move', self.five_min_h, self.top_bar_h)
             self.blocks.append(new_block)
