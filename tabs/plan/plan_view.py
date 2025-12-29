@@ -89,7 +89,7 @@ class MyView(QGraphicsView):
             if event.button() == Qt.MouseButton.LeftButton:
                 l = len(self.class_names)
                 if l == 0:
-                    return False
+                    return 
                 self.block_start = self.how_many_5_min_blocks(event)
                 self.new_block_top = snap_position(self.mapToScene(event.pos()).y(), self.five_min_h, self.top_bar_h)
                 self.new_block_left = snap_position(self.mapToScene(event.pos()).x(), self.block_w, self.left_bar_w)
