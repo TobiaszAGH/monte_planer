@@ -225,6 +225,13 @@ class LessonBlock(BasicBlock):
             self.setPen(QPen())
             self.setToolTip(self.time())
         return collisions
+
+    def overlapping_lesson_blocks(self):
+        return [bl for bl in self.collidingItems() \
+                if isinstance(bl, LessonBlock) \
+                and bl.block.day==self.block.day\
+                and abs(bl.mapRectToScene(bl.boundingRect()).top() - self.mapRectToScene(self.boundingRect()).bottom()) > 3 \
+                and abs(bl.mapRectToScene(bl.boundingRect()).bottom() - self.mapRectToScene(self.boundingRect()).top()) > 3] 
     
     def time(self):
         return f'{self.block.print_time()} ({self.block.length*5})'

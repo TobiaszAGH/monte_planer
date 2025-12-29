@@ -113,6 +113,7 @@ class PlanWidget(QWidget):
             self.hidden_view.filter_func = filter_func
             self.hidden_view.set_classes([subclass])
             self.hidden_view.draw()
+            self.hidden_view.narrow_overlapping_blocks()
 
             filename = f'{parent_folder}/{subclass.full_name()}/{subclass.full_name()}'
             self.render(filename, pix, printer, scene)

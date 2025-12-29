@@ -1,6 +1,8 @@
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QToolTip, QGraphicsTextItem
-from PyQt5.QtGui import QPen, QColor, QBrush
-from PyQt5.QtCore import QPoint, Qt
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QToolTip, QGraphicsTextItem, QGraphicsRectItem
+from PyQt5.QtGui import QPen, QColor, QBrush, QTransform
+from PyQt5.QtCore import QPoint, Qt, QRectF
+from networkx import Graph
+import gcol
 from .lesson_block import LessonBlock
 from .custom_block import CustomBlock
 from .block import BasicBlock
@@ -367,6 +369,51 @@ class MyView(QGraphicsView):
             new_block.update()
             self.scene().addItem(new_block)
 
+    def narrow_overlapping_blocks(self):
+        # for each day
+        for day in range(2):
+
+            # get blocks in every day
+            x = self.left_bar_w + self.day_w*day + 10
+            y = self.top_bar_h
+            width = self.day_w -30
+            height = self.scene_height - self.top_bar_h
+            day_rect = QRectF(x, y, width, height)
+            blocks = [bl for bl in self.scene().items(day_rect) if isinstance(bl, LessonBlock)]
+            if not len(blocks):
+                continue
+
+
+            # generate graph
+            graph = Graph()
+            for block in blocks:
+                graph.add_node(block.block.id)
+            for block in blocks:
+                for col_block in block.overlapping_lesson_blocks():
+                    if graph.has_edge(block.block.id, col_block.block.id):
+                        continue
+                    graph.add_edge(block.block.id, col_block.block.id)
+
+            # graph.
+
+            
+            # color graph
+            colored = gcol.node_coloring(graph)
+            num_of_colors = max(list(colored.values()))+1
+
+            for block in blocks:
+                if not len(block.overlapping_lesson_blocks()):
+                    continue
+                color = colored[block.block.id]
+                
+                dx = (color+day)*self.day_w+self.left_bar_w
+                transform = QTransform()
+                transform.scale(1/num_of_colors, 1)
+                transform.translate(dx, 0)
+                block.setTransform(transform, combine=True)
+                block.write()
+
+
 
          
 
@@ -379,6 +426,7 @@ class MyView(QGraphicsView):
 
         if len(self.classes):
             self.draw_blocks(self.db.all_blocks())
+
             # self.draw_blocks(self.db.all_lesson_blocks())
             # self.draw_blocks(self.db.all_custom_blocks())
 
