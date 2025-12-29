@@ -10,6 +10,7 @@ class Class(Base):
     subclasses = relationship("Subclass", backref="my_class")
     subjects = relationship("Subject", backref="my_class")
     blocks = relationship("LessonBlockDB", backref="my_class")
+    order = Column(Integer)
 
     def full_name(self):
         return self.name

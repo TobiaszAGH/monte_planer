@@ -50,19 +50,25 @@ class Data():
 
     # subclasses
     def all_subclasses(self) -> List[Subclass]:
-        return self.session.query(Subclass).order_by(Subclass.class_id).all()
+        return self.session.query(Subclass).join(Class).order_by(Class.order).order_by(Subclass.class_id).all()
 
     # classes
     def all_classes(self) -> List[Class]:
-        return self.session.query(Class).all()
+        return self.session.query(Class).order_by(Class.order).all()
 
     def create_class(self, name: str) -> Class:
         subclass = Subclass(name='a')
-        new_class = Class(name=name, subclasses=[subclass])
+        classes = self.all_classes()
+        order = classes[-1].order + 1 if classes else 1
+        new_class = Class(name=name, subclasses=[subclass], order=order)
         self.session.add(subclass)
         self.session.add(new_class)
         self.session.commit()
         return new_class
+    
+    def update_class_order(self, class_: Class, order: int) -> None:
+        class_.order = order
+        self.session.commit()
     
     def delete_class(self, my_class: Class) -> None:
         for subclass in my_class.subclasses:

@@ -6,7 +6,7 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt
 from data import Data, Class, Subclass, Student, Subject
 from sqlalchemy.exc import IntegrityError
-from functions import contrast_ratio
+from .reorder_classes_dialog import ReorderClassesDialog
 from .subject_btn import SubjectButton
 
 class AddSubjectDialog(QDialog):
@@ -74,6 +74,10 @@ class ClassesWidget(QWidget):
         delete_class_btn.clicked.connect(self.delete_class)
         layout.addWidget(delete_class_btn)
 
+        reorder_btn = QPushButton('Zmień kolejność')
+        reorder_btn.clicked.connect(self.reorder_classes)
+        layout.addWidget(reorder_btn)
+
         main_layout.addLayout(layout)
 
         container = QWidget()
@@ -103,6 +107,18 @@ class ClassesWidget(QWidget):
         subclass = self.db.create_subclass(curr_class)
         self.load_class()
         return subclass
+    
+    def reorder_classes(self):
+        dialog = ReorderClassesDialog(self)
+        ok = dialog.exec()
+        if not ok:
+            return
+        
+        for i in range(dialog.class_list.count()):
+            class_ = dialog.class_list.item(i).data(Qt.UserRole)
+            self.db.update_class_order(class_, i)
+        
+        self.load_data(self.db)
 
     def remove_subclass(self, subclass):
         def func():
@@ -289,7 +305,7 @@ class ClassesWidget(QWidget):
         my_class: Class = self.list.currentData()
         if QMessageBox.question(self, 'Uwaga', f'Czy na pewno chcesz usunąć klasę: {my_class.name}') == QMessageBox.StandardButton.Yes:
             self.db.delete_class(my_class)
-        self.load_data()
+        self.load_data(self.db)
                     
                 
 
