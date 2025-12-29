@@ -9,6 +9,7 @@ from .plan_view import MyView
 from.filter import FilterWidget
 from db_config import settings
 import os
+from pathlib import Path
         
 
 class PlanWidget(QWidget):
@@ -96,7 +97,9 @@ class PlanWidget(QWidget):
         settings.draw_custom_blocks = True
 
         scene = self.hidden_view.scene()
-        parent_folder = QFileDialog.getExistingDirectory(self, 'Wybierz folder')
+        parent_folder = QFileDialog.getExistingDirectory(self, 'Wybierz folder', str(Path.home()))
+        if not parent_folder:
+            return
         rect = scene.sceneRect()
 
         printer = QPrinter(QPrinter.HighResolution)

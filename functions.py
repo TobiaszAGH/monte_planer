@@ -1,4 +1,8 @@
 from PyQt5.QtGui import QColor
+from pathlib import Path
+from os import getenv
+import sys
+
 
 
 def snap_position(pos:float, unit:float, ofset=0.0, up=False):
@@ -51,3 +55,22 @@ def delete_layout(layout):
     parent = layout.parent()
     if parent is not None:
         parent.setLayout(None)
+
+
+
+
+def get_user_data_dir(appname: str) -> Path:
+    if sys.platform == "win32":
+        import winreg
+
+        key = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders",
+        )
+        dir_, _ = winreg.QueryValueEx(key, "Local AppData")
+        ans = Path(dir_).resolve(strict=False)
+    elif sys.platform == "darwin":
+        ans = Path("~/Library/Application Support/").expanduser()
+    else:
+        ans = Path(getenv("XDG_DATA_HOME", "~/.local/share")).expanduser()
+    return ans.joinpath(appname)
