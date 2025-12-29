@@ -69,6 +69,10 @@ class Data():
     def update_class_order(self, class_: Class, order: int) -> None:
         class_.order = order
         self.session.commit()
+
+    def update_class_name(self, class_: Class, name: str) -> None:
+        class_.name = name
+        self.session.commit()
     
     def delete_class(self, my_class: Class) -> None:
         for subclass in my_class.subclasses:

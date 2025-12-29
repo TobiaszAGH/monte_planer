@@ -159,10 +159,10 @@ class FilterWidget(QWidget):
         self.db = db
         self.classes = self.db.all_subclasses()
         
-        checked_classes = []
+        unchecked_classes = []
         for widget in self.findChildren(QPushButton):
-            if widget.isChecked():
-                checked_classes.append(widget.text())
+            if not widget.isChecked():
+                unchecked_classes.append(widget.text())
             widget.deleteLater()
         self.student_class_selection.clear()
         self.teacher_list.clear()
@@ -186,7 +186,7 @@ class FilterWidget(QWidget):
         match(self.filter_selection.currentIndex()):
             case 0: # klasy
                 for widget in self.findChildren(QPushButton):
-                    widget.setChecked(widget.text() in checked_classes or not len(checked_classes))
+                    widget.setChecked(widget.text() not in unchecked_classes)
                     self.update_class_filter()
             case 1: # uczniowie
                 try:

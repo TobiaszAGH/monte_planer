@@ -74,6 +74,10 @@ class ClassesWidget(QWidget):
         delete_class_btn.clicked.connect(self.delete_class)
         layout.addWidget(delete_class_btn)
 
+        rename_btn = QPushButton('Zmień nazwę')
+        rename_btn.clicked.connect(self.rename_class)
+        layout.addWidget(rename_btn)
+
         reorder_btn = QPushButton('Zmień kolejność')
         reorder_btn.clicked.connect(self.reorder_classes)
         layout.addWidget(reorder_btn)
@@ -107,6 +111,17 @@ class ClassesWidget(QWidget):
         subclass = self.db.create_subclass(curr_class)
         self.load_class()
         return subclass
+    
+    def rename_class(self):
+        class_ = self.list.currentData()
+        name, ok = QInputDialog.getText(self, 'Zmień nazwę klasy', 'Nowa nazwa:', text=class_.name)
+        if ok and name:
+            try:
+                self.db.update_class_name(class_, name)
+                index = self.list.currentIndex()
+                self.list.setItemText(index, name)
+            except IntegrityError:
+                QMessageBox.warning(self, 'Uwaga', 'Taka klasa już istnieje')
     
     def reorder_classes(self):
         dialog = ReorderClassesDialog(self)
