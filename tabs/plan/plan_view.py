@@ -331,7 +331,7 @@ class MyView(QGraphicsView):
             if len(ns) == 0:
                 return
             
-            n = ns[0]
+            n = min(ns)
 
         x = self.left_bar_w + self.day_w*block.day + n*self.block_w
         y = self.five_min_h*block.start+ self.top_bar_h

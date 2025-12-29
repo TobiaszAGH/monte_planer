@@ -84,8 +84,12 @@ class Data():
     
     def create_subclass(self, my_class: Class) -> Subclass:
         names = [s.name for s in my_class.subclasses]
+        last_subclass = my_class.subclasses[-1]
         name = ascii_lowercase[len(names)] 
         subclass = Subclass(name=name, class_id=my_class.id)
+        for custom_block in self.all_custom_blocks():
+            if last_subclass in custom_block.subclasses:
+                custom_block.subclasses.append(subclass)
         self.session.add(subclass)
         self.session.commit()
         return subclass
