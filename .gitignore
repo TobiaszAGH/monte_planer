@@ -212,3 +212,4 @@ data.vts
 output/
 db_name
 *.mtp
+package/
