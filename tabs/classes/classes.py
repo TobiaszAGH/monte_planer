@@ -124,6 +124,9 @@ class ClassesWidget(QWidget):
                 QMessageBox.warning(self, 'Uwaga', 'Taka klasa już istnieje')
     
     def reorder_classes(self):
+        btn = QMessageBox.question(self, 'Uwaga', 'Jesteś pewien? To może spowodować usunięcie części własnych bloków.')
+        if btn != QMessageBox.StandardButton.Yes:
+            return
         dialog = ReorderClassesDialog(self)
         ok = dialog.exec()
         if not ok:
@@ -132,6 +135,8 @@ class ClassesWidget(QWidget):
         for i in range(dialog.class_list.count()):
             class_ = dialog.class_list.item(i).data(Qt.UserRole)
             self.db.update_class_order(class_, i)
+
+        self.db.delete_unplaceable_custom_blocks()
         
         self.load_data(self.db)
 

@@ -256,6 +256,16 @@ class Data():
     def update_custom_block_text(self, block: CustomBlock, text):
         block.text = text
         self.session.commit()
+
+    def delete_unplaceable_custom_blocks(self):
+        for custom_block in self.all_custom_blocks():
+            orders = [scl.my_class.order for scl in custom_block.subclasses]
+            orders.sort()
+            for i in range(0, len(orders)-1):
+                if orders[i+1] - orders[i] > 1:
+                    self.session.delete(custom_block)
+                    self.session.commit()
+                    break
     
     def all_blocks(self):
         blocks = self.all_lesson_blocks()
