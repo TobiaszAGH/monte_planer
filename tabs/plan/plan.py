@@ -16,6 +16,7 @@ class PlanWidget(QWidget):
         super().__init__(parent)
         self.db: Data = parent.db
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(0,0,0,0)
         self.setLayout(layout)
 
 
@@ -23,12 +24,18 @@ class PlanWidget(QWidget):
 
         toolbar = QWidget()
         toolbar.setLayout(QHBoxLayout())
+        toolbar.layout().setContentsMargins(10,0,10,5)
+
+        # modes
         self.tool_add_block = ModeBtn("Nowy blok zajęciowy", self.set_mode_new, toolbar)
         toolbar.layout().addWidget(self.tool_add_block)
         self.tool_move_block = ModeBtn("Przesuwanie", self.set_mode_move ,toolbar)
         toolbar.layout().addWidget(self.tool_move_block)
         self.tool_add_custom = ModeBtn("Nowy blok", self.set_mode_new_custom ,toolbar)
         toolbar.layout().addWidget(self.tool_add_custom)
+
+        # scale
+        toolbar.layout().addWidget(QLabel('Skala:'))
         self.scale_slider = QSlider(Qt.Horizontal, self)
         self.scale_slider.setMaximumWidth(150)
         self.scale_slider.setMinimum(100)
@@ -41,6 +48,23 @@ class PlanWidget(QWidget):
         toolbar.layout().addWidget(self.scale_slider)
         self.scale_label = QLabel('100%', self.scale_slider)
         toolbar.layout().addWidget(self.scale_label)
+
+        # alpha
+        toolbar.layout().addWidget(QLabel('Przeźroczystość:'))
+        self.alpha_slider = QSlider(Qt.Horizontal, self)
+        self.alpha_slider.setMaximumWidth(150)
+        self.alpha_slider.setMinimum(0)
+        self.alpha_slider.setMaximum(128)
+        self.alpha_slider.setSingleStep(5)
+        self.alpha_slider.setPageStep(25)
+        self.alpha_slider.setTickPosition(QSlider.TicksAbove | QSlider.TicksBelow)
+        self.alpha_slider.setTickInterval(32)
+        self.alpha_slider.valueChanged.connect(self.update_alpha)
+        toolbar.layout().addWidget(self.alpha_slider)
+        self.alpha_label = QLabel('0%')
+        toolbar.layout().addWidget(self.alpha_label)
+
+ 
         toolbar.layout().addStretch()
 
         export_btn = QPushButton('Eksportuj')
@@ -201,6 +225,14 @@ class PlanWidget(QWidget):
         self.tool_add_custom.uncheck()
         self.tool_move_block.uncheck()
     
+    def update_alpha(self, value):
+        alpha = 255 - value
+        settings.alpha = alpha
+        percent = int(value/255*100)
+        self.alpha_label.setText(f'{percent}%')
+        self.view.draw()
+
+
     def load_data(self, db):
         self.db = db
         self.class_filter.load_data(db)

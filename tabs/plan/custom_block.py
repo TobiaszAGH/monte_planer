@@ -2,6 +2,7 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QColorDialog, QInputDialog, QLineEdit, QAction
 from .block import BasicBlock
 from functions import contrast_ratio
+from db_config import settings
 
 class CustomBlock(BasicBlock):
     def __init__(self, x, y, w, h, parent, db, visible_classes):
@@ -37,6 +38,7 @@ class CustomBlock(BasicBlock):
     def draw_contents(self):
 
         color = QColor(self.block.color)
+        color.setAlpha(settings.alpha)
         # color.setAlpha(210)
         self.setBrush(color)
         self.text_item0.set_custom_text(self.block.text)

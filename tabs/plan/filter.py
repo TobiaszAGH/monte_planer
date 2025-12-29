@@ -11,6 +11,7 @@ class FilterWidget(QWidget):
         self.db: Data = parent.db
         self.tool_add_custom = tool_add_custom
         main_layout = QGridLayout()
+        main_layout.setContentsMargins(10,0,0,0)
         self.setLayout(main_layout)
         main_layout.setColumnStretch(0,1)
         main_layout.setColumnStretch(1,2)

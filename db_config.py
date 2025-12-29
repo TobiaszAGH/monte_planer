@@ -25,5 +25,6 @@ class Settings():
         self.hide_empty_blocks = False
         self.draw_blocks_full_width = False
         self.draw_custom_blocks = True
+        self.alpha = 255
 
 settings = Settings()

@@ -162,6 +162,7 @@ class LessonBlock(BasicBlock):
             colors = list(set([lesson.subject.color for lesson in lessons]))
             color = colors[0] if len(colors) == 1 else '#c0c0c0'
             color = QColor(color)
+            color.setAlpha(settings.alpha)
             final_colors.append(color)
         return rects, buckets, final_colors
 

@@ -63,14 +63,16 @@ class BasicBlock(QGraphicsRectItem):
             if z_values:
                 z = min(z_values) - 1
                 self.setZValue(z)
-                self.text_item0.setZValue(z+0.1)
+                for n in range(5):
+                    self.__getattribute__(f'text_item{n}').setZValue(z+0.1)
 
     def bring_forward(self):
         z_values = [item.zValue()  for item in self.collidingItems() if isinstance(item, BasicBlock)]
         if z_values:
             z = max(z_values) + 1
             self.setZValue(z)
-            self.text_item0.setZValue(z+0.1)
+            for n in range(5):
+                self.__getattribute__(f'text_item{n}').setZValue(z+0.1)
 
     def set_selectable(self, on:bool):
         self.setFlag(QGraphicsRectItem.GraphicsItemFlag.ItemIsSelectable, on)
