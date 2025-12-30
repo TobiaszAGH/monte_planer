@@ -103,10 +103,13 @@ class AddLessonToBlockDialog(QDialog):
                 self.lesson_list.addItem(f'{str(lesson.length)} ({days[lesson.block.day]} {lesson.block.print_time()})', lesson)
             else:
                 self.lesson_list.addItem(str(lesson.length), lesson)
-            if lesson.length > self.block.length*5:
-                self.lesson_list.setItemData(i, f'Ten blok trwa tylko {self.block.length*5} minut', Qt.ToolTipRole)
+
+            if lesson.length != self.block.length*5:
+                self.lesson_list.setItemData(i, f'Ten blok trwa {self.block.length*5} minut', Qt.ToolTipRole)
                 if not settings.allow_creating_conflicts:
                     self.lesson_list.setItemData(i, 0, Qt.UserRole - 1)
+                else:
+                    self.classroom_list.setItemData(i, QColor('red'), Qt.BackgroundRole)
             else:
                 none_viable = False
         if none_viable:

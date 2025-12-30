@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QFileDialog,\
-      QGraphicsTextItem, QStyleOptionGraphicsItem, QStackedWidget
+      QGraphicsTextItem, QStyleOptionGraphicsItem, QStackedWidget, QCheckBox
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QPainter, QTransform, QPixmap
 from PyQt5.QtCore import Qt
@@ -64,6 +64,11 @@ class PlanWidget(QWidget):
         toolbar.layout().addWidget(self.alpha_slider)
         self.alpha_label = QLabel('0%')
         toolbar.layout().addWidget(self.alpha_label)
+
+        allow_conflicts = QCheckBox(toolbar)
+        allow_conflicts.clicked.connect(self.toggle_allow_conflicts)
+        toolbar.layout().addWidget(allow_conflicts)
+        toolbar.layout().addWidget(QLabel('Zezwalaj na konflikty'))
 
  
         toolbar.layout().addStretch()
@@ -213,7 +218,7 @@ class PlanWidget(QWidget):
             self.view.set_mode('new_custom')
             for button in self.class_filter.findChildren(QPushButton):
                 button.setChecked(True)
-            self.class_filter.update_class_filter() 
+            self.class_filter.update_filter() 
         else:
             self.view.set_mode('normal')
     
@@ -235,6 +240,9 @@ class PlanWidget(QWidget):
         percent = int(value/255*100)
         self.alpha_label.setText(f'{percent}%')
         self.view.draw()
+
+    def toggle_allow_conflicts(self):
+        settings.allow_creating_conflicts = self.sender().isChecked()
 
 
     def load_data(self, db):
