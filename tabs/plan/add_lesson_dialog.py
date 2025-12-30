@@ -56,11 +56,12 @@ class AddLessonToBlockDialog(QDialog):
         self.update_subject_list()
 
     def update_subject_list(self):
+        self.subject_list.blockSignals(True)
         sub_class = self.type_list.currentData()
         subjects = sub_class.subjects
         self.subject_list.clear()
         none_viable = True
-        select_next = False
+        self.select_next_subject = False
         for i, subject in enumerate(subjects):
             self.subject_list.addItem(subject.name, subject)
             collisions = [
@@ -73,10 +74,14 @@ class AddLessonToBlockDialog(QDialog):
             ])
             if subject.teacher and not self.db.is_teacher_available(subject.teacher, self.block):
                 collisions.append(f'{subject.teacher.name} nie jest dostępny w tych godzinach.')
+
+            if self.block.length*5 not in [l.length for l in subject.lessons]:
+                collisions.append('Blok nie ma właściwej długości dla żadnej z lekcji')
             collisions = '\n'.join(collisions)
+
             if collisions:
                 if self.subject_list.currentIndex() == i and i < self.subject_list.count():
-                    select_next = True
+                    self.select_next_subject = True
                 self.subject_list.setItemData(i, collisions, Qt.ToolTipRole)
                 if not settings.allow_creating_conflicts:
                     self.subject_list.setItemData(i, 0, Qt.UserRole - 1)
@@ -84,18 +89,20 @@ class AddLessonToBlockDialog(QDialog):
                     self.subject_list.setItemData(i, QColor('red'), Qt.BackgroundRole)
             else:
                 none_viable = False
-                if select_next:
+                if self.select_next_subject:
                     self.subject_list.setCurrentIndex(i)
-                    select_next = False
+                    self.select_next_subject = False
         if none_viable:
             self.subject_list.setCurrentIndex(-1)
-
+        self.subject_list.blockSignals(False)
+        self.update_lesson_list()
 
     def update_lesson_list(self):
         subject: Subject = self.subject_list.currentData()
         lesson: Lesson
         self.lesson_list.clear()
         none_viable = True
+        select_next = False
         if not subject:
             return False
         for i, lesson in enumerate(subject.lessons):
@@ -105,15 +112,31 @@ class AddLessonToBlockDialog(QDialog):
                 self.lesson_list.addItem(str(lesson.length), lesson)
 
             if lesson.length != self.block.length*5:
+                select_next = True
                 self.lesson_list.setItemData(i, f'Ten blok trwa {self.block.length*5} minut', Qt.ToolTipRole)
                 if not settings.allow_creating_conflicts:
                     self.lesson_list.setItemData(i, 0, Qt.UserRole - 1)
                 else:
-                    self.classroom_list.setItemData(i, QColor('red'), Qt.BackgroundRole)
+                    self.lesson_list.setItemData(i, QColor('red'), Qt.BackgroundRole)
             else:
                 none_viable = False
+                if select_next:
+                    self.lesson_list.setCurrentIndex(i)
         if none_viable:
             self.lesson_list.setCurrentIndex(-1)
+            # self.no_lessons_viable()
+
+    def no_lessons_viable(self):
+        current_index = self.subject_list.currentIndex()
+        self.subject_list.setItemData(current_index, 0, Qt.UserRole - 1)
+        self.subject_list.setCurrentIndex(current_index+1)
+        
+        # # if self.subject_list.count() == current_index + 1:
+        # #     print('deselect')
+        # #     self.subject_list.setCurrentIndex(-1)
+        # # else:
+        # #     print('select_next')
+        #     self.subject_list.setCurrentIndex(current_index+1)
 
     def update_classroom_list(self):
         self.classroom_list.clear()
