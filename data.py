@@ -175,6 +175,10 @@ class Data():
         subject.color = color
         self.session.commit()
 
+    def update_subject_is_basic(self, subject: Subject, basic: bool) -> None:
+        subject.basic = basic
+        self.session.commit()
+
     def update_subject_classroom(self, subject: Subject, classroom: Classroom) -> None:
         subject.required_classroom = classroom
         self.session.commit()

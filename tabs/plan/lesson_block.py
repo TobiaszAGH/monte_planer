@@ -129,7 +129,7 @@ class LessonBlock(BasicBlock):
         show_full_subject_names = False
 
         if self.block.my_class \
-          and not len([l for l in lessons if not l.subject.basic]):
+          and not len([l for l in lessons if not l.subject.my_class is None]):
             rects = []
             r = self.rect()
             buckets = {sub_class:[] for sub_class in self.block.my_class.subclasses if sub_class in self.visible_classes}

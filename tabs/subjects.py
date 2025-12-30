@@ -80,6 +80,14 @@ class SubjectsWidget(QWidget):
         self.short_name.setFixedWidth(100)
         self.short_name.textEdited.connect(self.set_short_name)
         display_options_row.addWidget(self.short_name)
+
+        # display R
+        self.display_r_checkbox = QCheckBox()
+        self.display_r_checkbox.clicked.connect(self.update_subject_is_basic)
+        display_options_row.addWidget(self.display_r_checkbox)
+        label = QLabel('Rozszerzony')
+        label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        display_options_row.addWidget(label)
         display_options_row.addStretch()
 
 
@@ -148,7 +156,7 @@ class SubjectsWidget(QWidget):
         subclass: Subclass
         for subclass in my_class.subclasses:
             self.type_list.addItem(subclass.name.upper(), subclass)
-        self.type_list.addItem('Rozszerzone', subclass.my_class)
+        self.type_list.addItem('Wspólne', subclass.my_class)
 
 
     def load_class(self):
@@ -207,6 +215,13 @@ class SubjectsWidget(QWidget):
         # short name
         self.short_name.setText(subject.short_name)
 
+        # display r
+        self.display_r_checkbox.setCheckable(True)
+        self.display_r_checkbox.blockSignals(True)
+        self.display_r_checkbox.setChecked(not subject.basic)
+        self.display_r_checkbox.setCheckable(subject.my_class is not None)
+        self.display_r_checkbox.blockSignals(False)
+        
         # lessons
         for n in range(self.lessons.count()):
             self.lessons.itemAt(n).widget().deleteLater()
@@ -232,7 +247,12 @@ class SubjectsWidget(QWidget):
         
         subject_name, ok = QInputDialog.getText(self, 'Dodaj Przedmiot', 'Przedmiot:')
         if ok and subject_name:
-            basic = type(my_class) == Subclass
+            basic = isinstance(my_class, Subclass)
+            self.display_r_checkbox.setCheckable(True)
+            self.display_r_checkbox.blockSignals(True)
+            self.display_r_checkbox.setChecked(not basic)
+            self.display_r_checkbox.setCheckable(not basic)
+            self.display_r_checkbox.blockSignals(False)
             subject = self.db.create_subject(subject_name, basic, my_class)
             self.list.addItem(subject.name, subject)
             self.list.setCurrentText(subject.name)
@@ -304,6 +324,11 @@ class SubjectsWidget(QWidget):
         subject = self.list.currentData()
         short_name = self.short_name.text()
         self.db.update_subject_short_name(subject, short_name)
+
+    def update_subject_is_basic(self):
+        subject = self.list.currentData()
+        basic = not self.display_r_checkbox.isChecked()
+        self.db.update_subject_is_basic(subject, basic)
 
     def set_classroom(self):
         subject = self.list.currentData()
