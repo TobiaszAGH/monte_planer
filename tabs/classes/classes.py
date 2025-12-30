@@ -22,7 +22,7 @@ class AddSubjectDialog(QDialog):
 
         self.type_list = QComboBox()
         layout.addWidget(self.type_list)
-        self.type_list.addItems(['Przedmiot podstawowy', 'Przedmiot rozszerzony'])
+        self.type_list.addItems(['Przedmiot podstawowy', 'Przedmiot wspólny'])
         self.type_list.setItemData(0, True)
         self.type_list.setItemData(1, False)
         self.type_list.currentTextChanged.connect(self.update_subject_list)
@@ -200,7 +200,7 @@ class ClassesWidget(QWidget):
             student_name_label.setMinimumWidth(100)
             student_list.addWidget(student_name_label, 0, 1)
             student_list.addWidget(QLabel("Przedmioty podstawowe"), 0, 2)
-            student_list.addWidget(QLabel("Przedmioty rozszerzone"), 0, 3)
+            student_list.addWidget(QLabel("Przedmioty wspólne"), 0, 3)
 
             #load students
             student: Student

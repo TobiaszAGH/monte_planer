@@ -27,7 +27,7 @@ class AddLessonToBlockDialog(QDialog):
             self.type_list.addItem('Przedmiot podstawowy')
             self.type_list.setItemData(0, self.subclass)
         else:
-            self.type_list.addItem('Poziom rozszerzony', self.subclass)
+            self.type_list.addItem('Poziom wspólny', self.subclass)
             for block in self.subclass.subclasses:
                 self.type_list.addItem(f'Poziom podstawowy - {block.full_name()}', block)
         self.type_list.currentTextChanged.connect(self.update_subject_list)

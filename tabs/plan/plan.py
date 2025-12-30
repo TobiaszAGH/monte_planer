@@ -6,7 +6,8 @@ from PyQt5.QtCore import Qt
 from data import Data
 from .mode_btn import ModeBtn
 from .plan_view import MyView
-from.filter import FilterWidget
+from .filter import FilterWidget
+from .remaining_lessons import RemainingLessonsWindow
 from db_config import settings
 import os
 from pathlib import Path
@@ -16,6 +17,7 @@ class PlanWidget(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
         self.db: Data = parent.db
+        self.rem_les_win = None
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0,0,0,0)
         self.setLayout(layout)
@@ -69,6 +71,10 @@ class PlanWidget(QWidget):
         allow_conflicts.clicked.connect(self.toggle_allow_conflicts)
         toolbar.layout().addWidget(allow_conflicts)
         toolbar.layout().addWidget(QLabel('Zezwalaj na konflikty'))
+
+        show_remaining_lessons = QPushButton('Pozostałe lekcje')
+        show_remaining_lessons.clicked.connect(self.show_remaining_lessons_window)
+        toolbar.layout().addWidget(show_remaining_lessons)
 
  
         toolbar.layout().addStretch()
@@ -243,6 +249,12 @@ class PlanWidget(QWidget):
 
     def toggle_allow_conflicts(self):
         settings.allow_creating_conflicts = self.sender().isChecked()
+
+    def show_remaining_lessons_window(self):
+        if self.rem_les_win is None:
+            self.rem_les_win = RemainingLessonsWindow(self.db)
+        self.rem_les_win.show()
+        self.rem_les_win.load()
 
 
     def load_data(self, db):
