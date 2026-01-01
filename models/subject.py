@@ -44,15 +44,15 @@ class Subject(Base):
         else:
             return f'{self.short_name} {self.subclass.full_name() if full_subclass_name or settings.draw_blocks_full_width else self.subclass.name.upper()}'
         
-    def get_name(self, short=False, show_class_name = False, show_subclass_name = True):
+    def get_name(self, short=False, show_class_name = True, show_subclass_name = True):
         name = self.short_name if short else self.name
         class_name = ''
         if show_class_name:
             class_name += self.class_name()
         is_only_subclass = len(self.my_class.subclasses if self.my_class else self.subclass.my_class.subclasses) == 1
         if show_subclass_name:
-            class_name += 'R' if self.my_class else \
-                (self.subclass.name.upper() if not is_only_subclass else '')
+            class_name +=  (self.subclass.name.upper() if not is_only_subclass else '') if self.basic and self.subclass else 'R'
+               
         if class_name:
             name += ' ' + class_name
         return name

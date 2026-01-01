@@ -184,6 +184,8 @@ class Data():
         self.session.commit()
 
     def delete_subject(self, subject: Subject) -> None:
+        for lesson in subject.lessons:
+            self.session.delete(lesson)
         self.session.delete(subject)
         self.session.commit()
     
@@ -214,6 +216,11 @@ class Data():
 
     def all_lesson_blocks(self) -> List[LessonBlockDB]:
         return self.session.query(LessonBlockDB).all()
+    
+    def clear_all_lesson_blocks(self):
+        for block in self.session.query(LessonBlockDB).all():
+            block.lessons = []
+        self.session.commit()
     
     def lesson_block_collides_with(self, block:LessonBlockDB, blocks: List[LessonBlockDB]):
         # get all other blocks during the same day
@@ -327,6 +334,8 @@ class Data():
                     )).all()
     
     def is_teacher_available(self, teacher: Teacher, block: LessonBlockDB) -> bool:
+        if teacher is None:
+            return True
         mask_start = int(block.start//6)
         mask_end = int((block.start+block.length-0.5)//6) + 1
         mask = 0

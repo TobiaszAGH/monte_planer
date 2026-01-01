@@ -82,12 +82,12 @@ class SubjectsWidget(QWidget):
         display_options_row.addWidget(self.short_name)
 
         # display R
-        self.display_r_checkbox = QCheckBox()
+        self.display_r_checkbox = QCheckBox('Rozszerzony')
         self.display_r_checkbox.clicked.connect(self.update_subject_is_basic)
         display_options_row.addWidget(self.display_r_checkbox)
-        label = QLabel('Rozszerzony')
-        label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        display_options_row.addWidget(label)
+        # label = QLabel('Rozszerzony')
+        # label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        # display_options_row.addWidget(label)
         display_options_row.addStretch()
 
 
@@ -160,16 +160,16 @@ class SubjectsWidget(QWidget):
 
 
     def load_class(self):
+        self.list.clear()
         my_class = self.type_list.currentData()
         if not my_class:
             return False
         
         # subjects
         self.list.clear()
-        if not self.type_list.currentText():
-            return False
         for subject in my_class.subjects:
-            self.list.addItem(subject.name, subject)
+
+            self.list.addItem(subject.get_name(False, False, False), subject)
         
         # students
         self.clear_students()
@@ -216,6 +216,10 @@ class SubjectsWidget(QWidget):
         self.short_name.setText(subject.short_name)
 
         # display r
+        if self.type_list.currentText() != 'Wspólne':
+            self.display_r_checkbox.hide()
+        else:
+            self.display_r_checkbox.show()
         self.display_r_checkbox.setCheckable(True)
         self.display_r_checkbox.blockSignals(True)
         self.display_r_checkbox.setChecked(not subject.basic)
@@ -311,7 +315,7 @@ class SubjectsWidget(QWidget):
         if QMessageBox.question(self, 'Uwaga', message) != QMessageBox.StandardButton.Yes:
             return
         self.db.delete_subject(subject)
-        self.load_data()
+        self.load_data(self.db)
 
     def pick_color(self):
         subject = self.list.currentData()
@@ -350,17 +354,20 @@ class SubjectsWidget(QWidget):
         self.class_list.clear()
         for my_class in self.db.all_classes():
             self.class_list.addItem(my_class.name, my_class)
+            if my_class == opened_class:
+                self.class_list.setCurrentText(my_class.name)
         self.classroom_list.blockSignals(True)
         self.classroom_list.clear()
         self.classroom_list.addItem('')
         for classroom in self.db.all_classrooms():
             self.classroom_list.addItem(classroom.name, classroom)
         self.classroom_list.blockSignals(False)
-
         try:
             self.class_list.setCurrentText(opened_class)
             self.type_list.setCurrentText(opened_subclass)
             self.list.setCurrentText(opened_subject)
         except:
             pass
+
         self.load_subject()
+

@@ -9,8 +9,11 @@ from .plan_view import MyView
 from .filter import FilterWidget
 from .remaining_lessons import RemainingLessonsWindow
 from db_config import settings
+from coloring.planpainter import generate_lesson_graph, do_the_magic
 import os
 from pathlib import Path
+from matplotlib import pyplot as plt
+from networkx import draw_networkx
         
 
 class PlanWidget(QWidget):
@@ -77,6 +80,18 @@ class PlanWidget(QWidget):
         show_remaining_lessons = QPushButton('Pozostałe lekcje')
         show_remaining_lessons.clicked.connect(self.show_remaining_lessons_window)
         toolbar.layout().addWidget(show_remaining_lessons)
+
+        graph = QPushButton('Graf')
+        graph.clicked.connect(self.generate_graph)
+        toolbar.layout().addWidget(graph)
+
+        magic = QPushButton('Uzupełnij')
+        magic.clicked.connect(self.magic)
+        toolbar.layout().addWidget(magic)
+
+        clear = QPushButton('Wyczyść')
+        clear.clicked.connect(self.clear_blocks)
+        toolbar.layout().addWidget(clear)
 
  
         toolbar.layout().addStretch()
@@ -258,6 +273,18 @@ class PlanWidget(QWidget):
         self.rem_les_win.show()
         self.rem_les_win.load()
 
+    def generate_graph(self):
+        G, labels = generate_lesson_graph(self.db)
+        draw_networkx(G, labels=labels)
+        plt.show()
+
+    def magic(self):
+        do_the_magic(self.db)
+        self.view.draw()
+
+    def clear_blocks(self):
+        self.db.clear_all_lesson_blocks()
+        self.view.draw()
 
     def load_data(self, db):
         self.db = db
