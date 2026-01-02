@@ -5,6 +5,7 @@ from .block import BasicBlock
 from .add_lesson_dialog import AddLessonToBlockDialog
 from .remove_lesson_dialog import RemoveLessonFromBlockDialog
 from .manage_classrooms_dialog import ManageClassroomsDialog
+from .locked_dialog import ManageLockedDialog
 from .block_text import BlockText
 from functions import contrast_ratio
 from db_config import settings
@@ -30,6 +31,9 @@ class LessonBlock(BasicBlock):
             remove_lesson_action =  QAction('Usuń lekcję')
             self.menu.insertAction(self.remove_action, remove_lesson_action)
             remove_lesson_action.triggered.connect(self.remove_lesson)
+            manage_locked_action = QAction('Blokowanie lekcji')
+            self.menu.insertAction(self.remove_action, manage_locked_action)
+            manage_locked_action.triggered.connect(self.manage_locked)
         action = self.menu.exec(event.globalPos())
 
     def get_colliding_blocks(self):
@@ -105,6 +109,12 @@ class LessonBlock(BasicBlock):
         for item in self.collidingItems():
             if isinstance(item, LessonBlock):
                 item.draw_collisions()
+
+    def manage_locked(self):
+        if not len(self.block.lessons):
+            return
+        ManageLockedDialog(self).exec()
+        self.draw_contents()
 
 
     def paint(self, painter, option, widget = ...):

@@ -197,8 +197,15 @@ class Data():
         self.session.commit()
         return lesson
     
+    def all_lessons(self) -> List[Lesson]:
+        return self.session.query(Lesson).all()
+    
     def update_lesson_classroom(self, lesson: Lesson, classroom: Classroom) -> None:
         lesson.classroom = classroom
+        self.session.commit()
+
+    def update_lesson_locked(self, lesson: Lesson, locked: bool) -> None:
+        lesson.block_locked = locked
         self.session.commit()
     
     def delete_lesson(self, lesson: Lesson) -> None:

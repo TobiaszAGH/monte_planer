@@ -176,8 +176,8 @@ def backtracking(lesson_graph: Graph, block_graph: Graph, colors: dict, db: Data
             queue[neighbour] = len(df)
 
     solution = {
-        'best_cost': float('inf'),
-        'colors': []
+        'best_cost': calc_cost(lesson_graph, colors),
+        'colors': [colors]
     }
 
     # plant the tree

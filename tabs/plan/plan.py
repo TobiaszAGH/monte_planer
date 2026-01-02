@@ -279,7 +279,8 @@ class PlanWidget(QWidget):
         #     print()
         solution = choice(best_sols)
         # tutaj będzie kiedyś lepsza funkcja porównująca rozwiązania
-        for lesson, block in solution.items():
+        for lesson in self.db.all_lessons():
+            block = solution[lesson] if lesson in solution.keys() else None
             if lesson.block == block:
                 continue
             self.db.add_lesson_to_block(lesson, block, lock=False)
