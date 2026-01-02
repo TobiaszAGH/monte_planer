@@ -217,9 +217,11 @@ class Data():
     def all_lesson_blocks(self) -> List[LessonBlockDB]:
         return self.session.query(LessonBlockDB).all()
     
-    def clear_all_lesson_blocks(self):
-        for block in self.session.query(LessonBlockDB).all():
-            block.lessons = []
+    def clear_all_lesson_blocks(self, leave_locked=False):
+        for lesson in self.session.query(Lesson).all():
+            if lesson.block_locked and leave_locked:
+                continue
+            self.remove_lesson_from_block(lesson)
         self.session.commit()
     
     def lesson_block_collides_with(self, block:LessonBlockDB, blocks: List[LessonBlockDB]):
@@ -241,16 +243,20 @@ class Data():
         block.start = start
         self.session.commit()
 
-    def add_lesson_to_block(self, lesson: Lesson, block: LessonBlockDB):
-        if not (block and lesson):
+    def add_lesson_to_block(self, lesson: Lesson, block: LessonBlockDB, lock=True):
+        if not lesson :
             return False
-        block.lessons.append(lesson)
+
         lesson.block = block
+        if block:
+            block.lessons.append(lesson)
+            lesson.block_locked = lock
         self.session.commit()
 
     def remove_lesson_from_block(self, lesson: Lesson):
         lesson.classroom = None
         lesson.block = None
+        lesson.block_locked = False
         self.session.commit()
 
     def all_custom_blocks(self) -> List[CustomBlock]:

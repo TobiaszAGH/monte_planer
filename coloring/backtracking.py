@@ -159,6 +159,7 @@ def backtracking(lesson_graph: Graph, block_graph: Graph, colors: dict, db: Data
 
     # load colors from dict and adjust dynamic feasibility
     for les, block in colors.items():
+        queue.pop(les)
         for neighbour in lesson_graph[les]:
             if neighbour in colors.keys():
                 continue
@@ -186,7 +187,8 @@ def find_exact_solutions(db: Data):
     colors = {}
     for block in db.session.query(LessonBlockDB).all():
         for lesson in block.lessons:
-            colors[lesson] = block
+            if lesson.block_locked:
+                colors[lesson] = block
     return backtracking(les_g, bl_g, colors, db)
 
 

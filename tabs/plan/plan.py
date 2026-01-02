@@ -83,19 +83,6 @@ class PlanWidget(QWidget):
         show_remaining_lessons.clicked.connect(self.show_remaining_lessons_window)
         toolbar.layout().addWidget(show_remaining_lessons)
 
-        graph = QPushButton('Graf')
-        graph.clicked.connect(self.generate_graph)
-        toolbar.layout().addWidget(graph)
-
-        magic = QPushButton('Uzupełnij')
-        magic.clicked.connect(self.exact)
-        toolbar.layout().addWidget(magic)
-
-        clear = QPushButton('Wyczyść')
-        clear.clicked.connect(self.clear_blocks)
-        toolbar.layout().addWidget(clear)
-
- 
         toolbar.layout().addStretch()
 
         export_btn = QPushButton('Eksportuj')
@@ -125,6 +112,7 @@ class PlanWidget(QWidget):
         settings.hide_empty_blocks = True
         settings.draw_blocks_full_width = False
         settings.draw_custom_blocks = True
+        settings.italicize_unlocked_lessons = False
 
         scene = self.hidden_view.scene()
         parent_folder = QFileDialog.getExistingDirectory(self, 'Wybierz folder', str(Path.home()))
@@ -191,6 +179,7 @@ class PlanWidget(QWidget):
         settings.hide_empty_blocks = False
         settings.draw_blocks_full_width = False
         settings.draw_custom_blocks = True
+        settings.italicize_unlocked_lessons = True
 
     def render(self, filename, pix, printer, scene):
         pix.fill(Qt.white)
@@ -291,7 +280,9 @@ class PlanWidget(QWidget):
         solution = choice(best_sols)
         # tutaj będzie kiedyś lepsza funkcja porównująca rozwiązania
         for lesson, block in solution.items():
-            self.db.add_lesson_to_block(lesson, block)
+            if lesson.block == block:
+                continue
+            self.db.add_lesson_to_block(lesson, block, lock=False)
         self.view.draw()
 
 

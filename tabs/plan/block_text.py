@@ -118,14 +118,25 @@ class BlockText(QGraphicsTextItem):
     def write_lessons(self, lessons, start, length, show_class, show_subclass):
         time = f'{display_hour(start)}-{display_hour(start+length)}'
         if len(lessons):
-            lines = [l.subject.get_name(False, show_class, show_subclass) for l in lessons]
+            lines = []
+            for l in lessons:
+                line = l.subject.get_name(False, show_class, show_subclass)
+                if not l.block_locked and settings.italicize_unlocked_lessons:
+                    line = f'<i>{line}</i>'
+                lines.append(line)
             self.setHtml('<br>'.join(lines))
             if self.is_wrapping() or self.boundingRect().width() > self.w:
-                lines = [l.subject.get_name(True, show_class, show_subclass) for l in lessons]
+                lines = []
+                for l in lessons:
+                    line = l.subject.get_name(True, show_class, show_subclass)
+                    if not l.block_locked and settings.italicize_unlocked_lessons:
+                        line = f'<i>{line}</i>'
+                    lines.append(line)
             lines.append(time)
             lines.append('/'.join([l.classroom.name if l.classroom else '_'for l in lessons ]))
             self.setHtml('<br>'.join(lines))
             self.shrink()
+            self.setHtml('<br>'.join(lines))
         else:
             self.setHtml(time)
             self.shrink(12)

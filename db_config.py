@@ -26,5 +26,6 @@ class Settings():
         self.draw_blocks_full_width = False
         self.draw_custom_blocks = True
         self.alpha = 255
+        self.italicize_unlocked_lessons = True
 
 settings = Settings()

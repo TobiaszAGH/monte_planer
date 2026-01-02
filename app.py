@@ -58,6 +58,19 @@ class MainWindow(QMainWindow):
             backup_action
         ])
 
+        clear_unl_les_action = QAction('Wyczyść &niezablokowane', self)
+        clear_unl_les_action.triggered.connect(self.clear_unl_lessons)
+        clear_all_les_action = QAction('Wyczyść &wszystkie', self)
+        clear_all_les_action.triggered.connect(self.clear_all_lessons)
+        color_lessons_action = QAction('&Uzupełnij plan', self)
+        color_lessons_action.triggered.connect(self.color_lessons)
+        plan_menu = menu.addMenu('&Lekcje')
+        plan_menu.addActions([
+            clear_unl_les_action,
+            clear_all_les_action,
+            color_lessons_action
+        ])
+
 
         self.setCentralWidget(self.tabs)
 
@@ -82,6 +95,18 @@ class MainWindow(QMainWindow):
             return
         shutil.copy(self.db_name, path)
         return True
+    
+    def clear_unl_lessons(self):
+        self.db.clear_all_lesson_blocks(leave_locked=True)
+        self.tabs.refresh()
+
+    def clear_all_lessons(self):
+        self.db.clear_all_lesson_blocks()
+        self.tabs.refresh()
+
+    def color_lessons(self):
+        self.tabs.plan.exact()
+        self.tabs.refresh()
 
 
 app = QApplication(sys.argv)
