@@ -47,7 +47,7 @@ class RemainingLessonsWindow(QWidget):
 
     def add_subjects_to_item(self, item: QTreeWidgetItem, subjects):
         for subject in subjects:
-                subject_item = QTreeWidgetItem(item, [subject.get_name(show_subclass_name=False)])
+                subject_item = QTreeWidgetItem(item, [subject.get_name(0,0,0)])
                 for lesson in subject.lessons:
                     if not lesson.block:
                         QTreeWidgetItem(subject_item, [str(lesson.length)])

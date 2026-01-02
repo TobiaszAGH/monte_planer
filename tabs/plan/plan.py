@@ -9,11 +9,13 @@ from .plan_view import MyView
 from .filter import FilterWidget
 from .remaining_lessons import RemainingLessonsWindow
 from db_config import settings
+from coloring import find_exact_solutions
 from coloring.planpainter import generate_lesson_graph, do_the_magic
 import os
 from pathlib import Path
 from matplotlib import pyplot as plt
 from networkx import draw_networkx
+from random import choice
         
 
 class PlanWidget(QWidget):
@@ -86,7 +88,7 @@ class PlanWidget(QWidget):
         toolbar.layout().addWidget(graph)
 
         magic = QPushButton('Uzupełnij')
-        magic.clicked.connect(self.magic)
+        magic.clicked.connect(self.exact)
         toolbar.layout().addWidget(magic)
 
         clear = QPushButton('Wyczyść')
@@ -278,9 +280,20 @@ class PlanWidget(QWidget):
         draw_networkx(G, labels=labels)
         plt.show()
 
-    def magic(self):
-        do_the_magic(self.db)
+    def exact(self):
+        best_cost, best_sols = find_exact_solutions(self.db)
+        # print(best_cost)
+        # for n, sol in enumerate(best_sols):
+        #     print(f'Rozwiązanie {n+1}:')
+        #     for lesson, block in sol.items():
+        #         print(lesson.subject.get_name(), block.print_time() if block else 'nieprzypisana')
+        #     print()
+        solution = choice(best_sols)
+        # tutaj będzie kiedyś lepsza funkcja porównująca rozwiązania
+        for lesson, block in solution.items():
+            self.db.add_lesson_to_block(lesson, block)
         self.view.draw()
+
 
     def clear_blocks(self):
         self.db.clear_all_lesson_blocks()

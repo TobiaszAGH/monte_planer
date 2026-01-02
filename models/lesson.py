@@ -12,5 +12,5 @@ class Lesson(Base):
     classroom_locked = Column(Boolean)
 
     def name_and_time(self):
-        return f'{self.subject.full_name(True)} o {self.block.print_time()}'
+        return f'{self.subject.full_name()} o {self.block.print_time() if self.block else "(nieprzypisany)"}'
 

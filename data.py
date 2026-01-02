@@ -242,6 +242,8 @@ class Data():
         self.session.commit()
 
     def add_lesson_to_block(self, lesson: Lesson, block: LessonBlockDB):
+        if not (block and lesson):
+            return False
         block.lessons.append(lesson)
         lesson.block = block
         self.session.commit()
