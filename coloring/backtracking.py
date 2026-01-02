@@ -72,6 +72,7 @@ def backtracking(lesson_graph: Graph, block_graph: Graph, colors: dict, db: Data
             if block is None
         })
     
+    # remove 
     def dynamic_feas(les: LessonBlockDB):
         df = [
             bl for bl in feasible_blocks[les]
@@ -80,6 +81,7 @@ def backtracking(lesson_graph: Graph, block_graph: Graph, colors: dict, db: Data
         df.append(None)
         return df
     
+    # finds the lesson with the fewer number of feasible blocks
     def next_lesson(queue: dict):
         low_pri = float('inf')
         next_les = None
@@ -95,12 +97,16 @@ def backtracking(lesson_graph: Graph, block_graph: Graph, colors: dict, db: Data
         return next_les
     
     def util(les_g: Graph, bl_g, colors: dict, queue: PriorityQueue, les, solution):
+        # reached the end
         if les is None:
             return True
+        # this branch won't have any fruit
         if min_cost(colors) > solution['best_cost']:
             return
+        # check every possible block (or leaving empty)
         for bl in dynamic_feas(les):
             colors[les] = bl
+            # update data structures
             if bl is not None:
                 for neighbour in les_g[les]:
                     if neighbour in colors.keys() or neighbour==les:
@@ -110,19 +116,20 @@ def backtracking(lesson_graph: Graph, block_graph: Graph, colors: dict, db: Data
                     n_df = dynamic_feas(neighbour)
                     queue[neighbour] = len(n_df)
 
-            # calculate cost and add solution
-            cost = calc_cost(les_g, colors)
-            if cost == solution['best_cost']:
-                solution['colors'].append(colors.copy())
+                # calculate cost and add solution
+                cost = calc_cost(les_g, colors)
+                if cost == solution['best_cost']:
+                    solution['colors'].append(colors.copy())
 
-            if cost < solution['best_cost']:
-                solution['best_cost'] = cost
-                solution['colors'] = [colors.copy()]
-            
+                if cost < solution['best_cost']:
+                    solution['best_cost'] = cost
+                    solution['colors'] = [colors.copy()]
+
+            # checkout the lesson with the lowest number of feasible blocks 
             next_les = next_lesson(queue)
             util(les_g, bl_g, colors.copy(), queue.copy(), next_les, solution)
-        
-            # yield True
+
+            # backtrack from this branch 
             colors.pop(les)
             for neighbour in les_g[les]:
                 if neighbour in colors.keys() or bl is None:
@@ -168,12 +175,13 @@ def backtracking(lesson_graph: Graph, block_graph: Graph, colors: dict, db: Data
             df = dynamic_feas(neighbour)
             queue[neighbour] = len(df)
 
-    les = next_lesson(queue)
-
     solution = {
         'best_cost': float('inf'),
         'colors': []
     }
+
+    # plant the tree
+    les = next_lesson(queue)
     util(lesson_graph, block_graph, colors, queue, les, solution)
 
     return solution['best_cost'], solution['colors']
