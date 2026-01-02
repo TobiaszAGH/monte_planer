@@ -85,9 +85,6 @@ class SubjectsWidget(QWidget):
         self.display_r_checkbox = QCheckBox('Rozszerzony')
         self.display_r_checkbox.clicked.connect(self.update_subject_is_basic)
         display_options_row.addWidget(self.display_r_checkbox)
-        # label = QLabel('Rozszerzony')
-        # label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        # display_options_row.addWidget(label)
         display_options_row.addStretch()
 
 

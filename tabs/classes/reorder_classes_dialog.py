@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QDialogButtonBox, QListWidget, QAbstractItemView, QListWidgetItem
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtGui import QCursor
 
 
 class ReorderClassesDialog(QDialog):
@@ -28,3 +29,4 @@ class ReorderClassesDialog(QDialog):
         self.buttons.setStandardButtons(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.buttons.accepted.connect(self.accept)
         self.buttons.rejected.connect(self.reject)
+        self.move(QCursor.pos() + QPoint(10,10))

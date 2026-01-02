@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QComboBox, QDialogButtonBox, QGridLayout, QLabel
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
+from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtGui import QColor, QCursor
 from data import Data
 from db_config import settings
 
@@ -33,6 +33,7 @@ class ManageClassroomsDialog(QDialog):
         buttonBox.setStandardButtons(QDialogButtonBox.Ok)
         buttonBox.accepted.connect(self.accept)
         # buttonBox.rejected.connect(self.reject)
+        self.move(QCursor.pos() + QPoint(10,10))
 
     def update_lesson_classroom(self, lesson):
         def func():

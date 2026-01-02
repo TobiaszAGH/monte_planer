@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QComboBox, QDialogButtonBox
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
+from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtGui import QColor, QCursor
 from data import Subclass, Subject, Lesson, days, Data, LessonBlockDB
 from db_config import settings
 
@@ -54,6 +54,8 @@ class AddLessonToBlockDialog(QDialog):
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
         self.update_subject_list()
+
+        self.move(QCursor.pos() + QPoint(10,10))
 
     def update_subject_list(self):
         self.subject_list.blockSignals(True)
