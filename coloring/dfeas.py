@@ -67,7 +67,7 @@ def dfeas(les_g, bl_g, feas) -> dict[Lesson, LessonBlockDB]:
 def mutate(les_g, bl_g, feas, coloring: dict) -> tuple[dict, int]:
     child = coloring.copy()
     # find random uncolored lesson
-    uncolored = {les for les, blo in child.items() if blo is None}
+    uncolored = [les for les, blo in child.items() if blo is None]
     if not len(uncolored):  
         return coloring, 0
     lesson = uncolored.pop()
@@ -81,13 +81,13 @@ def mutate(les_g, bl_g, feas, coloring: dict) -> tuple[dict, int]:
         n_block = child[neighbour]
         if n_block == block or n_block in bl_g[block]:
             child[neighbour] = None
-            uncolored.add(neighbour)
+            uncolored.append(neighbour)
     for other_lesson in lesson.subject.lessons:
         if other_lesson == lesson:
             continue
         if other_lesson in child:
             child[other_lesson] = None
-            uncolored.add(other_lesson)
+            uncolored.append(other_lesson)
         # if other_lesson not in
         
     # try to fit uncolored lessons in
@@ -99,7 +99,7 @@ def mutate(les_g, bl_g, feas, coloring: dict) -> tuple[dict, int]:
         queue.append((lesson, len(feas[lesson])))
     queue.sort(key=lambda x: x[1])
     # print(len(queue))
-    for lesson, score in queue:
+    for lesson, _ in queue:
         # if lesson.block_locked:
             # print('dupa')
         adj_cols = []
@@ -111,15 +111,16 @@ def mutate(les_g, bl_g, feas, coloring: dict) -> tuple[dict, int]:
             adj_cols.extend(bl_g[n_block])
         
         m_days = []
-        for lesson in lesson.subject.lessons:
-            if lesson in child:
-                block = child[lesson]
+        for other_lesson in lesson.subject.lessons:
+            if other_lesson in child:
+                block = child[other_lesson]
             else:
-                block = lesson.block
+                block = other_lesson.block
             if block:
                 m_days.append(block.day)
-        if None in feas[lesson]:
-            print('dupa')
+        # f = [bl for bl in feas[lesson] if not (bl in adj_cols or bl.day in m_days)]
+        # if len(f):
+        #     child[lesson] = f
         for block in feas[lesson]:
             if block in adj_cols:
                 continue
@@ -139,16 +140,11 @@ def solve(db: Data, verbose=False):
     # create graphs
     les_g, labels, feas = generate_lesson_graph(db)
     bl_g = generate_block_graph(db)
-    # for lesson in les_g:
-    #     if lesson.block_locked:
-    #         print('dupa')
-
 
     # generate initial coloring
     coloring = dfeas(les_g, bl_g, feas)
     if not len(coloring):
         return coloring
-    # return coloring
     
     # genetic loop
     pop_size = 200
