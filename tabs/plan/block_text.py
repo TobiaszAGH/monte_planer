@@ -122,7 +122,7 @@ class BlockText(QGraphicsTextItem):
             for l in lessons:
                 line = l.subject.get_name(False, show_class, show_subclass)
                 if not l.block_locked and settings.italicize_unlocked_lessons:
-                    line = f'<i>{line}</i>'
+                    line = f'<u>{line}</u>'
                 lines.append(line)
             self.setHtml('<br>'.join(lines))
             if self.is_wrapping() or self.boundingRect().width() > self.w:
@@ -130,7 +130,7 @@ class BlockText(QGraphicsTextItem):
                 for l in lessons:
                     line = l.subject.get_name(True, show_class, show_subclass)
                     if not l.block_locked and settings.italicize_unlocked_lessons:
-                        line = f'<i>{line}</i>'
+                        line = f'<u>{line}</u>'
                     lines.append(line)
             lines.append(time)
             lines.append('/'.join([l.classroom.name if l.classroom else '_'for l in lessons ]))
