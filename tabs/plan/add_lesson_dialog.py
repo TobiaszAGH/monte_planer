@@ -110,6 +110,7 @@ class AddLessonToBlockDialog(QDialog):
         for i, lesson in enumerate(subject.lessons):
             if lesson.block:
                 self.lesson_list.addItem(f'{str(lesson.length)} ({days[lesson.block.day]} {lesson.block.print_time()})', lesson)
+                select_next = True
             else:
                 self.lesson_list.addItem(str(lesson.length), lesson)
 

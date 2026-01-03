@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QAction, QToolTip, QGraphicsRectItem
-from PyQt5.QtGui import QColor, QBrush, QPen, QPainter
+from PyQt5.QtWidgets import QAction, QToolTip, QGraphicsRectItem, QMessageBox, QApplication
+from PyQt5.QtGui import QColor, QBrush, QPen, QPainter, QCursor
 from PyQt5.QtCore import Qt, QRectF
 from .block import BasicBlock
 from .add_lesson_dialog import AddLessonToBlockDialog
@@ -18,6 +18,25 @@ class LessonBlock(BasicBlock):
 
     def filter(self, l):
         return True
+    
+    def mousePressEvent(self, event):
+        # print('clicked')
+        if settings.move_lessons_from:
+            source_block = settings.move_lessons_from.block
+            if (source_block.my_class == self.block.my_class and source_block.my_class\
+              or source_block.subclass == self.block.subclass and source_block.subclass) \
+              and source_block.length == self.block.length:
+                for lesson in source_block.lessons:
+                    self.db.add_lesson_to_block(lesson, self.block)
+
+                QApplication.setOverrideCursor(Qt.ArrowCursor)
+                settings.move_lessons_from.draw_contents()
+                self.draw_contents()
+                settings.move_lessons_from = None
+            else:
+                QMessageBox.warning(None, 'Uwaga!', 'Nie można przenieść lekcji do tego bloku.')
+        else:
+            super().mousePressEvent(event)
 
     def contextMenuEvent(self, event):
         super().contextMenuEvent(event)
@@ -34,6 +53,10 @@ class LessonBlock(BasicBlock):
             manage_locked_action = QAction('Blokowanie lekcji')
             self.menu.insertAction(self.remove_action, manage_locked_action)
             manage_locked_action.triggered.connect(self.manage_locked)
+
+            move_lessons_action = QAction('Przenieś lekcje')
+            self.menu.insertAction(self.remove_action, move_lessons_action)
+            move_lessons_action.triggered.connect(self.move_lessons)
         action = self.menu.exec(event.globalPos())
 
     def get_colliding_blocks(self):
@@ -76,8 +99,6 @@ class LessonBlock(BasicBlock):
             self.db.add_lesson_to_block(lesson, self.block)
         
             # update visuals
-            for n in range(5):
-                self.__getattribute__(f'text_item{n}').setHtml('')
             if old_block:
                 old_block_item: LessonBlock = [bl for bl in self.parent.items() if isinstance(bl, LessonBlock) and bl.block==old_block][0]
                 old_block_item.draw_contents()
@@ -115,6 +136,10 @@ class LessonBlock(BasicBlock):
             return
         ManageLockedDialog(self).exec()
         self.draw_contents()
+
+    def move_lessons(self):
+        QApplication.setOverrideCursor(Qt.DragMoveCursor)
+        settings.move_lessons_from = self
 
 
     def paint(self, painter, option, widget = ...):
@@ -180,6 +205,9 @@ class LessonBlock(BasicBlock):
     def write(self, specify_class=False):
         n=0
         rects, buckets, colors = self.get_rects()
+
+        for i in range(len(rects),5):
+            self.__getattribute__(f'text_item{i}').setHtml('')
         for rect, subclass, lessons, color in zip(rects, buckets.keys(), buckets.values(), colors):
             if settings.hide_empty_blocks and not len(lessons):
                 continue
