@@ -51,7 +51,7 @@ class Subject(Base):
             class_name += self.class_name()
         is_only_subclass = len(self.my_class.subclasses if self.my_class else self.subclass.my_class.subclasses) == 1
         if show_subclass_name:
-            class_name +=  (self.subclass.name.upper() if not is_only_subclass else '') if self.basic and self.subclass else 'R'
+            class_name +=  (self.subclass.name.upper() if (not is_only_subclass and self.subclass) else '') if self.basic else 'R'
                
         if class_name:
             name += ' ' + class_name

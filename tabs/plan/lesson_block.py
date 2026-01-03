@@ -207,6 +207,8 @@ class LessonBlock(BasicBlock):
                 text_item.setDefaultTextColor(QColor('black'))
 
             # write on screen
+            if settings.draw_blocks_full_width:
+                specify_class = True
             specify_subclass = len([l for l in lessons if not l.subject.basic]) or specify_class
             text_item.write_lessons(lessons, self.block.start, self.block.length, specify_class, specify_subclass)
             # recenter

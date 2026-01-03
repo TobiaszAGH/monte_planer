@@ -109,7 +109,7 @@ class PlanWidget(QWidget):
         self.load_data(self.db)
 
     def render_plans_for_students(self):
-        
+        settings.alpha = 255 
         settings.hide_empty_blocks = True
         settings.draw_blocks_full_width = False
         settings.draw_custom_blocks = True
@@ -153,6 +153,7 @@ class PlanWidget(QWidget):
         settings.draw_custom_blocks = False
         settings.draw_blocks_full_width = True
 
+
         os.makedirs(f'{parent_folder}/nauczyciele', exist_ok=True)
         for teacher in self.db.read_all_teachers():
             filename = f'{parent_folder}/nauczyciele/{teacher.name}'
@@ -181,6 +182,7 @@ class PlanWidget(QWidget):
         settings.draw_blocks_full_width = False
         settings.draw_custom_blocks = True
         settings.italicize_unlocked_lessons = True
+        self.update_alpha(self.alpha_slider.value())
 
     def render(self, filename, pix, printer, scene):
         pix.fill(Qt.white)

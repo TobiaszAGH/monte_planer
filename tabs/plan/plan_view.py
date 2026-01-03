@@ -371,7 +371,7 @@ class MyView(QGraphicsView):
 
     def narrow_overlapping_blocks(self):
         # for each day
-        for day in range(2):
+        for day in range(5):
 
             # get blocks in every day
             x = self.left_bar_w + self.day_w*day + 10
