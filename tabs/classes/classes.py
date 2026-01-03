@@ -272,7 +272,7 @@ class ClassesWidget(QWidget):
         subject: Subject
         for subject in student.subjects:
             btn = SubjectButton(self, student, subject)
-            if subject.basic == True:
+            if subject.subclass:
                 basic_subject_list.addWidget(btn)
             else:
                 extra_subject_list.addWidget(btn)
