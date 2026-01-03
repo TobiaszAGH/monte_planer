@@ -22,6 +22,9 @@ class LessonBlockDB(Base):
     def print_time(self):
         return f'{display_hour(self.start)}-{display_hour(self.start+self.length)}'
     
+    def __str__(self):
+        return self.print_full_time()
+    
     def print_full_time(self):
         return f'{days[self.day]} {self.print_time()}'
     

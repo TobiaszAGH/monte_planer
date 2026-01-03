@@ -42,10 +42,19 @@ def generate_lesson_graph(db: Data):
                     possible_sub_classes.extend(block.parent().subclasses)
                 if lesson.subject.parent() not in possible_sub_classes:
                     continue
+                #
+                if len(db.get_collisions_for_students_at_block(subject.students, block)):
+                    continue
+                if len(db.get_collisions_for_teacher_at_block(subject.teacher, block)):
+                    continue
+                if block.day in [les.block.day for les in subject.lessons if les.block]:
+                    continue
                 # else block is feasible
                 feasible_blocks[lesson].append(block)
             # if there is no possible blocks dont put it in graph
             if len(feasible_blocks[lesson]) == 0:
+                continue
+            if lesson.block_locked:
                 continue
             # add lesson to graph with the same neigbours as subject
             graph.add_node(lesson, weight=len(subject.students))
@@ -57,6 +66,12 @@ def generate_lesson_graph(db: Data):
             graph.add_edge(*pair)
         # subject is no longer needed
         graph.remove_node(subject)
+    to_remove = []
+    for lesson in graph.nodes:
+        if len(feasible_blocks[lesson]) == 0 \
+        or lesson.block_locked:
+            to_remove.append(lesson)
+    graph.remove_nodes_from(to_remove)
              
     return graph, labels, feasible_blocks
 

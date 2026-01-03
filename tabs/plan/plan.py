@@ -271,9 +271,12 @@ class PlanWidget(QWidget):
         plt.show()
 
     def dfeas(self):
-        c = solve(self.db)
+        self.db.clear_all_lesson_blocks(leave_locked=True)
+        c = solve(self.db, verbose=True)
         # print(c)
         for lesson, block in c.items():
+            if lesson.block_locked:
+                print('dupadupa')
             if lesson.block == block:
                 continue
             self.db.add_lesson_to_block(lesson, block, lock=False)
