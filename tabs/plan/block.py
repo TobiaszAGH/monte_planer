@@ -81,6 +81,8 @@ class BasicBlock(QGraphicsRectItem):
         self.five_min_h = five_min_h
         self.top_bar_h = top_bar_h
         self.setFlag(QGraphicsRectItem.GraphicsItemFlag.ItemIsMovable, on)
+        cursor = Qt.SizeVerCursor if on else Qt.PointingHandCursor
+        self.setCursor(cursor)
 
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)

@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QFileDialog,\
-      QGraphicsTextItem, QStyleOptionGraphicsItem, QStackedWidget, QCheckBox
+      QGraphicsTextItem, QStyleOptionGraphicsItem, QStackedWidget, QCheckBox, QApplication
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QPainter, QTransform, QPixmap
 from PyQt5.QtCore import Qt
@@ -115,6 +115,7 @@ class PlanWidget(QWidget):
         parent_folder = QFileDialog.getExistingDirectory(self, 'Wybierz folder', str(Path.home()))
         if not parent_folder:
             return
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         rect = scene.sceneRect()
 
         printer = QPrinter(QPrinter.HighResolution)
@@ -179,6 +180,7 @@ class PlanWidget(QWidget):
         settings.draw_custom_blocks = True
         settings.italicize_unlocked_lessons = True
         self.update_alpha(self.alpha_slider.value())
+        QApplication.restoreOverrideCursor()
 
     def render(self, filename, pix, printer, scene):
         pix.fill(Qt.white)

@@ -82,6 +82,11 @@ class MyView(QGraphicsView):
             if isinstance(block, BasicBlock):
                 block.set_movable(mode=='move', self.five_min_h, self.top_bar_h)
                 block.set_selectable(mode not in ('new', 'new_custom'))
+        if mode in ['new', 'new_custom']:
+            self.viewport().setCursor(Qt.CrossCursor)
+        else:
+            self.viewport().setCursor(Qt.ArrowCursor)
+
                 
     
     def mousePressEvent(self, event):

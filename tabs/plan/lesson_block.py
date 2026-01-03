@@ -26,10 +26,11 @@ class LessonBlock(BasicBlock):
             if (source_block.my_class == self.block.my_class and source_block.my_class\
               or source_block.subclass == self.block.subclass and source_block.subclass) \
               and source_block.length == self.block.length:
-                for lesson in source_block.lessons:
-                    self.db.add_lesson_to_block(lesson, self.block)
+                lessons = source_block.lessons.copy()
+                for lesson in lessons:
+                    self.db.add_lesson_to_block(lesson, self.block, lesson.block_locked)
 
-                QApplication.setOverrideCursor(Qt.ArrowCursor)
+                QApplication.restoreOverrideCursor()
                 settings.move_lessons_from.draw_contents()
                 self.draw_contents()
                 settings.move_lessons_from = None
@@ -140,6 +141,7 @@ class LessonBlock(BasicBlock):
     def move_lessons(self):
         QApplication.setOverrideCursor(Qt.DragMoveCursor)
         settings.move_lessons_from = self
+
 
 
     def paint(self, painter, option, widget = ...):

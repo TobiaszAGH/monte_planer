@@ -1,7 +1,7 @@
 import sys
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QAction, QMenu
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QIcon
 
 import shutil
@@ -122,8 +122,10 @@ class MainWindow(QMainWindow):
         self.tabs.refresh()
 
     def color_lessons(self):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         self.tabs.plan.dfeas()
         self.tabs.refresh()
+        QApplication.restoreOverrideCursor()
 
     def lock_all_lessons(self):
         self.db.set_all_lessons_locked()
