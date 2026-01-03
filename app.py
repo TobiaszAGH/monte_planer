@@ -64,11 +64,17 @@ class MainWindow(QMainWindow):
         clear_all_les_action.triggered.connect(self.clear_all_lessons)
         color_lessons_action = QAction('&Uzupełnij plan', self)
         color_lessons_action.triggered.connect(self.color_lessons)
+        lock_all_action = QAction('&Zablokuj wszystkie', self)
+        lock_all_action.triggered.connect(self.lock_all_lessons)
+        unlock_all_action = QAction('&Odblokuj wszystkie', self)
+        unlock_all_action.triggered.connect(self.unlock_all_lessons)
         plan_menu = menu.addMenu('&Lekcje')
         plan_menu.addActions([
             clear_unl_les_action,
             clear_all_les_action,
-            color_lessons_action
+            color_lessons_action,
+            lock_all_action,
+            unlock_all_action
         ])
 
 
@@ -106,6 +112,14 @@ class MainWindow(QMainWindow):
 
     def color_lessons(self):
         self.tabs.plan.dfeas()
+        self.tabs.refresh()
+
+    def lock_all_lessons(self):
+        self.db.set_all_lessons_locked()
+        self.tabs.refresh()
+
+    def unlock_all_lessons(self):
+        self.db.set_all_lessons_locked(False)
         self.tabs.refresh()
 
 

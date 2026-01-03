@@ -200,6 +200,11 @@ class Data():
     def all_lessons(self) -> List[Lesson]:
         return self.session.query(Lesson).all()
     
+    def set_all_lessons_locked(self, locked=True) -> None:
+        for lesson in self.session.query(Lesson).all():
+            lesson.block_locked = locked
+        self.session.commit()
+    
     def update_lesson_classroom(self, lesson: Lesson, classroom: Classroom) -> None:
         lesson.classroom = classroom
         self.session.commit()
@@ -254,10 +259,12 @@ class Data():
         if not lesson :
             return False
 
-        lesson.block = block
         if block:
+            lesson.block = block
             block.lessons.append(lesson)
             lesson.block_locked = lock
+        else:
+            self.remove_lesson_from_block(lesson)
         self.session.commit()
 
     def remove_lesson_from_block(self, lesson: Lesson):

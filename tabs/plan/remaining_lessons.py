@@ -51,7 +51,7 @@ class RemainingLessonsWindow(QWidget):
         for subject in subjects:
                 subject_item = QTreeWidgetItem(item, [subject.get_name(0,0,0)])
                 for lesson in subject.lessons:
-                    if not lesson.block:
+                    if lesson.block is None:
                         QTreeWidgetItem(subject_item, [str(lesson.length)])
                 if not subject_item.childCount():
                     item.removeChild(subject_item)
