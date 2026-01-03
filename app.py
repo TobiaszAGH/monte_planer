@@ -105,7 +105,7 @@ class MainWindow(QMainWindow):
         self.tabs.refresh()
 
     def color_lessons(self):
-        self.tabs.plan.exact()
+        self.tabs.plan.dfeas()
         self.tabs.refresh()
 
 

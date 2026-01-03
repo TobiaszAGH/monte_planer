@@ -4,59 +4,12 @@ from data import Data, LessonBlockDB, Lesson, Class
 from itertools import combinations, count
 from queue import PriorityQueue
 from typing import List
-
-
-def generate_lesson_graph(db: Data):
-    graph = Graph()
-    total_subjects = {}
-    labels = {}
-    for class_ in db.all_classes():
-        total_subjects[class_] = []
-        total_subjects[class_].extend(class_.subjects)
-        for subclass in class_.subclasses:
-            total_subjects[class_].extend(subclass.subjects)
-
-        graph.add_nodes_from(total_subjects[class_])
-        for pair in combinations(total_subjects[class_], 2):
-            if pair[0].teacher == pair[1].teacher and pair[0].teacher is not None:
-                graph.add_edge(*pair)
-                continue
-            for student in pair[0].students:
-                if student in pair[1].students:
-                    graph.add_edge(*pair)
-                    break
-        
-        for subject in total_subjects[class_]:
-            for lesson in subject.lessons:
-                graph.add_node(lesson, weight=len(subject.students))
-                labels[lesson] = f'{subject.get_name()} ({lesson.length})'
-                for neighbour in graph[subject]:
-                    graph.add_edge(lesson, neighbour)
-            for pair in combinations(subject.lessons, 2):
-                graph.add_edge(*pair)
-            graph.remove_node(subject)
-
-             
-    return graph, labels
-
-def generate_block_graph(db: Data):
-    graph = Graph()
-    for day in range(5):
-        blocks = db.session.query(LessonBlockDB).filter_by(day=day)
-        blocks = db.all_lesson_blocks()
-        for block in blocks:
-            graph.add_node(block)
-        
-        for b1, b2 in combinations(blocks, 2):
-            if b1.start+b1.length < b2.start \
-            or b2.start+b2.length < b1.start:
-                continue
-            graph.add_edge(b1, b2)
-    return graph
+from random import randint
+from .graphs import generate_lesson_graph, generate_block_graph
 
 
 
-def backtracking(lesson_graph: Graph, block_graph: Graph, colors: dict, db: Data):
+def backtracking(lesson_graph: Graph, block_graph: Graph, colors: dict, db: Data, feasible_blocks):
     def calc_cost(les_g, colors):
         return sum([
             len(les.subject.students) 
@@ -78,7 +31,6 @@ def backtracking(lesson_graph: Graph, block_graph: Graph, colors: dict, db: Data
             bl for bl in feasible_blocks[les]
             if bl not in adj_colors[les]
         ]
-        df.append(None)
         return df
     
     # finds the lesson with the fewer number of feasible blocks
@@ -96,41 +48,47 @@ def backtracking(lesson_graph: Graph, block_graph: Graph, colors: dict, db: Data
         
         return next_les
     
-    def util(les_g: Graph, bl_g, colors: dict, queue: PriorityQueue, les, solution):
-        # reached the end
-        if les is None:
+    def util(les_g: Graph, bl_g, colors: dict, queue: PriorityQueue, les, solution, Tabu):
+        if len(colors) == len(les_g.nodes): 
             return True
-        # this branch won't have any fruit
-        if min_cost(colors) > solution['best_cost']:
-            return
-        # check every possible block (or leaving empty)
+      
         for bl in dynamic_feas(les):
+            # if Tabu[les, bl] > solution['its']:
+                # continue
             colors[les] = bl
             # update data structures
-            if bl is not None:
-                for neighbour in les_g[les]:
-                    if neighbour in colors.keys() or neighbour==les:
-                        continue
-                    adj_colors[neighbour].append(bl)
-                    adj_colors[neighbour].extend(bl_g[bl])
-                    n_df = dynamic_feas(neighbour)
-                    queue[neighbour] = len(n_df)
 
-                # calculate cost and add solution
-                cost = calc_cost(les_g, colors)
-                if cost == solution['best_cost']:
-                    solution['colors'].append(colors.copy())
+            for neighbour in les_g[les]:
+                if neighbour in colors.keys() or neighbour==les:
+                    continue
+                adj_colors[neighbour].append(bl)
+                adj_colors[neighbour].extend(bl_g[bl])
+                n_df = dynamic_feas(neighbour)
+                queue[neighbour] = len(n_df)
 
-                if cost < solution['best_cost']:
-                    solution['best_cost'] = cost
-                    solution['colors'] = [colors.copy()]
+            # calculate cost and add solution
+            cost = calc_cost(les_g, colors)
+            if cost == solution['best_cost']:
+                print(cost, len(colors), len(les_g.nodes), solution['its'])
+                solution['colors'].append(colors.copy())
+
+            if cost < solution['best_cost']:
+                print(cost)
+                solution['best_cost'] = cost
+                solution['colors'] = [colors.copy()]
+
+            # if cost > solution['best_cost']:
+
+                # Tabu[les, bl] = solution['its'] + int(0.6 * (len(les_g.nodes) - len([v for v in colors if v]))) + randint(0,15)
 
             # checkout the lesson with the lowest number of feasible blocks 
             next_les = next_lesson(queue)
-            util(les_g, bl_g, colors.copy(), queue.copy(), next_les, solution)
+            if util(les_g, bl_g, colors.copy(), queue.copy(), next_les, solution, Tabu):
+                return True
 
             # backtrack from this branch 
             colors.pop(les)
+            queue[les] = len(dynamic_feas(les))
             for neighbour in les_g[les]:
                 if neighbour in colors.keys() or bl is None:
                     continue
@@ -139,30 +97,20 @@ def backtracking(lesson_graph: Graph, block_graph: Graph, colors: dict, db: Data
                     adj_colors[neighbour].remove(n_bl)
                 n_df = dynamic_feas(neighbour)
                 queue[neighbour] = len(n_df)
+        return False
 
-
+    counter = count()
     adj_colors = {}
-    feasible_blocks = {}
+    Tabu = {}
     queue = {}
     lesson: Lesson
     block: LessonBlockDB
-    # generate static feasibility
-    for lesson in lesson_graph.nodes:
-        feasible_blocks[lesson] = []
-        adj_colors[lesson] = []
-        for block in block_graph.nodes:
-            if block.length*5 != lesson.length: # wrong length
-                continue
-            if not db.is_teacher_available(lesson.subject.teacher, block): # teacher doesn't work at that time
-                continue
 
-            possible_sub_classes = [block.parent()]
-            if isinstance(possible_sub_classes[0], Class):
-                possible_sub_classes.extend(block.parent().subclasses)
-            if lesson.subject.parent() not in possible_sub_classes:
-                continue
-            feasible_blocks[lesson].append(block)
-        queue[lesson] = len(feasible_blocks[lesson])
+    for les in lesson_graph:
+        queue[les] = len(feasible_blocks[les])
+        adj_colors[les] = []
+    
+
 
     # load colors from dict and adjust dynamic feasibility
     for les, block in colors.items():
@@ -177,27 +125,29 @@ def backtracking(lesson_graph: Graph, block_graph: Graph, colors: dict, db: Data
 
     solution = {
         'best_cost': calc_cost(lesson_graph, colors),
-        'colors': [colors]
+        'colors': [colors.copy()],
+        'its': 0
     }
 
     # plant the tree
     les = next_lesson(queue)
-    util(lesson_graph, block_graph, colors, queue, les, solution)
+    print(util(lesson_graph, block_graph, colors, queue, les, solution, Tabu))
+    print(solution)
 
     return solution['best_cost'], solution['colors']
 
 
 def find_exact_solutions(db: Data):
-    les_g, labels = generate_lesson_graph(db)
-    # draw_networkx(les_g, labels=labels)
-    # plt.show()
+    les_g, labels, feasable_blocks = generate_lesson_graph(db)
+    draw_networkx(les_g, labels=labels)
+    plt.show()
     bl_g = generate_block_graph(db)
     colors = {}
     for block in db.session.query(LessonBlockDB).all():
         for lesson in block.lessons:
             if lesson.block_locked:
                 colors[lesson] = block
-    return backtracking(les_g, bl_g, colors, db)
+    return backtracking(les_g, bl_g, colors, db, feasable_blocks)
 
 
     

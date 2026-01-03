@@ -10,6 +10,7 @@ from .filter import FilterWidget
 from .remaining_lessons import RemainingLessonsWindow
 from db_config import settings
 from coloring import find_exact_solutions
+from coloring.dfeas import solve
 from coloring.planpainter import generate_lesson_graph, do_the_magic
 import os
 from pathlib import Path
@@ -269,7 +270,21 @@ class PlanWidget(QWidget):
         draw_networkx(G, labels=labels)
         plt.show()
 
+    def dfeas(self):
+        c = solve(self.db)
+        # print(c)
+        for lesson, block in c.items():
+            if lesson.block == block:
+                continue
+            self.db.add_lesson_to_block(lesson, block, lock=False)
+        # self.view.draw()
+
     def exact(self):
+        c = do_the_magic(self.db)
+        # for lesson, block in c.items():
+            # self.db.add_lesson_to_block(lesson, block)
+        self.view.draw()
+        return
         best_cost, best_sols = find_exact_solutions(self.db)
         # print(best_cost)
         # for n, sol in enumerate(best_sols):
