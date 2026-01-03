@@ -60,16 +60,16 @@ class PlanWidget(QWidget):
         toolbar.layout().addWidget(self.scale_label)
 
         # alpha
-        toolbar.layout().addWidget(QLabel('Przeźroczystość:'))
+        toolbar.layout().addWidget(QLabel('Przezroczystość:'))
         self.alpha_slider = QSlider(Qt.Horizontal, self)
-        self.alpha_slider.setMaximumWidth(150)
-        self.alpha_slider.setMinimumWidth(75)
+        self.alpha_slider.setMaximumWidth(80)
+        self.alpha_slider.setMinimumWidth(40)
         self.alpha_slider.setMinimum(0)
-        self.alpha_slider.setMaximum(128)
-        self.alpha_slider.setSingleStep(5)
-        self.alpha_slider.setPageStep(25)
+        self.alpha_slider.setMaximum(5)
+        # self.alpha_slider.setSingleStep(5)
+        self.alpha_slider.setPageStep(1)
         self.alpha_slider.setTickPosition(QSlider.TicksAbove | QSlider.TicksBelow)
-        self.alpha_slider.setTickInterval(32)
+        self.alpha_slider.setTickInterval(1)
         self.alpha_slider.valueChanged.connect(self.update_alpha)
         toolbar.layout().addWidget(self.alpha_slider)
         self.alpha_label = QLabel('0%')
@@ -252,9 +252,9 @@ class PlanWidget(QWidget):
         self.tool_move_block.uncheck()
     
     def update_alpha(self, value):
-        alpha = 255 - value
+        alpha = 255 - value*25
         settings.alpha = alpha
-        percent = int(value/255*100)
+        percent = int(value*10)
         self.alpha_label.setText(f'{percent}%')
         self.view.draw()
 
