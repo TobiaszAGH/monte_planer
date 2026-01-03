@@ -1,6 +1,6 @@
 import sys
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QAction
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QAction, QMenu
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QIcon
 
@@ -51,27 +51,35 @@ class MainWindow(QMainWindow):
         backup_action = QAction('Stwórz kopię zapasową', self)
         backup_action.triggered.connect(self.backup_data)
 
+        export_action = QAction('&Eksportuj', self)
+        export_action.triggered.connect(self.tabs.plan.export)
+        
+
         menu = self.menuBar()
         file_menu = menu.addMenu('&Plik')
         file_menu.addActions([
             load_action,
-            backup_action
+            backup_action,
+            export_action
         ])
 
-        clear_unl_les_action = QAction('Wyczyść &niezablokowane', self)
+        plan_menu = menu.addMenu('&Lekcje')
+        clear_menu = plan_menu.addMenu('&Wyczyść')
+
+        clear_unl_les_action = QAction('&Niezablokowane', self)
         clear_unl_les_action.triggered.connect(self.clear_unl_lessons)
-        clear_all_les_action = QAction('Wyczyść &wszystkie', self)
+        clear_all_les_action = QAction('&Wszystkie', self)
         clear_all_les_action.triggered.connect(self.clear_all_lessons)
+        clear_menu.addActions([clear_unl_les_action, clear_all_les_action])
+
         color_lessons_action = QAction('&Uzupełnij plan', self)
         color_lessons_action.triggered.connect(self.color_lessons)
         lock_all_action = QAction('&Zablokuj wszystkie', self)
         lock_all_action.triggered.connect(self.lock_all_lessons)
         unlock_all_action = QAction('&Odblokuj wszystkie', self)
         unlock_all_action.triggered.connect(self.unlock_all_lessons)
-        plan_menu = menu.addMenu('&Lekcje')
+
         plan_menu.addActions([
-            clear_unl_les_action,
-            clear_all_les_action,
             color_lessons_action,
             lock_all_action,
             unlock_all_action
@@ -101,6 +109,9 @@ class MainWindow(QMainWindow):
             return
         shutil.copy(self.db_name, path)
         return True
+    
+    def export(self):
+        self.tabs.plan.export
     
     def clear_unl_lessons(self):
         self.db.clear_all_lesson_blocks(leave_locked=True)

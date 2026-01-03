@@ -86,10 +86,6 @@ class PlanWidget(QWidget):
 
         toolbar.layout().addStretch()
 
-        export_btn = QPushButton('Eksportuj')
-        toolbar.layout().addWidget(export_btn)
-        export_btn.clicked.connect(self.render_plans_for_students)
-
         self.view = MyView(self)
         self.hidden_view = MyView(self)
         self.class_filter = FilterWidget(self, self.view, self.tool_add_custom)
@@ -108,7 +104,7 @@ class PlanWidget(QWidget):
         layout.addWidget(self.view)
         self.load_data(self.db)
 
-    def render_plans_for_students(self):
+    def export(self):
         settings.alpha = 255 
         settings.hide_empty_blocks = True
         settings.draw_blocks_full_width = False
