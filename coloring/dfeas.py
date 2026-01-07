@@ -2,7 +2,7 @@ from .graphs import *
 from data import Data, LessonBlockDB, Lesson
 from queue import PriorityQueue
 from itertools import count
-from random import choice
+from random import choice, randint
 from matplotlib import pyplot as plt
 
 # def first_feasible(lesson: Lesson, feas, days, adj_colors):
@@ -72,23 +72,23 @@ def mutate(les_g, bl_g, feas, coloring: dict) -> tuple[dict, int]:
         return coloring, 0
     lesson = uncolored.pop()
 
-
-    # force it randomly into solution
-    block = choice(feas[lesson])
-    child[lesson] = block
-    # uncolor all nodes unhappy about it
-    for neighbour in les_g[lesson]:
-        n_block = child[neighbour]
-        if n_block == block or n_block in bl_g[block]:
-            child[neighbour] = None
-            uncolored.append(neighbour)
-    for other_lesson in lesson.subject.lessons:
-        if other_lesson == lesson:
-            continue
-        if other_lesson in child:
-            child[other_lesson] = None
-            uncolored.append(other_lesson)
-        # if other_lesson not in
+    for _ in range(randint(1,5)):
+        # force it randomly into solution
+        block = choice(feas[lesson])
+        child[lesson] = block
+        # uncolor all nodes unhappy about it
+        for neighbour in les_g[lesson]:
+            n_block = child[neighbour]
+            if n_block == block or n_block in bl_g[block]:
+                child[neighbour] = None
+                uncolored.append(neighbour)
+        for other_lesson in lesson.subject.lessons:
+            if other_lesson == lesson:
+                continue
+            if other_lesson in child:
+                child[other_lesson] = None
+                uncolored.append(other_lesson)
+            # if other_lesson not in
         
     # try to fit uncolored lessons in
     queue = []
@@ -149,8 +149,8 @@ def solve(db: Data, verbose=False):
     # genetic loop
     pop_size = 200
     generations = 10
-    cutoff = 25
-    num_of_children = int(pop_size/cutoff) - 1
+    cutoff = 50
+    num_of_children = int(pop_size/cutoff) -1 
 
     cost = sum([len(les.subject.students) for les, block in coloring.items() if block is None])
     population = [(coloring, cost)]
