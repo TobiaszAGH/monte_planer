@@ -1,0 +1,17 @@
+@startuml block
+start
+:Stwórz pusty graf;
+repeat
+    :Weź kolejny dzień;
+    repeat
+        :Dodaj wszystkie bloki z tego dnia do grafu;
+        :Weź kolejną parę bloków z tego dnia;
+        if (Bloki nachodzą na siebie?) then (tak)
+            :Dodaj krawędź między blokami;
+        else (nie)
+        endif
+    repeat while (Wszystkie pary?) is (nie) not (tak)
+repeat while (Wszytkie dni?) is (nie) not (tak)
+:Zwróć graf;
+end
+@enduml

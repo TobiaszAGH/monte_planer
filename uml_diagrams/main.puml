@@ -1,0 +1,14 @@
+@startuml main
+start
+fork
+    :Stwórz graf lekcji;
+fork again
+    :Stwórz graf bloków;
+end fork
+:Przygotuj początkową populację;
+while (Było wystarczająco pokoleń) is (nie) 
+    :Stwórz kolejne pokolenie;
+endwhile (tak)
+:Zaprezentuj najlepsze rozwiązanie;
+end
+@enduml

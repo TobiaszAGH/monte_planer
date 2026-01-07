@@ -1,0 +1,14 @@
+@startuml generation
+start
+:Wybierz najlepsze rozwiązania i usuń resztę;
+
+repeat
+    :Weź kolejne rozwiązanie;
+    repeat
+        :Zmutuj rozwiązanie i dopisz je do populacji;
+    repeat while (Wystarczająca liczba dzieci?) is (nie) not (tak)
+repeat while (Wszystkie rozwiązania rozważone?) is (nie) not (tak)
+:Uszereguj populcję według oceny rozwiązania;
+:Zwróć populację;
+end
+@enduml

@@ -1,0 +1,20 @@
+@startuml mutate
+start
+:Wylosuj liczbę mutacji;
+
+repeat
+    :Wybierz losowo lekcję nieprzypisaną do bloku;
+    :Przypisz ją do losowo wybranego bloku;
+    :Usuń przypisanie wszystkim lekcjom wchodzącym w konflikt z wybraną lekcją;
+repeat while (Czy wystarczająco mutacji?) is (nie) not (tak)
+:Uszereguj nieprzypisane lekcje według rosnącej liczby możliwych bloków;
+repeat
+    :Weź kolejną nieprzypisaną lekcję;
+    if (Da się ją przypisać do bloku bez tworzenie konfliktu) then (tak)
+        :Przypisz ją do pierwszego możliwego bloku;
+    else (nie)
+    endif
+repeat while (Wszystkie nieprzypisane lekcje rozważone?) is (nie) not (tak)
+:Zwróć rozwiązanie;
+end
+@enduml

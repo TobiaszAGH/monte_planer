@@ -1,0 +1,48 @@
+@startuml lesson
+start
+:Stwórz pusty graf;
+repeat
+    :Weź kolejną klasę;
+    :Umieść wszystkie przedmioty z tej klasy w grafie;
+    repeat
+        :Weź parę przedmiotów z klasy;
+        if (Czy przedmioty mają wspólnego ucznia) then (tak)
+            :Dodaj krawędź między nimi;
+        else (nie)
+        endif    
+    repeat while (Wszystkie pary zostały rozważone?) is (nie) not (tak)
+repeat while (Wszystkie klasy?) is (nie) not (tak)
+repeat
+    :Weź parę przedmiotów z całego grafu;
+    if (Ten sam nauczyciel) then (tak)
+        :Dodaj krawędź między nimi;
+    else (nie)
+    endif
+repeat while (Wszytkie pary rozważone?) is (nie) not (tak)
+repeat
+    :Weź kolejny przedmiot;
+    repeat
+        :Weź kolejną lekcję z przedmiotu;
+        :Połącz lekcję ze wszystkimi sąsiadami przedmiotu
+        i pozostałymi lekcjami przedmiotu;
+        repeat
+            :Weź kolejny blok;
+            if (Czy blok ma inną długość jak lekcja?) then (tak)
+            (nie) elseif (Czy nauczyciel pracuje wtedy w szkole?) then (nie)
+            (tak) elseif (Czy nie dodanie tak tej lekcji 
+spowoduje powstanie konfliktu?) then (tak)
+            else (nie)
+                :Dodaj blok do listy możliwości;
+            endif 
+        repeat while (Wszystkie bloki rozważone) is (nie) not (tak)
+        if (Lista możliwości jest pusta lub lekcja jest zablokowana) then (tak)
+            :Usuń lekcję z grafu;
+        else (nie)
+        endif
+    repeat while (Wszystkie lekcje rozważone?) is (nie) not (tak)
+
+repeat while (Wszytkie przedmioty rozważone?) is (nie) not (tak)
+:Zwróć graf;
+
+end
+@enduml
