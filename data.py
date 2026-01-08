@@ -202,7 +202,7 @@ class Data():
     
     def set_all_lessons_locked(self, locked=True) -> None:
         for lesson in self.session.query(Lesson).all():
-            lesson.block_locked = locked
+            lesson.block_locked = locked and (lesson.block is not None)
         self.session.commit()
     
     def update_lesson_classroom(self, lesson: Lesson, classroom: Classroom) -> None:
