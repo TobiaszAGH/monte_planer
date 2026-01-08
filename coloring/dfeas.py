@@ -36,7 +36,8 @@ def dfeas(les_g, bl_g, feas) -> dict[Lesson, LessonBlockDB]:
         adj_colors[lesson] = set()
         # first lessons with fewer feasible blocks
         # if tied, longer lessons go first
-        queue.put((len(feas[lesson]), -lesson.length, next(counter), lesson))
+        queue.put((randint(1, len(les_g.nodes)), next(counter), lesson))
+        # queue.put((len(feas[lesson]), -lesson.length, next(counter), lesson))
 
 
     # greedily color the graph
@@ -44,16 +45,21 @@ def dfeas(les_g, bl_g, feas) -> dict[Lesson, LessonBlockDB]:
         lesson = queue.get()[-1]
 
         # get first feasible block
-        first_feasible = None
+        # first_feasible = None
+        feasible = []
         for block in feas[lesson]:
             if block.day in days[lesson.subject]:
                 continue
             if block in adj_colors[lesson]:
                 continue
-            first_feasible = block 
+            # first_feasible = block 
+            feasible.append(block)
             break 
-        colors[lesson] = first_feasible
-
+        # colors[lesson] = first_feasible
+        if len(feasible):
+            colors[lesson] = choice(feasible)
+        else:
+            colors[lesson] = None
         if block:
             for neighbour in les_g[lesson]:
                 adj_colors[neighbour].add(block)
@@ -72,7 +78,7 @@ def mutate(les_g, bl_g, feas, coloring: dict) -> tuple[dict, int]:
         return coloring, 0
     lesson = uncolored.pop()
 
-    for _ in range(randint(1,5)):
+    for _ in range(randint(0,4)):
         # force it randomly into solution
         block = choice(feas[lesson])
         child[lesson] = block
@@ -142,22 +148,28 @@ def solve(db: Data, verbose=False):
     bl_g = generate_block_graph(db)
 
     # generate initial coloring
-    coloring = dfeas(les_g, bl_g, feas)
-    if not len(coloring):
-        return coloring
+    # coloring = dfeas(les_g, bl_g, feas)
+    # if not len(coloring):
+        # return coloring
     
     # genetic loop
-    pop_size = 200
-    generations = 10
-    cutoff = 50
-    num_of_children = int(pop_size/cutoff) -1 
+    pop_size = 6000
+    generations = 30
+    cutoff = int(pop_size/4)
+    num_of_children = int(pop_size/cutoff)
+    population = []
+    for _ in range(pop_size):
 
-    cost = sum([len(les.subject.students) for les, block in coloring.items() if block is None])
-    population = [(coloring, cost)]
-    for _ in range(1,pop_size):
-        population.append(mutate(les_g, bl_g, feas, coloring))
+        coloring = dfeas(les_g, bl_g, feas)
+        cost = sum([len(les.subject.students) for les, block in coloring.items() if block is None])
+        population.append((coloring, cost))
+        
+    # for _ in range(1,pop_size):
+        # population.append(mutate(les_g, bl_g, feas, coloring))
     population.sort(key= lambda x: x[1])
-    best_scores = [cost]
+    best_scores = [population[0][1]]
+    cutoffs = [population[cutoff][1]]
+    goat = (population[0])
     if verbose:
         print('Generation 0')
         print(f'Best score: {population[0][1]}')
@@ -166,22 +178,28 @@ def solve(db: Data, verbose=False):
     for i in range(generations):
         new_pop = []
         for col in population[:cutoff]:
-            new_pop.append(col)
+            # new_pop.append(col)
             for _ in range(num_of_children):
                 new_pop.append(mutate(les_g, bl_g, feas, col[0]))
         new_pop.sort(key=lambda x: x[1])
         population = new_pop
-        best_scores.append(population[0][1])
+        bs = population[0][1]
+        if bs < goat[1]:
+            goat = population[0]
+        best_scores.append(bs)
+        cutoffs.append(population[cutoff][1])
         if verbose:
             print(f'Generation {i+1}')
             print(f'Best score: {population[0][1]}')
             print(f'Cutoff score: {population[cutoff][1]}')
+            print(f'Pop size: {len(population)}')
             print()
 
     if verbose:
         plt.plot(best_scores)
+        plt.plot(cutoffs)
         plt.show()
-    coloring = population[0][0]
+    coloring = goat[0]
 
     return coloring
 
