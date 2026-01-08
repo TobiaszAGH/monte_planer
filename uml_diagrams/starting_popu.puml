@@ -1,12 +1,16 @@
 @startuml pop
 start
-:Uszereguj lekcje według rosnącej liczby możliwych bloków;
 repeat
-    :Przypisz kolejną lekcję do pierwszego możliwego bloku;
-repeat while (Wszystkie lekcje przypisane do bloków?) is (nie) not (tak)
-:Dopisz rozwiązanie do populacji;
-repeat
-    :Zmutuj pierwsze rozwiązanie i dopisz do populacji;
+    :Uszereguj lekcje losowo;
+    repeat
+        :Weź kolejną lekcję;
+        if (Da się przypisać do bloku bez powodowania konfliktu) then (tak)
+            :Przypisz kolejną lekcję do losowego możliwego bloku;
+        else (nie)
+            :Zapisz, że lekcja nie jest przypisana do żadnego bloku;
+        endif
+    repeat while (Wszystkie lekcje przypisane do bloków?) is (nie) not (tak)
+    :Dopisz rozwiązanie do populacji;
 repeat while (Populacja jest pełna?) is (nie) not (tak)
 :Uszereguj populację według oceny rozwiązania;
 :Zwróć populację;
