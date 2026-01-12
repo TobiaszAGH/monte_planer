@@ -11,6 +11,7 @@ import sys
 from data import Data
 from tabs import Tabs
 from functions import get_user_data_dir
+from settings_dialog import SettingsDialog
 
 
 
@@ -24,6 +25,7 @@ basedir = os.path.dirname(__file__)
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.col_set = None
 
 
         if not os.path.isfile(db_name_path):
@@ -72,17 +74,25 @@ class MainWindow(QMainWindow):
         clear_all_les_action.triggered.connect(self.clear_all_lessons)
         clear_menu.addActions([clear_unl_les_action, clear_all_les_action])
 
-        color_lessons_action = QAction('&Uzupełnij plan', self)
-        color_lessons_action.triggered.connect(self.color_lessons)
         lock_all_action = QAction('&Zablokuj wszystkie', self)
         lock_all_action.triggered.connect(self.lock_all_lessons)
         unlock_all_action = QAction('&Odblokuj wszystkie', self)
         unlock_all_action.triggered.connect(self.unlock_all_lessons)
 
         plan_menu.addActions([
-            color_lessons_action,
             lock_all_action,
             unlock_all_action
+        ])
+
+        coloring_menu = menu.addMenu('&Uzupełnianie')
+        color_lessons_action = QAction('&Uzupełnij plan', self)
+        color_lessons_action.triggered.connect(self.color_lessons)
+        settings_action = QAction('U&stawienia', self)
+        settings_action.triggered.connect(self.coloring_settings)
+
+        coloring_menu.addActions([
+            color_lessons_action,
+            settings_action
         ])
 
 
@@ -110,9 +120,6 @@ class MainWindow(QMainWindow):
         shutil.copy(self.db_name, path)
         return True
     
-    def export(self):
-        self.tabs.plan.export
-    
     def clear_unl_lessons(self):
         self.db.clear_all_lesson_blocks(leave_locked=True)
         self.tabs.refresh()
@@ -134,6 +141,12 @@ class MainWindow(QMainWindow):
     def unlock_all_lessons(self):
         self.db.set_all_lessons_locked(False)
         self.tabs.refresh()
+
+    def coloring_settings(self): 
+        if self.col_set is None:
+            self.col_set = SettingsDialog()
+        self.col_set.show()
+
 
 
 app = QApplication(sys.argv)
