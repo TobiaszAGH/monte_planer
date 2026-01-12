@@ -29,4 +29,10 @@ class Settings():
         self.italicize_unlocked_lessons = True
         self.move_lessons_from = None
 
+        # algorithm
+        self.verbose = True
+        self.pop_size= 6000
+        self.generations = 30
+        self.cutoff = 0.25
+
 settings = Settings()

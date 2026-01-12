@@ -272,7 +272,7 @@ class PlanWidget(QWidget):
 
     def dfeas(self):
         self.db.clear_all_lesson_blocks(leave_locked=True)
-        c = solve(self.db, verbose=True)
+        c = solve(self.db)
         # print(c)
         for lesson, block in c.items():
             if lesson.block_locked:

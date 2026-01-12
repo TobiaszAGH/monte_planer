@@ -4,6 +4,7 @@ from queue import PriorityQueue
 from itertools import count
 from random import choice, randint
 from matplotlib import pyplot as plt
+from db_config import settings
 
 # def first_feasible(lesson: Lesson, feas, days, adj_colors):
     
@@ -142,7 +143,8 @@ def mutate(les_g, bl_g, feas, coloring: dict) -> tuple[dict, int]:
 
 
 
-def solve(db: Data, verbose=False):
+def solve(db: Data):
+    verbose = settings.verbose
     # create graphs
     les_g, labels, feas = generate_lesson_graph(db)
     bl_g = generate_block_graph(db)
@@ -153,9 +155,9 @@ def solve(db: Data, verbose=False):
         # return coloring
     
     # genetic loop
-    pop_size = 6000
-    generations = 30
-    cutoff = int(pop_size/4)
+    pop_size = settings.pop_size
+    generations = settings.generations
+    cutoff = int(settings.cutoff*pop_size)
     num_of_children = int(pop_size/cutoff)
     population = []
     for _ in range(pop_size):
@@ -196,8 +198,9 @@ def solve(db: Data, verbose=False):
             print()
 
     if verbose:
-        plt.plot(best_scores)
-        plt.plot(cutoffs)
+        l1, = plt.plot(best_scores)
+        l2, = plt.plot(cutoffs)
+        plt.legend([l1, l2],['Najlepszy wynik', 'Wynik odcięcia'])
         plt.show()
     coloring = goat[0]
 
