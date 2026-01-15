@@ -9,7 +9,7 @@ repeat
         else (nie)
             :Zapisz, że lekcja nie jest przypisana do żadnego bloku;
         endif
-    repeat while (Wszystkie lekcje przypisane do bloków?) is (nie) not (tak)
+    repeat while (Wszystkie lekcje rozważone?) is (nie) not (tak)
     :Dopisz rozwiązanie do populacji;
 repeat while (Populacja jest pełna?) is (nie) not (tak)
 :Uszereguj populację według oceny rozwiązania;

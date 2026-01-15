@@ -1,3 +1,3 @@
-from .planpainter import *
-from .backtracking import *
 from .graphs import *
+from .coloring_worker import *
+from .functions import *

@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QFileDialog,\
-      QGraphicsTextItem, QStyleOptionGraphicsItem, QStackedWidget, QCheckBox, QApplication, QMessageBox
-from PyQt5.QtGui import QPainter, QTransform, QPixmap
+      QGraphicsTextItem, QCheckBox, QApplication, QMessageBox
+from PyQt5.QtGui import QPainter, QPixmap
 from PyQt5.QtCore import Qt
 from data import Data
 from .mode_btn import ModeBtn
@@ -8,16 +8,11 @@ from .plan_view import MyView
 from .filter import FilterWidget
 from .remaining_lessons import RemainingLessonsWindow
 from db_config import settings
-from coloring import find_exact_solutions
-from coloring.dfeas import solve
-from coloring.planpainter import generate_lesson_graph, do_the_magic
+from coloring import ColoringThread
 import os
 from pathlib import Path
 from matplotlib import pyplot as plt
-from networkx import draw_networkx
-from random import choice
 from PyQt5.QtPrintSupport import QPrinter
-from .export_thread import exportThread
 from progress_dialog import ProgressDialog
         
 
@@ -267,44 +262,40 @@ class PlanWidget(QWidget):
         self.rem_les_win.show()
         self.rem_les_win.load()
 
-    def generate_graph(self):
-        G, labels = generate_lesson_graph(self.db)
-        draw_networkx(G, labels=labels)
-        plt.show()
-
-    def dfeas(self):
+    def color(self):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         self.db.clear_all_lesson_blocks(leave_locked=True)
-        c = solve(self.db)
-        # print(c)
+        self.bar = ProgressDialog('Uzupełnianie', settings.generations)
+        self.thread = ColoringThread(self.db)
+        self.thread.next_generation.connect(self.update_bar)
+        self.thread.finished.connect(self.show_solution)
+        self.thread.start()
+
+
+    def update_bar(self, gen, score):
+        self.bar.show()
+        self.bar.set_label(f'Pokolenie {gen}: {score}')
+        self.bar.next()
+
+
+    def show_solution(self, c, best_scores, cutoffs): 
+        self.bar = None
         for lesson, block in c.items():
             if lesson.block_locked:
                 print('dupadupa')
             if lesson.block == block:
                 continue
             self.db.add_lesson_to_block(lesson, block, lock=False)
-        # self.view.draw()
+        self.view.draw()
+        QApplication.restoreOverrideCursor()
+        if settings.verbose:
+            l1, = plt.plot(best_scores)
+            l2, = plt.plot(cutoffs)
+            plt.legend([l1, l2],['Najlepszy wynik', 'Wynik odcięcia'])
+            plt.show()
+        # QMessageBox.information(self, 'Gotowe', 'Eksport zakończony')
+        
 
-    def exact(self):
-        c = do_the_magic(self.db)
-        # for lesson, block in c.items():
-            # self.db.add_lesson_to_block(lesson, block)
-        self.view.draw()
-        return
-        best_cost, best_sols = find_exact_solutions(self.db)
-        # print(best_cost)
-        # for n, sol in enumerate(best_sols):
-        #     print(f'Rozwiązanie {n+1}:')
-        #     for lesson, block in sol.items():
-        #         print(lesson.subject.get_name(), block.print_time() if block else 'nieprzypisana')
-        #     print()
-        solution = choice(best_sols)
-        # tutaj będzie kiedyś lepsza funkcja porównująca rozwiązania
-        for lesson in self.db.all_lessons():
-            block = solution[lesson] if lesson in solution.keys() else None
-            if lesson.block == block:
-                continue
-            self.db.add_lesson_to_block(lesson, block, lock=False)
-        self.view.draw()
 
 
     def clear_blocks(self):

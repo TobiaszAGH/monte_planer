@@ -6,22 +6,9 @@ from random import choice, randint
 from matplotlib import pyplot as plt
 from db_config import settings
 
-# def first_feasible(lesson: Lesson, feas, days, adj_colors):
-    
-#     return None
 
 
-# def set_block(lesson: Lesson, block:LessonBlockDB, les_g, bl_g, adj_colors, colors, days):
-#     colors[lesson] = block
-#     if not block:
-#         return False
-#     for neighbour in les_g[lesson]:
-#         adj_colors[neighbour].add(block)
-#         adj_colors[neighbour].update(bl_g[block])
-#     days[lesson.subject].append(block.day)
-#     return True
-
-def dfeas(les_g, bl_g, feas) -> dict[Lesson, LessonBlockDB]:
+def crazy(les_g, bl_g, feas) -> dict[Lesson, LessonBlockDB]:
     
             
     # initialize data structures
@@ -140,69 +127,4 @@ def mutate(les_g, bl_g, feas, coloring: dict) -> tuple[dict, int]:
     # calculate score
     score = sum([len(les.subject.students) for les in uncolored])
     return child, score
-
-
-
-def solve(db: Data):
-    verbose = settings.verbose
-    # create graphs
-    les_g, labels, feas = generate_lesson_graph(db)
-    bl_g = generate_block_graph(db)
-
-    # generate initial coloring
-    # coloring = dfeas(les_g, bl_g, feas)
-    # if not len(coloring):
-        # return coloring
-    
-    # genetic loop
-    pop_size = settings.pop_size
-    generations = settings.generations
-    cutoff = int(settings.cutoff*pop_size)
-    num_of_children = int(pop_size/cutoff)
-    population = []
-    for _ in range(pop_size):
-
-        coloring = dfeas(les_g, bl_g, feas)
-        cost = sum([len(les.subject.students) for les, block in coloring.items() if block is None])
-        population.append((coloring, cost))
-        
-    # for _ in range(1,pop_size):
-        # population.append(mutate(les_g, bl_g, feas, coloring))
-    population.sort(key= lambda x: x[1])
-    best_scores = [population[0][1]]
-    cutoffs = [population[cutoff][1]]
-    goat = (population[0])
-    if verbose:
-        print('Generation 0')
-        print(f'Best score: {population[0][1]}')
-        print(f'Cutoff score: {population[cutoff][1]}')
-        print()
-    for i in range(generations):
-        new_pop = []
-        for col in population[:cutoff]:
-            # new_pop.append(col)
-            for _ in range(num_of_children):
-                new_pop.append(mutate(les_g, bl_g, feas, col[0]))
-        new_pop.sort(key=lambda x: x[1])
-        population = new_pop
-        bs = population[0][1]
-        if bs < goat[1]:
-            goat = population[0]
-        best_scores.append(bs)
-        cutoffs.append(population[cutoff][1])
-        if verbose:
-            print(f'Generation {i+1}')
-            print(f'Best score: {population[0][1]}')
-            print(f'Cutoff score: {population[cutoff][1]}')
-            print(f'Pop size: {len(population)}')
-            print()
-
-    if verbose:
-        l1, = plt.plot(best_scores)
-        l2, = plt.plot(cutoffs)
-        plt.legend([l1, l2],['Najlepszy wynik', 'Wynik odcięcia'])
-        plt.show()
-    coloring = goat[0]
-
-    return coloring
 

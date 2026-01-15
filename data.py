@@ -406,7 +406,3 @@ class Data():
             collisions.append(f'{subject.name} musi odbywać się w {subject.required_classroom.name}')
         
         return collisions
-        
-
-
- 
