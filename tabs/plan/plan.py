@@ -1,6 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QFileDialog,\
-      QGraphicsTextItem, QStyleOptionGraphicsItem, QStackedWidget, QCheckBox, QApplication
-from PyQt5.QtPrintSupport import QPrinter
+      QGraphicsTextItem, QStyleOptionGraphicsItem, QStackedWidget, QCheckBox, QApplication, QMessageBox
 from PyQt5.QtGui import QPainter, QTransform, QPixmap
 from PyQt5.QtCore import Qt
 from data import Data
@@ -17,6 +16,9 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from networkx import draw_networkx
 from random import choice
+from PyQt5.QtPrintSupport import QPrinter
+from .export_thread import exportThread
+from progress_dialog import ProgressDialog
         
 
 class PlanWidget(QWidget):
@@ -111,6 +113,7 @@ class PlanWidget(QWidget):
         settings.draw_custom_blocks = True
         settings.italicize_unlocked_lessons = False
 
+
         scene = self.hidden_view.scene()
         parent_folder = QFileDialog.getExistingDirectory(self, 'Wybierz folder', str(Path.home()))
         if not parent_folder:
@@ -144,7 +147,6 @@ class PlanWidget(QWidget):
                 self.hidden_view.filter_func = filter_func
                 self.hidden_view.set_classes([subclass])
                 self.hidden_view.draw()
-
                 self.render(filename, pix, printer, scene)
 
         settings.draw_custom_blocks = False
@@ -159,7 +161,6 @@ class PlanWidget(QWidget):
             self.hidden_view.filter_func = filter_func
             self.hidden_view.set_classes(self.db.all_subclasses())
             self.hidden_view.draw()
-
             self.render(filename, pix, printer, scene)
 
         os.makedirs(f'{parent_folder}/sale', exist_ok=True)
@@ -170,7 +171,6 @@ class PlanWidget(QWidget):
             self.hidden_view.filter_func = filter_func
             self.hidden_view.set_classes(self.db.all_subclasses())
             self.hidden_view.draw()
-
             self.render(filename, pix, printer, scene)
 
 
@@ -180,7 +180,9 @@ class PlanWidget(QWidget):
         settings.draw_custom_blocks = True
         settings.italicize_unlocked_lessons = True
         self.update_alpha(self.alpha_slider.value())
+     
         QApplication.restoreOverrideCursor()
+        QMessageBox.information(self, 'Gotowe', 'Eksport zakończony')
 
     def render(self, filename, pix, printer, scene):
         pix.fill(Qt.white)
