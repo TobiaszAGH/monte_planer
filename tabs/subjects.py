@@ -119,10 +119,10 @@ class SubjectsWidget(QWidget):
 
         # student list
         self.student_list = QGridLayout()
-        main_checkbox = QCheckBox()
-        main_checkbox.toggled.connect(self.toggle_all_checkboxes)
+        self.main_checkbox = QCheckBox()
+        self.main_checkbox.toggled.connect(self.toggle_all_checkboxes)
         self.student_list.addWidget(QLabel("Uczniowie:"), 0, 0)
-        self.student_list.addWidget(main_checkbox, 0, 1)
+        self.student_list.addWidget(self.main_checkbox, 0, 1)
         self.student_list.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         self.frame_layout.addLayout(self.student_list)
 
@@ -238,6 +238,10 @@ class SubjectsWidget(QWidget):
                 checkbox.blockSignals(True)
                 checkbox.setChecked(subject in checkbox.student.subjects)
                 checkbox.blockSignals(False)
+        
+        self.main_checkbox.blockSignals(True)
+        self.main_checkbox.setChecked(False)
+        self.main_checkbox.blockSignals(False)
 
 
 
@@ -259,11 +263,11 @@ class SubjectsWidget(QWidget):
             self.list.setCurrentText(subject.name)
 
 
-    def toggle_all_checkboxes(self):
+    def toggle_all_checkboxes(self, value):
         checkboxes: list[QCheckBox] = self.frame.findChildren(QCheckBox)
-        new_state = checkboxes[0].isChecked()
-        for chechbox in checkboxes:
-            chechbox.setChecked(new_state)
+        # new_state = checkboxes[0].isChecked()
+        for chechbox in checkboxes[2:]:
+            chechbox.setChecked(value)
 
 
     def checkbox_clicked(self):
