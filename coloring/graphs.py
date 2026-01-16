@@ -65,7 +65,8 @@ def generate_lesson_graph(db: Data):
         for pair in combinations(subject.lessons, 2):
             graph.add_edge(*pair)
         # subject is no longer needed
-        graph.remove_node(subject)
+        if subject in graph.nodes:
+            graph.remove_node(subject)
     to_remove = []
     for lesson in graph.nodes:
         if len(feasible_blocks[lesson]) == 0 \

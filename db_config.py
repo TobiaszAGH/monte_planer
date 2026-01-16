@@ -28,6 +28,7 @@ class Settings():
         self.alpha = 255
         self.italicize_unlocked_lessons = True
         self.move_lessons_from = None
+        self.swap_lessons_from = None
 
         # algorithm
         self.verbose = True

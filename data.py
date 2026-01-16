@@ -51,6 +51,22 @@ class Data():
     # subclasses
     def all_subclasses(self) -> List[Subclass]:
         return self.session.query(Subclass).join(Class).order_by(Class.order).order_by(Subclass.class_id).all()
+    
+    def copy_subjects_to_subclass(self, origin: Subclass|Class, target: Subclass|Class):
+        if type(origin) != type(target):
+            return
+
+        target_names = [s.name for s in target.subjects]
+        subject: Subject
+        for subject in origin.subjects:
+            if subject.name in target_names:
+                continue
+            copy = Subject(teacher=subject.teacher, name=subject.name, basic=subject.basic, short_name=subject.short_name, color=subject.color)
+            self.session.add(copy)
+            target.subjects.append(copy)
+            for lesson in subject.lessons:
+                self.create_lesson(lesson.length, copy)
+        self.session.commit()
 
     # classes
     def all_classes(self) -> List[Class]:

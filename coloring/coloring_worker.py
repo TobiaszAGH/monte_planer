@@ -1,9 +1,7 @@
 from .graphs import generate_block_graph, generate_lesson_graph
 from .functions import crazy, mutate
-from PyQt5.QtCore import QThread, pyqtSignal, Qt
+from PyQt5.QtCore import QThread, pyqtSignal
 from db_config import settings
-from matplotlib import pyplot as plt
-# from progress_dialog import ProgressDialog
 
 class ColoringThread(QThread):
     next_generation = pyqtSignal(int, int)
@@ -14,16 +12,10 @@ class ColoringThread(QThread):
         self.db = db
 
     def run(self):
-        db = self.db
-        verbose = settings.verbose
         # create graphs
-        les_g, labels, feas = generate_lesson_graph(db)
-        bl_g = generate_block_graph(db)
+        les_g, labels, feas = generate_lesson_graph(self.db)
+        bl_g = generate_block_graph(self.db)
 
-        # generate initial coloring
-        # coloring = dfeas(les_g, bl_g, feas)
-        # if not len(coloring):
-            # return coloring
         
         # genetic loop
         pop_size = settings.pop_size
@@ -44,11 +36,6 @@ class ColoringThread(QThread):
         cutoffs = [population[cutoff][1]]
         goat = (population[0])
         self.next_generation.emit(0, population[0][1])
-        # if verbose:
-        #     print('Generation 0')
-        #     print(f'Best score: {population[0][1]}')
-        #     print(f'Cutoff score: {population[cutoff][1]}')
-        #     print()
         for i in range(generations):
             new_pop = []
             for col in population[:cutoff]:
@@ -63,12 +50,6 @@ class ColoringThread(QThread):
             best_scores.append(bs)
             cutoffs.append(population[cutoff][1])
             self.next_generation.emit(i+1, population[0][1])
-            # if verbose:
-            #     print(f'Generation {i+1}')
-            #     print(f'Best score: {population[0][1]}')
-            #     print(f'Cutoff score: {population[cutoff][1]}')
-            #     print(f'Pop size: {len(population)}')
-            #     print()
 
         
         coloring = goat[0]

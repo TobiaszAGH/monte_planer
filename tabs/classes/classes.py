@@ -22,9 +22,9 @@ class AddSubjectDialog(QDialog):
 
         self.type_list = QComboBox()
         layout.addWidget(self.type_list)
-        self.type_list.addItems(['Przedmiot podstawowy', 'Przedmiot wspólny'])
-        self.type_list.setItemData(0, True)
-        self.type_list.setItemData(1, False)
+        self.type_list.addItems(['Przedmiot wspólny', 'Przedmiot podstawowy'])
+        self.type_list.setItemData(0, False)
+        self.type_list.setItemData(1, True)
         self.type_list.currentTextChanged.connect(self.update_subject_list)
 
         self.subject_list = QComboBox()
@@ -44,6 +44,7 @@ class AddSubjectDialog(QDialog):
             subjects = self.subclass.subjects
         else:
             subjects = self.subclass.my_class.subjects
+        subjects.sort(key=lambda s: s.name)
         self.subject_list.clear()
         for subject in subjects:
             self.subject_list.addItem(subject.name, subject) 
@@ -199,8 +200,8 @@ class ClassesWidget(QWidget):
             student_name_label = QLabel('Uczeń')
             student_name_label.setMinimumWidth(100)
             student_list.addWidget(student_name_label, 0, 1)
-            student_list.addWidget(QLabel("Przedmioty podstawowe"), 0, 2)
-            student_list.addWidget(QLabel("Przedmioty wspólne"), 0, 3)
+            student_list.addWidget(QLabel("Przedmioty wspólne"), 0, 2)
+            student_list.addWidget(QLabel("Przedmioty podstawowe"), 0, 3)
 
             #load students
             student: Student
@@ -247,7 +248,7 @@ class ClassesWidget(QWidget):
                         continue
                     self.db.add_subject_to_student(subject, checkbox.student)
                     btn = SubjectButton(self, checkbox.student, subject)
-                    index = student_list.layout().indexOf(checkbox) + 3 - subject.basic
+                    index = student_list.layout().indexOf(checkbox) + 3 - (isinstance(subject.parent(), Subclass))
                     layout = student_list.layout().itemAt(index).layout()
                     layout.insertWidget(layout.count()-1, btn)
 
@@ -266,9 +267,9 @@ class ClassesWidget(QWidget):
         student_list.addWidget(name_label, n, 1)
         #basic subjects
         basic_subject_list = QHBoxLayout()
-        student_list.addLayout(basic_subject_list, n, 2)
+        student_list.addLayout(basic_subject_list, n, 3)
         extra_subject_list = QHBoxLayout()
-        student_list.addLayout(extra_subject_list, n, 3)
+        student_list.addLayout(extra_subject_list, n, 2)
         subject: Subject
         for subject in student.subjects:
             btn = SubjectButton(self, student, subject)

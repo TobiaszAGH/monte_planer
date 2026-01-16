@@ -20,20 +20,30 @@ class LessonBlock(BasicBlock):
         return True
     
     def mousePressEvent(self, event):
-        # print('clicked')
+        source = None
         if settings.move_lessons_from:
-            source_block = settings.move_lessons_from.block
+            source = settings.move_lessons_from
+        if settings.swap_lessons_from:
+            source = settings.swap_lessons_from
+        # print('clicked')
+        if source:
+            source_block = source.block
             if (source_block.my_class == self.block.my_class and source_block.my_class\
               or source_block.subclass == self.block.subclass and source_block.subclass) \
               and source_block.length == self.block.length:
-                lessons = source_block.lessons.copy()
-                for lesson in lessons:
-                    self.db.add_lesson_to_block(lesson, self.block, lesson.block_locked)
+                if settings.move_lessons_from:
+                    lessons = source_block.lessons.copy()
+                    for lesson in lessons:
+                        self.db.add_lesson_to_block(lesson, self.block, lesson.block_locked)
+                else:
+                    source_block.lessons, self.block.lessons = self.block.lessons, source_block.lessons
+                    self.db.session.commit()
 
                 QApplication.restoreOverrideCursor()
-                settings.move_lessons_from.draw_contents()
+                source.draw_contents()
                 self.draw_contents()
                 settings.move_lessons_from = None
+                settings.swap_lessons_from = None
             else:
                 QMessageBox.warning(None, 'Uwaga!', 'Nie można przenieść lekcji do tego bloku.')
         else:
@@ -58,6 +68,9 @@ class LessonBlock(BasicBlock):
             move_lessons_action = QAction('Przenieś lekcje')
             self.menu.insertAction(self.remove_action, move_lessons_action)
             move_lessons_action.triggered.connect(self.move_lessons)
+            swap_lessons_action = QAction('Zamień lekcje')
+            self.menu.insertAction(self.remove_action, swap_lessons_action)
+            swap_lessons_action.triggered.connect(self.swap_lessons)
         action = self.menu.exec(event.globalPos())
 
     def get_colliding_blocks(self):
@@ -141,6 +154,12 @@ class LessonBlock(BasicBlock):
     def move_lessons(self):
         QApplication.setOverrideCursor(Qt.DragMoveCursor)
         settings.move_lessons_from = self
+        settings.swap_lessons_from = None
+
+    def swap_lessons(self):
+        QApplication.setOverrideCursor(Qt.DragMoveCursor)
+        settings.swap_lessons_from = self
+        settings.move_lessons_from = None
 
 
 

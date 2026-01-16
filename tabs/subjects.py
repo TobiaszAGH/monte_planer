@@ -21,6 +21,22 @@ class AddLessonDialog(QDialog):
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
 
+
+class CopySubjectsDialog(QDialog):
+    def __init__(self, parent, targets):
+        super().__init__(parent=parent)
+        self.setWindowTitle('Kopiuj Lekcje')
+        layout = QVBoxLayout(self)
+        self.target_list = QComboBox()
+        layout.addWidget(self.target_list)
+        for target in targets:
+            self.target_list.addItem(target.full_name(), target)
+        buttonBox = QDialogButtonBox()
+        layout.addWidget(buttonBox)
+        buttonBox.setStandardButtons(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        
 class SubjectsWidget(QWidget):
     def __init__(self,parent):
         super().__init__(parent=parent)
@@ -132,6 +148,8 @@ class SubjectsWidget(QWidget):
         new_subject_btn.clicked.connect(self.new_subject)
         remove_subject_btn = new_subject_btn_box.addButton('Usuń przedmiot', QDialogButtonBox.ButtonRole.ActionRole)
         remove_subject_btn.clicked.connect(self.remove_subject)
+        copy_subjects_btn = new_subject_btn_box.addButton('Kopiuj przedmioty', QDialogButtonBox.ButtonRole.ActionRole)
+        copy_subjects_btn.clicked.connect(self.copy_subjects)
         layout.addWidget(new_subject_btn_box)
 
 
@@ -317,6 +335,19 @@ class SubjectsWidget(QWidget):
             return
         self.db.delete_subject(subject)
         self.load_data(self.db)
+
+    def copy_subjects(self):
+        origin = self.type_list.currentData()
+        if isinstance(origin, Subclass):
+            targets = self.db.all_subclasses()
+        else:
+            targets = self.db.all_classes()
+        dialog = CopySubjectsDialog(self, targets)
+        ok = dialog.exec()
+        if not ok:
+            return
+        target = dialog.target_list.currentData()
+        self.db.copy_subjects_to_subclass(origin, target)
 
     def pick_color(self):
         subject = self.list.currentData()
