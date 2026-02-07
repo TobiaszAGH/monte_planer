@@ -7,14 +7,16 @@ class ColoringThread(QThread):
     next_generation = pyqtSignal(int, int)
     finished = pyqtSignal(dict, list, list)
 
-    def __init__(self, db):
+    def __init__(self, les_g, bl_g, feas):
         super().__init__()
-        self.db = db
+        self.les_g = les_g
+        self.bl_g = bl_g
+        self.feas = feas
 
     def run(self):
         # create graphs
-        les_g, labels, feas = generate_lesson_graph(self.db)
-        bl_g = generate_block_graph(self.db)
+        les_g, bl_g, feas = self.les_g, self.bl_g, self.feas
+        
 
         
         # genetic loop

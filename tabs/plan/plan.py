@@ -8,7 +8,7 @@ from .plan_view import MyView
 from .filter import FilterWidget
 from .remaining_lessons import RemainingLessonsWindow
 from db_config import settings
-from coloring import ColoringThread
+from coloring import ColoringThread, generate_lesson_graph, generate_block_graph
 import os
 from pathlib import Path
 from matplotlib import pyplot as plt
@@ -266,7 +266,9 @@ class PlanWidget(QWidget):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         self.db.clear_all_lesson_blocks(leave_locked=True)
         self.bar = ProgressDialog('Uzupełnianie', settings.generations)
-        self.thread = ColoringThread(self.db)
+        les_g, _ , feas = generate_lesson_graph(self.db)
+        bl_g = generate_block_graph(self.db)
+        self.thread = ColoringThread(les_g, bl_g, feas)
         self.thread.next_generation.connect(self.update_bar)
         self.thread.finished.connect(self.show_solution)
         self.thread.start()
